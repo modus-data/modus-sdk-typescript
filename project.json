@@ -1,0 +1,98 @@
+{
+  "name": "modus-sdk-typescript",
+  "sourceRoot": "distribution/clients/typescript/modus-sdk/src",
+  "projectType": "library",
+  "tags": ["scope:sdk", "type:lib", "lang:typescript"],
+  "implicitDependencies": ["modus-api", "agent-service", "openapi-portal"],
+  "targets": {
+    "generate": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        { "projects": ["modus-api", "agent-service"], "target": "openapi:generate" },
+        { "projects": ["openapi-portal"], "target": "build" }
+      ],
+      "options": {
+        "command": "node distribution/clients/typescript/scripts/generate-sdk-from-openapi.mjs",
+        "cwd": "{workspaceRoot}"
+      },
+      "outputs": ["{projectRoot}/src/_generated/**"],
+      "cache": false
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate"],
+      "options": {
+        "command": "pnpm --filter @modus/sdk run build",
+        "cwd": "{workspaceRoot}"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "pnpm --filter @modus/sdk exec vitest run",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": [
+        "default",
+        "{workspaceRoot}/apps/services/*/openapi/v1.json",
+        "{workspaceRoot}/packages/openapi-portal/src/**/*.ts"
+      ]
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate"],
+      "options": {
+        "command": "eslint src tests --max-warnings=0 && pnpm exec tsc -p tsconfig.json --noEmit",
+        "cwd": "{projectRoot}"
+      },
+      "inputs": ["default", "{workspaceRoot}/eslint.config.js"]
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --filter @modus/sdk run clean",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    },
+    "check-docstrings": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash -c 'bash ../scripts/check-sdk-public-docstrings.sh && node ../scripts/check-generated-names.mjs'",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/src/**/*.ts",
+        "{projectRoot}/src/_generated/v1.ts",
+        "{workspaceRoot}/distribution/clients/typescript/scripts/check-sdk-public-docstrings.sh",
+        "{workspaceRoot}/distribution/clients/typescript/scripts/check-generated-names.mjs"
+      ]
+    },
+    "coverage-gaps": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node ../scripts/coverage-gaps.mjs --fail-on-gaps",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true,
+      "inputs": [
+        "{workspaceRoot}/apps/services/*/openapi/v1.json",
+        "{workspaceRoot}/packages/openapi-portal/src/**/*.ts",
+        "{projectRoot}/tests/contract/operation_coverage.ts",
+        "{workspaceRoot}/distribution/clients/typescript/scripts/coverage-gaps.mjs"
+      ]
+    },
+    "openapi-impact": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate"],
+      "options": {
+        "command": "bash ../scripts/ci-openapi-sdk-impact-ts.sh",
+        "cwd": "{projectRoot}"
+      },
+      "cache": false
+    }
+  }
+}
