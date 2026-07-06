@@ -19,6 +19,8 @@
 
 - Shipped examples under `examples/scripts/` (`quickstart`, `modus_chat`, `chat`, `manage_skill`) with revenue / ARR analyst prompts.
 - `skills.conversations(id).get()` accepts an optional `{ messageLimit, beforeMessageIndex }` to request a bounded message window; the response gains an optional `messageWindow` field describing the returned slice. Omit both for the full conversation (unchanged default behavior).
+- **`client.suggestions`** — `list()` returns approved suggested questions (optional `skillId`/`skillIds` filter), `recordEvent()` records an impression/click/dismiss event against a suggestion.
+- **`client.workflows.runs.active(options)` / `activeBySession(sessionIds)`** — list active (queued/pending/running) conversation runs for the current user, or look up active runs for specific conversation thread ids.
 
 ## [0.1.0] — 2026-06-21
 
