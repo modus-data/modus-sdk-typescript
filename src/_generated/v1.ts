@@ -2415,11 +2415,11 @@ export interface components {
              */
             message?: string;
             /**
-             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-opus-4.8, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3.
+             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3.
              * @example claude-sonnet-5
              * @enum {string}
              */
-            model: "claude-sonnet-5" | "claude-opus-4.8" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3";
+            model: "claude-sonnet-5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3";
             /** @description Continue a pending write-approval interrupt from a prior turn. When true, `message` is ignored. */
             approvalContinuation?: boolean;
             /**
@@ -2576,11 +2576,11 @@ export interface components {
              */
             message: string;
             /**
-             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-opus-4.8, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3.
+             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3.
              * @example claude-sonnet-5
              * @enum {string}
              */
-            model: "claude-sonnet-5" | "claude-opus-4.8" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3";
+            model: "claude-sonnet-5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3";
         };
         SkillChatResponseDto: {
             /**
