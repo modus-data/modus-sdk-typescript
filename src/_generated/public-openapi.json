@@ -12654,6 +12654,14 @@
             "type": "string",
             "description": "Override model name for the orchestration step."
           },
+          "modelSettings": {
+            "description": "Model-specific runtime controls such as reasoning effort and context window.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelSettingsDto"
+              }
+            ]
+          },
           "agents": {
             "description": "Ordered list of scopes to invoke. Must contain at least one entry.",
             "type": "array",
@@ -13520,6 +13528,14 @@
             "description": "Model identifier to use at run time (e.g. `claude-sonnet-4-5`). Falls back to org default when absent.",
             "example": "claude-sonnet-4-5"
           },
+          "modelSettings": {
+            "description": "Model-specific runtime controls such as reasoning effort and context window.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelSettingsDto"
+              }
+            ]
+          },
           "connectionSet": {
             "type": "array",
             "description": "List of integration connection refs available to this scope. Shape is integration-specific.",
@@ -14263,6 +14279,24 @@
           "memory"
         ]
       },
+      "ModelSettingsDto": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "description": "Optional reasoning effort for models that support it.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReasoningEffort"
+              }
+            ]
+          },
+          "contextWindow": {
+            "type": "number",
+            "description": "Selected model context window in tokens.",
+            "minimum": 1
+          }
+        }
+      },
       "ModusChatRequestDto": {
         "type": "object",
         "properties": {
@@ -14462,6 +14496,19 @@
           "requestedByUserId",
           "requestedAt"
         ]
+      },
+      "ReasoningEffort": {
+        "type": "string",
+        "enum": [
+          "none",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "description": "Optional reasoning effort for models that support it."
       },
       "RecordSuggestionEventDto": {
         "type": "object",
@@ -14819,6 +14866,14 @@
             "type": "string",
             "description": "Provider-prefixed model id. The orchestrator routes by prefix.",
             "example": "anthropic/claude-sonnet-5"
+          },
+          "modelSettings": {
+            "description": "Model-specific runtime controls such as reasoning effort and context window.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelSettingsDto"
+              }
+            ]
           },
           "toolset": {
             "type": "object",
@@ -15276,6 +15331,16 @@
             "description": "Updated model id. Pass `null` (explicit) to clear and use the org default.",
             "example": "claude-sonnet-4-5",
             "nullable": true
+          },
+          "modelSettings": {
+            "description": "Updated model-specific runtime controls. Pass `null` to clear.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelSettingsDto"
+              }
+            ]
           },
           "connectionSet": {
             "type": "array",
@@ -15860,6 +15925,14 @@
             "type": "string",
             "description": "Model id, e.g. anthropic/claude-sonnet-5."
           },
+          "modelSettings": {
+            "description": "Model-specific runtime controls.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunModelSettingsDto"
+              }
+            ]
+          },
           "contextSelections": {
             "description": "Context selections (runtime-owned shape).",
             "type": "array",
@@ -15915,6 +15988,35 @@
             "description": "Set false to keep composer output inline."
           }
         }
+      },
+      "RunModelSettingsDto": {
+        "type": "object",
+        "properties": {
+          "reasoningEffort": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunReasoningEffort"
+              }
+            ]
+          },
+          "contextWindow": {
+            "type": "number",
+            "description": "Selected model context window in tokens.",
+            "minimum": 1
+          }
+        }
+      },
+      "RunReasoningEffort": {
+        "type": "string",
+        "enum": [
+          "none",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ]
       },
       "RunSource": {
         "type": "string",

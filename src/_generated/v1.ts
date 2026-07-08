@@ -1469,6 +1469,8 @@ export interface components {
         AgentSelectionDto: {
             /** @description Override model name for the orchestration step. */
             model?: string;
+            /** @description Model-specific runtime controls such as reasoning effort and context window. */
+            modelSettings?: components["schemas"]["ModelSettingsDto"];
             /** @description Ordered list of scopes to invoke. Must contain at least one entry. */
             agents: components["schemas"]["AgentSelectionEntryDto"][];
         };
@@ -2033,6 +2035,8 @@ export interface components {
              * @example claude-sonnet-4-5
              */
             model?: string;
+            /** @description Model-specific runtime controls such as reasoning effort and context window. */
+            modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
              * @description List of integration connection refs available to this scope. Shape is integration-specific.
              * @example []
@@ -2408,6 +2412,12 @@ export interface components {
              */
             updatedAt?: string;
         };
+        ModelSettingsDto: {
+            /** @description Optional reasoning effort for models that support it. */
+            reasoningEffort?: components["schemas"]["ReasoningEffort"];
+            /** @description Selected model context window in tokens. */
+            contextWindow?: number;
+        };
         ModusChatRequestDto: {
             /**
              * @description User message sent to Modus. Omit when `approvalContinuation` is true.
@@ -2505,6 +2515,11 @@ export interface components {
              */
             requestedAt: string;
         };
+        /**
+         * @description Optional reasoning effort for models that support it.
+         * @enum {string}
+         */
+        ReasoningEffort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
         RecordSuggestionEventDto: {
             /**
              * @description First-party Home suggestion interaction.
@@ -2722,6 +2737,8 @@ export interface components {
              * @example anthropic/claude-sonnet-5
              */
             model: string;
+            /** @description Model-specific runtime controls such as reasoning effort and context window. */
+            modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
              * @description Builder-managed toolset descriptor. Map of `{toolName: config}`; opaque to the API surface.
              * @example {
@@ -3001,6 +3018,8 @@ export interface components {
              * @example claude-sonnet-4-5
              */
             model?: string | null;
+            /** @description Updated model-specific runtime controls. Pass `null` to clear. */
+            modelSettings?: components["schemas"]["ModelSettingsDto"] | null;
             /**
              * @description Updated connection set. Shape is integration-specific.
              * @example []
@@ -3240,6 +3259,8 @@ export interface components {
         RunConfigDto: {
             /** @description Model id, e.g. anthropic/claude-sonnet-5. */
             model?: string;
+            /** @description Model-specific runtime controls. */
+            modelSettings?: components["schemas"]["RunModelSettingsDto"];
             /** @description Context selections (runtime-owned shape). */
             contextSelections?: Record<string, never>[];
             /** @description Database connection selections (runtime-owned shape). */
@@ -3257,6 +3278,13 @@ export interface components {
             /** @description Set false to keep composer output inline. */
             composerFileOffload?: boolean;
         };
+        RunModelSettingsDto: {
+            reasoningEffort?: components["schemas"]["RunReasoningEffort"];
+            /** @description Selected model context window in tokens. */
+            contextWindow?: number;
+        };
+        /** @enum {string} */
+        RunReasoningEffort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
         /**
          * @description Origin of the run.
          * @enum {string}
