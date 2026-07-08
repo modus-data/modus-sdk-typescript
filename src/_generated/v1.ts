@@ -2568,7 +2568,17 @@ export interface components {
              * @example user_2xyz
              */
             userId?: string;
+            /**
+             * @description Per-invitee access level for private scopes. `manage` grants edit / deploy / delete (implies use); `use` (default) grants run-only.
+             * @example use
+             */
+            permission?: components["schemas"]["SharedUserPermission"];
         };
+        /**
+         * @description Per-invitee access level for private scopes. `manage` grants edit / deploy / delete (implies use); `use` (default) grants run-only.
+         * @enum {string}
+         */
+        SharedUserPermission: "use" | "manage";
         SkillChatRequestDto: {
             /**
              * @description User message sent to the published scope supervisor.

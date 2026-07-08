@@ -14558,11 +14558,28 @@
             "type": "string",
             "description": "Clerk user id of the invited user. Stored for display; access checks use email.",
             "example": "user_2xyz"
+          },
+          "permission": {
+            "description": "Per-invitee access level for private scopes. `manage` grants edit / deploy / delete (implies use); `use` (default) grants run-only.",
+            "example": "use",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SharedUserPermission"
+              }
+            ]
           }
         },
         "required": [
           "email"
         ]
+      },
+      "SharedUserPermission": {
+        "type": "string",
+        "enum": [
+          "use",
+          "manage"
+        ],
+        "description": "Per-invitee access level for private scopes. `manage` grants edit / deploy / delete (implies use); `use` (default) grants run-only."
       },
       "SkillChatRequestDto": {
         "type": "object",
