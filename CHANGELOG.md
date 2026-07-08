@@ -6,7 +6,7 @@
 
 ### Changed (BREAKING)
 
-- **MCP `get_context_data` (BREAKING)** — Renamed from `get_context_file` (and earlier `fetch_context_file`, `get_context_item`, `fetch_item`). Pass `{ sessionId, itemId, field? }` instead of `{ sessionId, path }`; `contextFiles[]` uses `itemId` + optional `field` (no internal paths). Error codes: `ITEM_NOT_ALLOWED`, `AMBIGUOUS_ITEM`.
+- **MCP `get_context_data` (BREAKING)** — Renamed from `get_context_file` (and earlier `get_context_data`, `get_context_item`, `fetch_item`). Pass `{ sessionId, itemId, field? }` instead of `{ sessionId, path }`; `contextFiles[]` uses `itemId` + optional `field` (no internal paths). Error codes: `ITEM_NOT_ALLOWED`, `AMBIGUOUS_ITEM`.
 - **`/scopes` + `/workflows` are now the only public surface.** `client.scopes` / `client.workflows` and `mgmt.scopes` / `mgmt.workflows` are canonical; they call the `/api/v1/scopes` and `/api/v1/workflows` routes and the `ScopesController_*` / `WorkflowsController_*` operationIds.
 - Run creation: `client.workflows.runs.createScope(scopeId, body)` replaces the old `createSkill(...)` (routes to `/agent/v1/scopes/:id/runs`).
 - Existing tokens that carry the legacy `skills:*` / `agents:*` scopes continue to authorize the renamed routes via server-side scope equivalence — no token re-issuance is required.
