@@ -2339,7 +2339,7 @@
                 "newThread": {
                   "value": {
                     "message": "Summarize our open support tickets.",
-                    "model": "claude-sonnet-5"
+                    "model": "claude-sonnet-4.6"
                   }
                 }
               }
@@ -4534,7 +4534,7 @@
                 "newThread": {
                   "value": {
                     "message": "Summarize open support tickets from last week.",
-                    "model": "claude-sonnet-5"
+                    "model": "claude-sonnet-4.6"
                   }
                 }
               }
@@ -8459,7 +8459,7 @@
             "description": "Filter by one or more model names (repeat the query param).",
             "schema": {
               "example": [
-                "claude-sonnet-5"
+                "claude-sonnet-4.6"
               ],
               "type": "array",
               "items": {
@@ -14331,7 +14331,7 @@
               "grok-4.3-fast",
               "grok-4.3"
             ],
-            "example": "claude-sonnet-5"
+            "example": "claude-sonnet-4.6"
           },
           "approvalContinuation": {
             "type": "boolean",
@@ -14662,7 +14662,7 @@
               "grok-4.3-fast",
               "grok-4.3"
             ],
-            "example": "claude-sonnet-5"
+            "example": "claude-sonnet-4.6"
           }
         },
         "required": [
@@ -14865,7 +14865,7 @@
           "model": {
             "type": "string",
             "description": "Provider-prefixed model id. The orchestrator routes by prefix.",
-            "example": "anthropic/claude-sonnet-5"
+            "example": "anthropic/claude-sonnet-4.6"
           },
           "modelSettings": {
             "description": "Model-specific runtime controls such as reasoning effort and context window.",
@@ -15923,7 +15923,7 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Model id, e.g. anthropic/claude-sonnet-5."
+            "description": "Model id, e.g. anthropic/claude-sonnet-4.6."
           },
           "modelSettings": {
             "description": "Model-specific runtime controls.",

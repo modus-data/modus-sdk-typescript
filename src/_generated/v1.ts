@@ -2426,7 +2426,7 @@ export interface components {
             message?: string;
             /**
              * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3.
-             * @example claude-sonnet-5
+             * @example claude-sonnet-4.6
              * @enum {string}
              */
             model: "claude-sonnet-5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3";
@@ -2602,7 +2602,7 @@ export interface components {
             message: string;
             /**
              * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3.
-             * @example claude-sonnet-5
+             * @example claude-sonnet-4.6
              * @enum {string}
              */
             model: "claude-sonnet-5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3";
@@ -2734,7 +2734,7 @@ export interface components {
             instructions: string[];
             /**
              * @description Provider-prefixed model id. The orchestrator routes by prefix.
-             * @example anthropic/claude-sonnet-5
+             * @example anthropic/claude-sonnet-4.6
              */
             model: string;
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
@@ -3257,7 +3257,7 @@ export interface components {
             decision: "approve" | "deny" | "connected" | "cancelled";
         };
         RunConfigDto: {
-            /** @description Model id, e.g. anthropic/claude-sonnet-5. */
+            /** @description Model id, e.g. anthropic/claude-sonnet-4.6. */
             model?: string;
             /** @description Model-specific runtime controls. */
             modelSettings?: components["schemas"]["RunModelSettingsDto"];
