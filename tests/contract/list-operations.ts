@@ -19,6 +19,7 @@ const SAMPLE_SKILL = { id: 1, name: 'Analyst' }
 const SAMPLE_AGENT = { id: 2, name: 'Scheduler' }
 const SAMPLE_CONTEXT_ITEM = { uid: '7a3f9d2c-1111-4000-a000-000000000abc' }
 const SAMPLE_RUN = { runId: 'run-1', status: 'completed' }
+const SAMPLE_EVAL_RUN = { id: 'run-1', status: 'completed', skillId: 42, trigger: 'manual' }
 const SAMPLE_CONNECTION = {
   id: '7a3f9d2c-1111-4000-a000-000000000abc',
   name: 'Production Warehouse',
@@ -203,5 +204,15 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
     clientKind: 'management',
     invoke: (c) =>
       (c as ModusManagement).scopes.memories(42).list({ pageSize: 25, pageToken: 'tok_abc' }),
+  },
+  {
+    operationId: 'EvaluationsController_listRuns',
+    mockUrlSuffix: '/api/v1/scopes/42/evaluations/runs',
+    itemsKey: 'runs',
+    wrongItemsKey: 'scopes',
+    sampleItem: SAMPLE_EVAL_RUN,
+    clientKind: 'management',
+    invoke: (c) =>
+      (c as ModusManagement).scopes.evaluations(42).listRuns({ pageSize: 25, pageToken: 'tok_abc' }),
   },
 ]

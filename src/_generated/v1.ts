@@ -496,6 +496,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/scopes/{id}/evaluations/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get evaluation configuration
+         * @description Returns the evaluation configuration for a scope, including judge settings, schedule cadence, and notification preferences.
+         *
+         *     **Requires:** `scopes:read`
+         */
+        get: operations["EvaluationsController_getConfig"];
+        /**
+         * Update evaluation configuration
+         * @description Updates the evaluation configuration for a scope. Changes to the schedule cadence are synced automatically.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        put: operations["EvaluationsController_updateConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/evaluations/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List evaluation runs
+         * @description Returns a paginated list of evaluation runs for the scope, ordered by most recent first.
+         *
+         *     **Requires:** `scopes:read`
+         */
+        get: operations["EvaluationsController_listRuns"];
+        put?: never;
+        /**
+         * Trigger evaluation run
+         * @description Triggers a manual evaluation run for the scope. The run executes asynchronously.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["EvaluationsController_triggerRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/evaluations/runs/{runId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get evaluation run
+         * @description Returns details of an evaluation run including all per-case results.
+         *
+         *     **Requires:** `scopes:read`
+         */
+        get: operations["EvaluationsController_getRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/scopes/{id}/mcp-config": {
         parameters: {
             query?: never;
@@ -2140,6 +2218,169 @@ export interface components {
         ErrorResponseDto: {
             error: components["schemas"]["ErrorEnvelopeDto"];
         };
+        EvaluationCadenceDto: {
+            /** @description Schedule frequency */
+            frequency?: components["schemas"]["EvaluationCadenceFrequency"];
+            /**
+             * @description Time of day in HH:MM format
+             * @example 09:00
+             */
+            timeOfDay?: string;
+            /**
+             * @description IANA timezone
+             * @example America/New_York
+             */
+            timezone?: string;
+            /**
+             * @description Days of week for weekly frequency
+             * @example [
+             *       "MONDAY",
+             *       "WEDNESDAY"
+             *     ]
+             */
+            weekdays?: string[];
+            /** @description Day of month for monthly frequency */
+            dayOfMonth?: number;
+            /**
+             * @description Cron expression for custom frequency
+             * @example 0 9 * * 1-5
+             */
+            cronExpression?: string;
+        };
+        /**
+         * @description Schedule frequency
+         * @enum {string}
+         */
+        EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom";
+        EvaluationChannelsDto: {
+            /** @description Enable email notifications */
+            email: boolean;
+            /** @description Slack notification configuration */
+            slack?: components["schemas"]["EvaluationSlackChannelDto"];
+        };
+        EvaluationConfigDto: {
+            /** @description Whether scheduled evaluations are enabled */
+            enabled: boolean;
+            /** @description Schedule cadence configuration */
+            cadence?: components["schemas"]["EvaluationCadenceDto"];
+            /**
+             * @description Model ID for the judge LLM
+             * @example openai/gpt-4o
+             */
+            judgeModel?: string | null;
+            /** @description Custom guidance for the judge LLM */
+            judgeGuidance?: string | null;
+            /** @description Regression notification settings */
+            notifications: components["schemas"]["EvaluationNotificationsDto"];
+        };
+        EvaluationNotificationsDto: {
+            /** @description Notification recipients */
+            recipients: components["schemas"]["EvaluationRecipientDto"][];
+            /** @description Notification channels */
+            channels: components["schemas"]["EvaluationChannelsDto"];
+        };
+        EvaluationRecipientDto: {
+            /** @description Clerk user ID */
+            clerkUserId: string;
+            /** @description Email address */
+            email: string;
+            /** @description Display name */
+            name?: Record<string, never>;
+        };
+        EvaluationResultDto: {
+            /** @description Result ID */
+            id: string;
+            /** @description Evaluation case ID */
+            caseId: string;
+            /** @description Task that was evaluated */
+            task: string;
+            /** @description Expected output */
+            expectedOutput: string;
+            /** @description Actual output from the scope */
+            actualOutput?: Record<string, never>;
+            /** @description Whether the case passed */
+            passed?: Record<string, never>;
+            /** @description Score (0-100) */
+            score?: Record<string, never>;
+            /** @description Judge reasoning */
+            reasoning?: Record<string, never>;
+            /** @description Whether this case was passing in the previous run */
+            wasPassingBefore?: Record<string, never>;
+        };
+        EvaluationRunDto: {
+            /** @description Run ID */
+            id: string;
+            /** @description Scope ID */
+            skillId: number;
+            /** @description How the run was triggered */
+            trigger: components["schemas"]["EvaluationRunTrigger"];
+            /** @description Run status */
+            status: components["schemas"]["EvaluationRunStatus"];
+            /** @description When the run started */
+            startedAt: string;
+            /** @description When the run finished */
+            finishedAt?: Record<string, never>;
+            /** @description Total number of evaluation cases */
+            totalCases: number;
+            /** @description Number of passed cases */
+            passedCases: number;
+            /** @description Number of failed cases */
+            failedCases: number;
+            /** @description Average score (0-100) */
+            avgScore?: Record<string, never>;
+            /** @description Whether this run detected a regression */
+            isRegression: boolean;
+            /** @description Judge model used */
+            judgeModel?: string | null;
+            /** @description Error message if failed */
+            errorMessage?: string | null;
+        };
+        /**
+         * @description Run status
+         * @enum {string}
+         */
+        EvaluationRunStatus: "running" | "completed" | "completed_with_errors" | "failed";
+        /**
+         * @description How the run was triggered
+         * @enum {string}
+         */
+        EvaluationRunTrigger: "scheduled" | "manual";
+        EvaluationRunWithResultsDto: {
+            /** @description Run ID */
+            id: string;
+            /** @description Scope ID */
+            skillId: number;
+            /** @description How the run was triggered */
+            trigger: components["schemas"]["EvaluationRunTrigger"];
+            /** @description Run status */
+            status: components["schemas"]["EvaluationRunStatus"];
+            /** @description When the run started */
+            startedAt: string;
+            /** @description When the run finished */
+            finishedAt?: Record<string, never>;
+            /** @description Total number of evaluation cases */
+            totalCases: number;
+            /** @description Number of passed cases */
+            passedCases: number;
+            /** @description Number of failed cases */
+            failedCases: number;
+            /** @description Average score (0-100) */
+            avgScore?: Record<string, never>;
+            /** @description Whether this run detected a regression */
+            isRegression: boolean;
+            /** @description Judge model used */
+            judgeModel?: string | null;
+            /** @description Error message if failed */
+            errorMessage?: string | null;
+            /** @description Per-case results */
+            results: components["schemas"]["EvaluationResultDto"][];
+        };
+        EvaluationSlackChannelDto: {
+            /** @description Nango connection ID for Slack */
+            nangoConnectionId: string;
+            /** @description Mapping of Clerk user ID to Slack user ID */
+            slackUserIdByRecipient: Record<string, never>;
+        };
         GetAutomationRunResponseDto: {
             /**
              * @description Composite run identifier (`workflowId:temporalRunId`).
@@ -2299,6 +2540,11 @@ export interface components {
              * @example 10
              */
             pageSize?: number;
+        };
+        ListEvaluationRunsResponseDto: {
+            runs: components["schemas"]["EvaluationRunDto"][];
+            /** @description Token for next page */
+            nextPageToken?: string;
         };
         ListMemoriesResponseDto: {
             /** @description Memories belonging to the scope. */
@@ -2864,6 +3110,12 @@ export interface components {
             /** @description Schedule details. Required when trigger_type=schedule. */
             schedule?: components["schemas"]["TriggerScheduleDto"];
         };
+        TriggerEvaluationRunResponseDto: {
+            /** @description The created run ID */
+            runId: string;
+            /** @description Workflow identifier for the run */
+            workflowId?: string;
+        };
         TriggerScheduleDto: {
             /**
              * @description Cadence of the schedule.
@@ -2970,6 +3222,18 @@ export interface components {
              *     ]
              */
             topics?: string[];
+        };
+        UpdateEvaluationConfigDto: {
+            /** @description Whether scheduled evaluations are enabled */
+            enabled?: boolean;
+            /** @description Schedule cadence configuration */
+            cadence?: components["schemas"]["EvaluationCadenceDto"];
+            /** @description Model ID for the judge LLM */
+            judgeModel?: string | null;
+            /** @description Custom guidance for the judge LLM */
+            judgeGuidance?: string | null;
+            /** @description Regression notification settings */
+            notifications?: components["schemas"]["EvaluationNotificationsDto"];
         };
         UpdateMemoryRequestDto: {
             /**
@@ -7990,6 +8254,910 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeployResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "agents:write"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Rate limit exceeded. Retry later.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EvaluationsController_getConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Scope ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationConfigDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "agents:write"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Rate limit exceeded. Retry later.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EvaluationsController_updateConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Scope ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEvaluationConfigDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationConfigDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "agents:write"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Rate limit exceeded. Retry later.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EvaluationsController_listRuns: {
+        parameters: {
+            query?: {
+                pageSize?: number;
+                pageToken?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Scope ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListEvaluationRunsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "agents:write"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Rate limit exceeded. Retry later.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EvaluationsController_triggerRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Scope ID */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriggerEvaluationRunResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "agents:write"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Rate limit exceeded. Retry later.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EvaluationsController_getRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Scope ID */
+                id: number;
+                /** @description Run ID */
+                runId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationRunWithResultsDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */

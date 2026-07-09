@@ -29,6 +29,11 @@ export const OPERATIONS: Record<string, string> = {
   ScopeMemoriesController_search: 'mgmt.scopes.memories(id).search()',
   ScopeMemoriesController_update: 'mgmt.scopes.memories(id).update()',
   ScopeMemoriesController_delete: 'mgmt.scopes.memories(id).delete()',
+  EvaluationsController_getConfig: 'mgmt.scopes.evaluations(id).getConfig()',
+  EvaluationsController_updateConfig: 'mgmt.scopes.evaluations(id).updateConfig()',
+  EvaluationsController_triggerRun: 'mgmt.scopes.evaluations(id).triggerRun()',
+  EvaluationsController_listRuns: 'mgmt.scopes.evaluations(id).listRuns()',
+  EvaluationsController_getRun: 'mgmt.scopes.evaluations(id).getRun(runId)',
   ScopeRunsController_create: 'client.workflows.runs.createScope(scopeId, body)',
   // --- Modus ---
   ModusChatController_chat: 'client.modus.chat() / client.modus.chatStream()',

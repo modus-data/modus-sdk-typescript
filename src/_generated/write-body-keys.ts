@@ -7,6 +7,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ContextCreatorsController_createSavedQuery: ["name", "connectionId", "query", "description", "path"],
   ContextItemsController_lookup: ["contextType", "dataPath", "contentProjection"],
   ContextItemsController_update: ["contextType", "content", "description", "userFeedback", "topics"],
+  EvaluationsController_updateConfig: ["enabled", "cadence", "judgeModel", "judgeGuidance", "notifications"],
   ModusChatController_chat: ["message", "model"],
   ModusContextController_compose: ["message", "limit"],
   ModusRunsController_create: ["message", "sessionId", "organizationId", "version", "fileThreadId", "config", "attachments", "userContext", "source", "runId", "subordinateSkillIds"],

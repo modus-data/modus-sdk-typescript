@@ -97,6 +97,13 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ],
   ScopeChatController_chat: ['message', 'model'],
   ScopeContextController_compose: ['message', 'limit'],
+  EvaluationsController_updateConfig: [
+    'enabled',
+    'cadence',
+    'judgeModel',
+    'judgeGuidance',
+    'notifications',
+  ],
   ScopeMemoriesController_search: ['query', 'userId', 'limit'],
   ScopeMemoriesController_update: ['memory', 'metadata'],
   ScopesController_requestOwnershipTransfer: ['newOwnerUserId'],

@@ -15,6 +15,7 @@ import {
 import type { JsonObjectListInput } from '../types/json-blob.js'
 import type { ToolsetInput } from '../types/toolset.js'
 import { ScopeMemoriesResource } from './memories.js'
+import { ScopeEvaluationsResource } from './evaluations.js'
 
 /** The canonical `/api/v1/scopes` management operationIds. */
 interface ManagementScopesOperations {
@@ -113,6 +114,10 @@ export class ManagementScopesResource {
 
   memories(scopeId: number | string): ScopeMemoriesResource {
     return new ScopeMemoriesResource(this.http, this.config, scopeId)
+  }
+
+  evaluations(scopeId: number | string): ScopeEvaluationsResource {
+    return new ScopeEvaluationsResource(this.http, this.config, scopeId)
   }
 
   list(options: {

@@ -5880,6 +5880,1017 @@
         ]
       }
     },
+    "/api/v1/scopes/{id}/evaluations/config": {
+      "get": {
+        "description": "Returns the evaluation configuration for a scope, including judge settings, schedule cadence, and notification preferences.\n\n**Requires:** `scopes:read`",
+        "operationId": "EvaluationsController_getConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Scope ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationConfigDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s): agents:write.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "agents:write"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Rate limit exceeded. Retry later.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get evaluation configuration",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.modus.com"
+          }
+        ]
+      },
+      "put": {
+        "description": "Updates the evaluation configuration for a scope. Changes to the schedule cadence are synced automatically.\n\n**Requires:** `scopes:write`",
+        "operationId": "EvaluationsController_updateConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Scope ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEvaluationConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationConfigDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s): agents:write.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "agents:write"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Rate limit exceeded. Retry later.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update evaluation configuration",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.modus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/scopes/{id}/evaluations/runs": {
+      "post": {
+        "description": "Triggers a manual evaluation run for the scope. The run executes asynchronously.\n\n**Requires:** `scopes:write`",
+        "operationId": "EvaluationsController_triggerRun",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Scope ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerEvaluationRunResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s): agents:write.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "agents:write"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Rate limit exceeded. Retry later.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Trigger evaluation run",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.modus.com"
+          }
+        ]
+      },
+      "get": {
+        "description": "Returns a paginated list of evaluation runs for the scope, ordered by most recent first.\n\n**Requires:** `scopes:read`",
+        "operationId": "EvaluationsController_listRuns",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Scope ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageToken",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListEvaluationRunsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s): agents:write.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "agents:write"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Rate limit exceeded. Retry later.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List evaluation runs",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.modus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/scopes/{id}/evaluations/runs/{runId}": {
+      "get": {
+        "description": "Returns details of an evaluation run including all per-case results.\n\n**Requires:** `scopes:read`",
+        "operationId": "EvaluationsController_getRun",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Scope ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "description": "Run ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationRunWithResultsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s): agents:write.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "agents:write"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Rate limit exceeded. Retry later.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get evaluation run",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.modus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/scopes/{id}/mcp-config": {
       "patch": {
         "description": "Writes coreTools, mcpToolExposure, and other MCP-tab fields to the active variation immediately so MCP clients see the change without a full scope deploy. Mirrors the same config onto a forked draft when present. Requires manage permission; unpublished scopes return 404.\n\n**Requires:** `scopes:write`",
@@ -13728,6 +14739,412 @@
           "error"
         ]
       },
+      "EvaluationCadenceDto": {
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "description": "Schedule frequency",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationCadenceFrequency"
+              }
+            ]
+          },
+          "timeOfDay": {
+            "type": "string",
+            "description": "Time of day in HH:MM format",
+            "example": "09:00"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone",
+            "example": "America/New_York"
+          },
+          "weekdays": {
+            "description": "Days of week for weekly frequency",
+            "example": [
+              "MONDAY",
+              "WEDNESDAY"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dayOfMonth": {
+            "type": "number",
+            "description": "Day of month for monthly frequency",
+            "minimum": 1,
+            "maximum": 31
+          },
+          "cronExpression": {
+            "type": "string",
+            "description": "Cron expression for custom frequency",
+            "example": "0 9 * * 1-5"
+          }
+        }
+      },
+      "EvaluationCadenceFrequency": {
+        "type": "string",
+        "enum": [
+          "daily",
+          "weekly",
+          "monthly",
+          "custom"
+        ],
+        "description": "Schedule frequency"
+      },
+      "EvaluationChannelsDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "boolean",
+            "description": "Enable email notifications"
+          },
+          "slack": {
+            "description": "Slack notification configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationSlackChannelDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "EvaluationConfigDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether scheduled evaluations are enabled"
+          },
+          "cadence": {
+            "description": "Schedule cadence configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationCadenceDto"
+              }
+            ]
+          },
+          "judgeModel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Model ID for the judge LLM",
+            "example": "openai/gpt-4o"
+          },
+          "judgeGuidance": {
+            "type": "string",
+            "nullable": true,
+            "description": "Custom guidance for the judge LLM"
+          },
+          "notifications": {
+            "description": "Regression notification settings",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationNotificationsDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "enabled",
+          "notifications"
+        ]
+      },
+      "EvaluationNotificationsDto": {
+        "type": "object",
+        "properties": {
+          "recipients": {
+            "description": "Notification recipients",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvaluationRecipientDto"
+            }
+          },
+          "channels": {
+            "description": "Notification channels",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationChannelsDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "recipients",
+          "channels"
+        ]
+      },
+      "EvaluationRecipientDto": {
+        "type": "object",
+        "properties": {
+          "clerkUserId": {
+            "type": "string",
+            "description": "Clerk user ID"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address"
+          },
+          "name": {
+            "type": "object",
+            "description": "Display name"
+          }
+        },
+        "required": [
+          "clerkUserId",
+          "email"
+        ]
+      },
+      "EvaluationResultDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Result ID"
+          },
+          "caseId": {
+            "type": "string",
+            "description": "Evaluation case ID"
+          },
+          "task": {
+            "type": "string",
+            "description": "Task that was evaluated"
+          },
+          "expectedOutput": {
+            "type": "string",
+            "description": "Expected output"
+          },
+          "actualOutput": {
+            "type": "object",
+            "description": "Actual output from the scope"
+          },
+          "passed": {
+            "type": "object",
+            "description": "Whether the case passed"
+          },
+          "score": {
+            "type": "object",
+            "description": "Score (0-100)"
+          },
+          "reasoning": {
+            "type": "object",
+            "description": "Judge reasoning"
+          },
+          "wasPassingBefore": {
+            "type": "object",
+            "description": "Whether this case was passing in the previous run"
+          }
+        },
+        "required": [
+          "id",
+          "caseId",
+          "task",
+          "expectedOutput"
+        ]
+      },
+      "EvaluationRunDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Run ID"
+          },
+          "skillId": {
+            "type": "number",
+            "description": "Scope ID"
+          },
+          "trigger": {
+            "description": "How the run was triggered",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationRunTrigger"
+              }
+            ]
+          },
+          "status": {
+            "description": "Run status",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationRunStatus"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "When the run started"
+          },
+          "finishedAt": {
+            "type": "object",
+            "description": "When the run finished"
+          },
+          "totalCases": {
+            "type": "number",
+            "description": "Total number of evaluation cases"
+          },
+          "passedCases": {
+            "type": "number",
+            "description": "Number of passed cases"
+          },
+          "failedCases": {
+            "type": "number",
+            "description": "Number of failed cases"
+          },
+          "avgScore": {
+            "type": "object",
+            "description": "Average score (0-100)"
+          },
+          "isRegression": {
+            "type": "boolean",
+            "description": "Whether this run detected a regression"
+          },
+          "judgeModel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Judge model used"
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message if failed"
+          }
+        },
+        "required": [
+          "id",
+          "skillId",
+          "trigger",
+          "status",
+          "startedAt",
+          "totalCases",
+          "passedCases",
+          "failedCases",
+          "isRegression"
+        ]
+      },
+      "EvaluationRunStatus": {
+        "type": "string",
+        "enum": [
+          "running",
+          "completed",
+          "completed_with_errors",
+          "failed"
+        ],
+        "description": "Run status"
+      },
+      "EvaluationRunTrigger": {
+        "type": "string",
+        "enum": [
+          "scheduled",
+          "manual"
+        ],
+        "description": "How the run was triggered"
+      },
+      "EvaluationRunWithResultsDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Run ID"
+          },
+          "skillId": {
+            "type": "number",
+            "description": "Scope ID"
+          },
+          "trigger": {
+            "description": "How the run was triggered",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationRunTrigger"
+              }
+            ]
+          },
+          "status": {
+            "description": "Run status",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationRunStatus"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "When the run started"
+          },
+          "finishedAt": {
+            "type": "object",
+            "description": "When the run finished"
+          },
+          "totalCases": {
+            "type": "number",
+            "description": "Total number of evaluation cases"
+          },
+          "passedCases": {
+            "type": "number",
+            "description": "Number of passed cases"
+          },
+          "failedCases": {
+            "type": "number",
+            "description": "Number of failed cases"
+          },
+          "avgScore": {
+            "type": "object",
+            "description": "Average score (0-100)"
+          },
+          "isRegression": {
+            "type": "boolean",
+            "description": "Whether this run detected a regression"
+          },
+          "judgeModel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Judge model used"
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message if failed"
+          },
+          "results": {
+            "description": "Per-case results",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvaluationResultDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "skillId",
+          "trigger",
+          "status",
+          "startedAt",
+          "totalCases",
+          "passedCases",
+          "failedCases",
+          "isRegression",
+          "results"
+        ]
+      },
+      "EvaluationSlackChannelDto": {
+        "type": "object",
+        "properties": {
+          "nangoConnectionId": {
+            "type": "string",
+            "description": "Nango connection ID for Slack"
+          },
+          "slackUserIdByRecipient": {
+            "type": "object",
+            "description": "Mapping of Clerk user ID to Slack user ID"
+          }
+        },
+        "required": [
+          "nangoConnectionId",
+          "slackUserIdByRecipient"
+        ]
+      },
       "GetAutomationRunResponseDto": {
         "type": "object",
         "properties": {
@@ -14024,6 +15441,24 @@
           "conversations",
           "nextPageToken",
           "totalCount"
+        ]
+      },
+      "ListEvaluationRunsResponseDto": {
+        "type": "object",
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvaluationRunDto"
+            }
+          },
+          "nextPageToken": {
+            "type": "string",
+            "description": "Token for next page"
+          }
+        },
+        "required": [
+          "runs"
         ]
       },
       "ListMemoriesResponseDto": {
@@ -15094,6 +16529,22 @@
           "trigger_type"
         ]
       },
+      "TriggerEvaluationRunResponseDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "The created run ID"
+          },
+          "workflowId": {
+            "type": "string",
+            "description": "Workflow identifier for the run"
+          }
+        },
+        "required": [
+          "runId"
+        ]
+      },
       "TriggerScheduleDto": {
         "type": "object",
         "properties": {
@@ -15266,6 +16717,41 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "UpdateEvaluationConfigDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether scheduled evaluations are enabled"
+          },
+          "cadence": {
+            "description": "Schedule cadence configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationCadenceDto"
+              }
+            ]
+          },
+          "judgeModel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Model ID for the judge LLM"
+          },
+          "judgeGuidance": {
+            "type": "string",
+            "nullable": true,
+            "description": "Custom guidance for the judge LLM"
+          },
+          "notifications": {
+            "description": "Regression notification settings",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationNotificationsDto"
+              }
+            ]
           }
         }
       },
