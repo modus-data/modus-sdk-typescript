@@ -3685,6 +3685,8 @@ export interface components {
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
+            /** @description Conversation-level MCP session label (mcp-session-*). Observability only — groups the run's trace into a session; never affects behavior. */
+            mcpSessionId?: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
@@ -3759,6 +3761,8 @@ export interface components {
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
+            /** @description Conversation-level MCP session label (mcp-session-*). Observability only — groups the run's trace into a session; never affects behavior. */
+            mcpSessionId?: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
@@ -3787,6 +3791,8 @@ export interface components {
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
+            /** @description Conversation-level MCP session label (mcp-session-*). Observability only — groups the run's trace into a session; never affects behavior. */
+            mcpSessionId?: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
@@ -3853,6 +3859,8 @@ export interface components {
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
+            /** @description Conversation-level MCP session label (mcp-session-*). Observability only — groups the run's trace into a session; never affects behavior. */
+            mcpSessionId?: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
