@@ -8435,8 +8435,8 @@
             "name": "limit",
             "required": false,
             "in": "query",
-            "description": "Deprecated alias for `pageSize` (legacy default was 100). Prefer `pageSize`.",
             "deprecated": true,
+            "description": "Deprecated alias for `pageSize` (legacy default was 100). Use `pageSize`.",
             "schema": {
               "minimum": 1,
               "maximum": 1000,
@@ -17378,7 +17378,7 @@
           "contextItems": {
             "type": "array",
             "deprecated": true,
-            "description": "Deprecated. Always an empty array.",
+            "description": "Deprecated. Always an empty array. Use `context` for composed text (markdown or JSON fallback).",
             "items": {
               "type": "object",
               "additionalProperties": true

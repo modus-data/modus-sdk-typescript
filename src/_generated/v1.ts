@@ -2957,7 +2957,7 @@ export interface components {
             context: string;
             /**
              * @deprecated
-             * @description Deprecated. Always an empty array.
+             * @description Deprecated. Always an empty array. Use `context` for composed text (markdown or JSON fallback).
              * @example []
              */
             contextItems: {
@@ -10901,7 +10901,7 @@ export interface operations {
                 userId?: string;
                 /**
                  * @deprecated
-                 * @description Deprecated alias for `pageSize` (legacy default was 100). Prefer `pageSize`.
+                 * @description Deprecated alias for `pageSize` (legacy default was 100). Use `pageSize`.
                  */
                 limit?: number;
             };
