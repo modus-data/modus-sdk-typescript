@@ -77,6 +77,12 @@ export const OPERATIONS: Record<string, string> = {
   ContextCreatorsController_createNote: 'mgmt.context.createNote()',
   ContextCreatorsController_createSavedQuery: 'mgmt.context.createSavedQuery()',
   ContextCreatorsController_createLink: 'mgmt.context.createLink()',
+  CustomContextItemsController_list: 'client.context.customItems.list() / mgmt.context.customItems.list()',
+  CustomContextItemsController_get: 'client.context.customItems.get() / mgmt.context.customItems.get()',
+  CustomContextItemsController_create: 'mgmt.context.customItems.create()',
+  CustomContextItemsController_batchCreate: 'mgmt.context.customItems.batchCreate()',
+  CustomContextItemsController_update: 'mgmt.context.customItems.update()',
+  CustomContextItemsController_delete: 'mgmt.context.customItems.delete()',
   // --- Connections ---
   ConnectionsController_list: 'client.connections.list()',
   // --- Suggestions ---

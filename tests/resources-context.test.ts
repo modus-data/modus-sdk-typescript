@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
 import { HttpClient } from '../src/_http.js'
+import { CustomContextItemsResource } from '../src/resources/context/custom-items.js'
 import { ContextItemsResource } from '../src/resources/context/items.js'
 import { ModusResource } from '../src/resources/modus/modus.js'
 import { ScopesResource } from '../src/resources/skills.js'
@@ -66,6 +67,62 @@ describe('ContextItemsResource', () => {
     })
     expect(row).toBeUndefined()
     expect(fetch).toHaveBeenCalledOnce()
+  })
+})
+
+describe('CustomContextItemsResource', () => {
+  it('creates custom context items through the custom operation', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({
+        contextItemId: 'custom-1',
+        contextType: 'custom_entity_metadata',
+        dataPath: ['billing-db', 'contracts', 'contract-123'],
+        title: 'Acme renewal',
+      }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new CustomContextItemsResource(http, config)
+
+    await resource.create({
+      kind: 'entity',
+      sourceId: 'billing-db',
+      collectionId: 'contracts',
+      externalId: 'contract-123',
+      name: 'Acme renewal',
+    })
+
+    const [url, init] = fetch.mock.calls[0] ?? []
+    expect(String(url)).toContain('/api/v1/context/custom-items')
+    expect(init?.method).toBe('POST')
+    expect(JSON.parse(String(init?.body))).toEqual({
+      kind: 'entity',
+      sourceId: 'billing-db',
+      collectionId: 'contracts',
+      externalId: 'contract-123',
+      name: 'Acme renewal',
+    })
+  })
+
+  it('lists custom context items from the custom route', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ contextItems: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new CustomContextItemsResource(http, config)
+
+    await resource.list({ topics: ['billing'] })
+
+    const url = String(fetch.mock.calls[0]?.[0])
+    expect(url).toContain('/api/v1/context/custom-items')
+    expect(url).toContain('topics=billing')
   })
 })
 

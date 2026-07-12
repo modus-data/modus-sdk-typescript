@@ -102,6 +102,28 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
     invoke: (c) => c.context.items.list({ pageSize: 25, pageToken: 'tok_abc', contextType: 'note' }),
   },
   {
+    operationId: 'CustomContextItemsController_list',
+    mockUrlSuffix: '/api/v1/context/custom-items',
+    itemsKey: 'contextItems',
+    wrongItemsKey: 'scopes',
+    sampleItem: SAMPLE_CONTEXT_ITEM,
+    clientKind: 'modus',
+    invoke: (c) => c.context.customItems.list({ pageSize: 25, pageToken: 'tok_abc' }),
+  },
+  {
+    operationId: 'CustomContextItemsController_list',
+    mockUrlSuffix: '/api/v1/context/custom-items',
+    itemsKey: 'contextItems',
+    wrongItemsKey: 'scopes',
+    sampleItem: SAMPLE_CONTEXT_ITEM,
+    clientKind: 'management',
+    invoke: (c) =>
+      (c as ModusManagement).context.customItems.list({
+        pageSize: 25,
+        pageToken: 'tok_abc',
+      }),
+  },
+  {
     operationId: 'ContextItemsController_listValues',
     mockUrlSuffix: '/api/v1/context/items/7a3f9d2c-1111-4000-a000-000000000abc/values',
     itemsKey: 'values',

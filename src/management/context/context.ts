@@ -3,6 +3,7 @@ import type { ModusConfig } from '../../_config.js'
 import type { HttpClient } from '../../_http.js'
 import { invokeWithRetry, omitUndefined } from '../../_request.js'
 import type { ContextItem, CreatedContextItem } from '../../types/context.js'
+import { CustomContextItemsResource } from '../../resources/context/custom-items.js'
 import {
   resolveAndUpdateLink,
   resolveAndUpdateNote,
@@ -13,12 +14,14 @@ import { ManagementContextItemsResource } from './items.js'
 
 export class ManagementContextResource {
   readonly items: ManagementContextItemsResource
+  readonly customItems: CustomContextItemsResource
 
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {
     this.items = new ManagementContextItemsResource(http, config)
+    this.customItems = new CustomContextItemsResource(http, config)
   }
 
   private async create(operationId: OperationId, payload: Record<string, unknown>): Promise<CreatedContextItem> {
