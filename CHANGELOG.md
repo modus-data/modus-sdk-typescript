@@ -22,6 +22,8 @@
 - `skills.conversations(id).get()` accepts an optional `{ messageLimit, beforeMessageIndex }` to request a bounded message window; the response gains an optional `messageWindow` field describing the returned slice. Omit both for the full conversation (unchanged default behavior).
 - **`client.suggestions`** — `list()` returns approved suggested questions (optional `skillId`/`skillIds` filter), `recordEvent()` records an impression/click/dismiss event against a suggestion.
 - **`client.workflows.runs.active(options)` / `activeBySession(sessionIds)`** — list active (queued/pending/running) conversation runs for the current user, or look up active runs for specific conversation thread ids.
+- **`claude-sonnet-4.6`** restored as an allowed run `model` value (scope/workflow run creation and chat).
+- **`mgmt.scopes.evaluations(scopeId)`** — `getConfig()` / `updateConfig()` manage a scope's evaluation schedule and judge settings; `triggerRun()` starts a manual evaluation run; `listRuns()` / `getRun(runId)` read run history and per-case results.
 
 ## [0.1.0] — 2026-06-21
 
