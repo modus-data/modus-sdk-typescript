@@ -20,7 +20,6 @@
     },
     "build": {
       "executor": "nx:run-commands",
-      "dependsOn": ["generate"],
       "options": {
         "command": "pnpm --filter @modus/sdk run build",
         "cwd": "{workspaceRoot}"
@@ -42,7 +41,6 @@
     },
     "lint": {
       "executor": "nx:run-commands",
-      "dependsOn": ["generate"],
       "options": {
         "command": "eslint src tests --max-warnings=0 && pnpm exec tsc -p tsconfig.json --noEmit",
         "cwd": "{projectRoot}"
