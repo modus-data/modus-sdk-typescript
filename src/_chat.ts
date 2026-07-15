@@ -62,16 +62,27 @@ export class ChatStream {
   ) {}
 
   async *textStream(): AsyncGenerator<string> {
-    for await (const event of this.eventStream()) {
+    for await (const event of this.events(false)) {
       if (event.type === 'token') yield event.content
     }
   }
 
   async *eventStream(): AsyncGenerator<RunEvent> {
-    for await (const line of this.http.streamPost(this.path, this.body)) {
+    yield* this.events(true)
+  }
+
+  private async *events(supportsReset: boolean): AsyncGenerator<RunEvent> {
+    const body = supportsReset
+      ? { ...this.body, streamProtocolVersion: 2 }
+      : this.body
+    for await (const line of this.http.streamPost(this.path, body)) {
       for (const event of parseSseStream([line])) {
         const normalized = raiseForEvent(event)
         if (normalized.type === 'token') this.textParts.push(normalized.content)
+        if (normalized.type === 'assistant_content_reset') {
+          this.textParts.length = 0
+          this.textParts.push(normalized.content)
+        }
         if (normalized.type === 'done') {
           this.final = {
             content: this.textParts.join(''),

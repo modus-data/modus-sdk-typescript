@@ -51,6 +51,28 @@ describe('parseSseStream', () => {
     )
   })
 
+  it('parses assistant content replacement events', () => {
+    const events = [...parseSseStream(lines(
+      'data: {"type":"assistant_content_reset","content":"kept ","visibleContent":"kept ","attempt":2,"reason":"provider_stream_failed"}',
+    ))]
+    expect(events).toEqual([{
+      type: 'assistant_content_reset',
+      content: 'kept ',
+      visibleContent: 'kept ',
+      attempt: 2,
+      reason: 'provider_stream_failed',
+    }])
+  })
+
+  it('ignores assistant content replacement events without string content', () => {
+    const events = [...parseSseStream(lines(
+      'data: {"type":"assistant_content_reset"}',
+      'data: {"type":"assistant_content_reset","content":null}',
+      'data: {"type":"token","content":"kept"}',
+    ))]
+    expect(events).toEqual([{ type: 'token', content: 'kept' }])
+  })
+
   it('ignores heartbeats and unknown types', () => {
     expect([...parseSseStream(lines('data: {"type":"heartbeat"}'))]).toEqual([])
     expect([...parseSseStream(lines('data: {"type":"future_event_type"}'))]).toEqual([])

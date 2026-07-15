@@ -25,6 +25,10 @@
 - **`claude-sonnet-4.6`** restored as an allowed run `model` value (scope/workflow run creation and chat).
 - **`mgmt.scopes.evaluations(scopeId)`** — `getConfig()` / `updateConfig()` manage a scope's evaluation schedule and judge settings; `triggerRun()` starts a manual evaluation run; `listRuns()` / `getRun(runId)` read run history and per-case results.
 
+### Fixed
+
+- Typed run event streams now recover from interrupted model providers and emit `assistant_content_reset` when previously streamed assistant content is replaced.
+
 ## [0.1.0] — 2026-06-21
 
 ### Added

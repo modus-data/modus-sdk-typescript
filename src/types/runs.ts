@@ -22,6 +22,14 @@ export interface StreamTimeoutEvent {
   readonly type: 'stream_timeout'
 }
 
+export interface AssistantContentResetEvent {
+  readonly type: 'assistant_content_reset'
+  content: string
+  visibleContent?: string
+  attempt: number
+  reason: 'provider_stream_failed'
+}
+
 export type ActiveConversationRunStatus = 'queued' | 'pending' | 'running'
 
 export interface ActiveConversationRun {
@@ -39,3 +47,4 @@ export type RunEvent =
   | ErrorEvent
   | CancelledEvent
   | StreamTimeoutEvent
+  | AssistantContentResetEvent

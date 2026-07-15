@@ -297,7 +297,10 @@ export class WorkflowRunsResource {
     const runId = options.idempotencyKey?.trim() || body.runId?.trim() || randomRunId()
     const op = getOperation(operationId)
     const path = formatOperationPath(operationId, pathParams)
-    const lines = this.http.streamPost(path, body, {
+    const lines = this.http.streamPost(path, {
+      ...body,
+      streamProtocolVersion: 2,
+    }, {
       baseUrl: operationBaseUrl(this.http, op),
       headers: { 'Idempotency-Key': runId },
     })

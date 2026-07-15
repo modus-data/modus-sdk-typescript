@@ -24,6 +24,7 @@ export {
 export { ChatStream } from './_chat.js'
 export { Page } from './_pagination.js'
 export type {
+  AssistantContentResetEvent,
   CancelledEvent,
   DoneEvent,
   ErrorEvent,

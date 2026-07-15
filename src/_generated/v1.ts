@@ -3702,6 +3702,11 @@ export interface components {
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
+            /**
+             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @enum {number}
+             */
+            streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
             modelOnly?: boolean;
             debug?: boolean;
@@ -3776,6 +3781,11 @@ export interface components {
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
+            /**
+             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @enum {number}
+             */
+            streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
             modelOnly?: boolean;
             debug?: boolean;
@@ -3804,6 +3814,11 @@ export interface components {
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
+            /**
+             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @enum {number}
+             */
+            streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
             modelOnly?: boolean;
             debug?: boolean;
@@ -3870,6 +3885,11 @@ export interface components {
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
+            /**
+             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @enum {number}
+             */
+            streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
             modelOnly?: boolean;
             debug?: boolean;

@@ -61,6 +61,7 @@ describe('agent-service resources', () => {
         message: 'hello',
         sessionId: 'session-1',
         organizationId: 'org_123',
+        streamProtocolVersion: 2,
       }),
     })
   })

@@ -85,6 +85,51 @@ describe('scopes.chatStream', () => {
     expect(final.runId).toBe('run-s1')
   })
 
+  it('opts event streams into reset support and replaces failed content', async () => {
+    async function* fakeStream() {
+      yield 'data: {"type":"token","content":"failed"}'
+      yield 'data: {"type":"assistant_content_reset","content":"kept ","attempt":2,"reason":"provider_stream_failed"}'
+      yield 'data: {"type":"token","content":"replacement"}'
+      yield 'data: {"type":"done","runId":"run-s1","threadId":"thread-s1"}'
+    }
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0 })
+    const streamPost = vi
+      .spyOn(client['http'], 'streamPost')
+      .mockImplementation(() => fakeStream())
+
+    const stream = client.scopes.chatStream(42, 'Stream me', { model: MODEL })
+    const events = []
+    for await (const event of stream.eventStream()) events.push(event)
+
+    expect(events.map((event) => event.type)).toEqual([
+      'token',
+      'assistant_content_reset',
+      'token',
+      'done',
+    ])
+    expect(stream.getFinalResult().content).toBe('kept replacement')
+    expect(streamPost.mock.calls[0]?.[1]).toMatchObject({
+      streamProtocolVersion: 2,
+    })
+  })
+
+  it('keeps string-only text streams on the append-only protocol', async () => {
+    async function* fakeStream() {
+      yield 'data: {"type":"done","runId":"run-s1","threadId":"thread-s1"}'
+    }
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0 })
+    const streamPost = vi
+      .spyOn(client['http'], 'streamPost')
+      .mockImplementation(() => fakeStream())
+    const stream = client.scopes.chatStream(42, 'Stream me', { model: MODEL })
+    for await (const _chunk of stream.textStream()) {
+      // consume
+    }
+    expect(streamPost.mock.calls[0]?.[1]).not.toHaveProperty(
+      'streamProtocolVersion',
+    )
+  })
+
   it('raises on error events', async () => {
     async function* fakeStream() {
       yield 'data: {"type":"error","message":"Model unavailable"}'

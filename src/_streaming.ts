@@ -1,4 +1,5 @@
 import type {
+  AssistantContentResetEvent,
   CancelledEvent,
   DoneEvent,
   ErrorEvent,
@@ -64,6 +65,18 @@ function* parseData(data: Record<string, unknown>): Generator<RunEvent> {
     yield event
   } else if (eventType === 'stream_timeout') {
     const event: StreamTimeoutEvent = { type: 'stream_timeout' }
+    yield event
+  } else if (eventType === 'assistant_content_reset') {
+    if (typeof data.content !== 'string') return
+    const event: AssistantContentResetEvent = {
+      type: 'assistant_content_reset',
+      content: data.content,
+      ...(typeof data.visibleContent === 'string'
+        ? { visibleContent: data.visibleContent }
+        : {}),
+      attempt: typeof data.attempt === 'number' ? data.attempt : 1,
+      reason: 'provider_stream_failed',
+    }
     yield event
   } else if (!SILENTLY_IGNORED.has(eventType)) {
     // Unknown future event types ignored for forward compatibility.
