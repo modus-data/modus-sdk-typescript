@@ -11,6 +11,7 @@ import {
   accessConfigBodyForCreate,
   accessConfigBodyForUpdate,
 } from '../_access-config.js'
+import { WorkflowInterfacesResource } from './interfaces.js'
 
 export type TriggerInput = Record<string, unknown>
 export type AgentSelectionInput = Record<string, unknown>
@@ -28,6 +29,7 @@ interface ManagementWorkflowsOperations {
   readonly requestOwnershipTransfer: OperationId
   readonly cancelOwnershipTransfer: OperationId
   readonly acceptOwnershipTransfer: OperationId
+  readonly toggle: OperationId
 }
 
 const MANAGEMENT_WORKFLOW_OPERATIONS: ManagementWorkflowsOperations = {
@@ -41,6 +43,7 @@ const MANAGEMENT_WORKFLOW_OPERATIONS: ManagementWorkflowsOperations = {
   requestOwnershipTransfer: 'WorkflowsController_requestOwnershipTransfer',
   cancelOwnershipTransfer: 'WorkflowsController_cancelOwnershipTransfer',
   acceptOwnershipTransfer: 'WorkflowsController_acceptOwnershipTransfer',
+  toggle: 'WorkflowsController_toggle',
 }
 
 function workflowsListParams(
@@ -145,6 +148,10 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  interfaces(workflowId: number | string): WorkflowInterfacesResource {
+    return new WorkflowInterfacesResource(this.http, this.config, workflowId)
+  }
+
   async create(options: CreateAgentOptions): Promise<Agent> {
     const body = omitUndefined({
       name: options.name,
@@ -197,6 +204,15 @@ export class ManagementWorkflowsResource {
       }),
     )
     return parseWorkflow(data.agent)
+  }
+
+  async toggle(workflowId: number | string, options: { active: boolean }): Promise<Agent> {
+    validateId(workflowId, 'workflow_id')
+    const data = await invokeWithRetry(this.config, this.http, this.ops.toggle, {
+      pathParams: { id: workflowId },
+      jsonBody: { active: options.active },
+    })
+    return parseWorkflow(data)
   }
 
   async delete(workflowId: number | string): Promise<void> {

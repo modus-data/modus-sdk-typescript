@@ -142,6 +142,8 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ],
   ScopeMemoriesController_search: ['query', 'userId', 'limit'],
   ScopeMemoriesController_update: ['memory', 'metadata'],
+  ScopeSupervisionController_set: ['subordinateAgentIds'],
+  ScopeSupervisionController_setActive: ['subordinateAgentIds'],
   ScopesController_requestOwnershipTransfer: ['newOwnerUserId'],
   ScopesController_patchMcpConfig: ['config'],
   ScopesController_deploy: [],
@@ -183,6 +185,9 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   WorkflowsController_deploy: [],
   WorkflowsController_restore: [],
   WorkflowsController_acceptOwnershipTransfer: [],
+  WorkflowsController_toggle: ['active'],
+  WorkflowInterfacesController_add: ['type', 'name', 'config'],
+  WorkflowInterfacesController_update: ['name', 'config'],
   WorkflowRunsController_create: [
     'message',
     'sessionId',

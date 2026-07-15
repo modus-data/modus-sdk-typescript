@@ -5,6 +5,7 @@ import { ManagementContextResource } from './context/context.js'
 import { ManagementOrganizationResource } from './organization.js'
 import { ManagementScopesResource } from './skills/skills.js'
 import { ManagementUsageResource } from './usage.js'
+import { ManagementUsersResource } from './users.js'
 
 /** Configure scopes, workflows, context, usage, and organization settings. */
 export class ModusManagement extends ModusClientBase {
@@ -13,6 +14,7 @@ export class ModusManagement extends ModusClientBase {
   readonly context: ManagementContextResource
   readonly usage: ManagementUsageResource
   readonly organization: ManagementOrganizationResource
+  readonly users: ManagementUsersResource
 
   constructor(options: ModusOptions = {}) {
     super(options)
@@ -21,6 +23,7 @@ export class ModusManagement extends ModusClientBase {
     this.context = new ManagementContextResource(this.http, this.config)
     this.usage = new ManagementUsageResource(this.http, this.config)
     this.organization = new ManagementOrganizationResource(this.http, this.config)
+    this.users = new ManagementUsersResource(this.http, this.config)
   }
 }
 
