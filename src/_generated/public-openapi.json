@@ -18136,23 +18136,12 @@
             ]
           },
           "workflowStructure": {
-            "type": "object",
-            "description": "Workflow graph when `type` is `workflow`. Object with `nodes` and `edges` arrays. Each node: `{ id, type, data, position? }` where `type` is one of `start` | `action` | `condition` | `agent` | `humanApproval`. Each edge: `{ id, source, target, sourceHandle? }` and NOTHING else — extra keys (React-Flow cosmetics like `type`/`animated`/`targetHandle`, or `null` fields) are rejected. The server validates this shape on write (422 on mismatch); a graph that is accepted but non-conformant would break every later deploy and re-open of the workflow.",
-            "additionalProperties": true,
-            "example": {
-              "nodes": [
-                {
-                  "id": "1",
-                  "type": "start",
-                  "position": {
-                    "x": 0,
-                    "y": 50
-                  },
-                  "data": {}
-                }
-              ],
-              "edges": []
-            }
+            "description": "Workflow graph (nodes + edges) when `type` is `workflow`. Unknown node/edge keys and out-of-enum node types are rejected with a 422.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStructureDto"
+              }
+            ]
           },
           "accessConfig": {
             "description": "Access configuration. Omit to use the default (full-org shared with use + manage).",
@@ -20838,23 +20827,12 @@
             ]
           },
           "workflowStructure": {
-            "type": "object",
-            "description": "Updated workflow graph. Object with `nodes` and `edges` arrays. Each node: `{ id, type, data, position? }` where `type` is one of `start` | `action` | `condition` | `agent` | `humanApproval`. Each edge: `{ id, source, target, sourceHandle? }` and NOTHING else — extra keys (React-Flow cosmetics like `type`/`animated`/`targetHandle`, or `null` fields) are rejected. The server validates this shape on write (422 on mismatch); a graph that is accepted but non-conformant would break every later deploy and re-open of the workflow.",
-            "additionalProperties": true,
-            "example": {
-              "nodes": [
-                {
-                  "id": "1",
-                  "type": "start",
-                  "position": {
-                    "x": 0,
-                    "y": 50
-                  },
-                  "data": {}
-                }
-              ],
-              "edges": []
-            }
+            "description": "Updated workflow graph (nodes + edges). Unknown node/edge keys and out-of-enum node types are rejected with a 422.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStructureDto"
+              }
+            ]
           },
           "accessConfig": {
             "description": "Updated access configuration. The service rejects changes that would lock the caller out of use + manage.",
@@ -21230,6 +21208,120 @@
           "output_tokens",
           "credits"
         ]
+      },
+      "WorkflowEdgeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable edge id, unique within the graph.",
+            "example": "e1"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source node id.",
+            "example": "1"
+          },
+          "target": {
+            "type": "string",
+            "description": "Target node id.",
+            "example": "2"
+          },
+          "sourceHandle": {
+            "type": "string",
+            "description": "Source port handle (e.g. a condition branch). Omit for a single-output node.",
+            "example": "branch_0"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      },
+      "WorkflowNodeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable node id, unique within the graph.",
+            "example": "1"
+          },
+          "type": {
+            "description": "Node kind. Determines how the runtime interprets `data`.",
+            "example": "start",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowNodeType"
+              }
+            ]
+          },
+          "position": {
+            "description": "Canvas position. Optional — preserved for builder layout when present.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowNodePositionDto"
+              }
+            ]
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Node-type-specific payload (intentionally open — shape varies by `type`). Defaults to `{}`.",
+            "example": {}
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ]
+      },
+      "WorkflowNodePositionDto": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "example": 0
+          },
+          "y": {
+            "type": "number",
+            "example": 50
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      },
+      "WorkflowNodeType": {
+        "type": "string",
+        "enum": [
+          "start",
+          "action",
+          "condition",
+          "agent",
+          "humanApproval"
+        ],
+        "description": "Node kind. Determines how the runtime interprets `data`."
+      },
+      "WorkflowStructureDto": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "description": "Workflow nodes. Defaults to `[]`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeDto"
+            }
+          },
+          "edges": {
+            "description": "Directed edges connecting the nodes. Defaults to `[]`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdgeDto"
+            }
+          }
+        }
       },
       "ActiveConversationRunDto": {
         "type": "object",

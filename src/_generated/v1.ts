@@ -2333,26 +2333,8 @@ export interface components {
             trigger?: components["schemas"]["TriggerDto"];
             /** @description Workflow selection (for task workflows): ordered scopes plus per-scope instructions. */
             agentSelection?: components["schemas"]["AgentSelectionDto"];
-            /**
-             * @description Workflow graph when `type` is `workflow`. Object with `nodes` and `edges` arrays. Each node: `{ id, type, data, position? }` where `type` is one of `start` | `action` | `condition` | `agent` | `humanApproval`. Each edge: `{ id, source, target, sourceHandle? }` and NOTHING else — extra keys (React-Flow cosmetics like `type`/`animated`/`targetHandle`, or `null` fields) are rejected. The server validates this shape on write (422 on mismatch); a graph that is accepted but non-conformant would break every later deploy and re-open of the workflow.
-             * @example {
-             *       "nodes": [
-             *         {
-             *           "id": "1",
-             *           "type": "start",
-             *           "position": {
-             *             "x": 0,
-             *             "y": 50
-             *           },
-             *           "data": {}
-             *         }
-             *       ],
-             *       "edges": []
-             *     }
-             */
-            workflowStructure?: {
-                [key: string]: unknown;
-            };
+            /** @description Workflow graph (nodes + edges) when `type` is `workflow`. Unknown node/edge keys and out-of-enum node types are rejected with a 422. */
+            workflowStructure?: components["schemas"]["WorkflowStructureDto"];
             /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
         };
@@ -3734,26 +3716,8 @@ export interface components {
             trigger?: components["schemas"]["TriggerDto"];
             /** @description Updated workflow selection. */
             agentSelection?: components["schemas"]["AgentSelectionDto"];
-            /**
-             * @description Updated workflow graph. Object with `nodes` and `edges` arrays. Each node: `{ id, type, data, position? }` where `type` is one of `start` | `action` | `condition` | `agent` | `humanApproval`. Each edge: `{ id, source, target, sourceHandle? }` and NOTHING else — extra keys (React-Flow cosmetics like `type`/`animated`/`targetHandle`, or `null` fields) are rejected. The server validates this shape on write (422 on mismatch); a graph that is accepted but non-conformant would break every later deploy and re-open of the workflow.
-             * @example {
-             *       "nodes": [
-             *         {
-             *           "id": "1",
-             *           "type": "start",
-             *           "position": {
-             *             "x": 0,
-             *             "y": 50
-             *           },
-             *           "data": {}
-             *         }
-             *       ],
-             *       "edges": []
-             *     }
-             */
-            workflowStructure?: {
-                [key: string]: unknown;
-            };
+            /** @description Updated workflow graph (nodes + edges). Unknown node/edge keys and out-of-enum node types are rejected with a 422. */
+            workflowStructure?: components["schemas"]["WorkflowStructureDto"];
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
         };
@@ -3981,6 +3945,66 @@ export interface components {
             output_tokens: number;
             /** @description Total credits consumed across all buckets in the window. */
             credits: number;
+        };
+        WorkflowEdgeDto: {
+            /**
+             * @description Stable edge id, unique within the graph.
+             * @example e1
+             */
+            id: string;
+            /**
+             * @description Source node id.
+             * @example 1
+             */
+            source: string;
+            /**
+             * @description Target node id.
+             * @example 2
+             */
+            target: string;
+            /**
+             * @description Source port handle (e.g. a condition branch). Omit for a single-output node.
+             * @example branch_0
+             */
+            sourceHandle?: string;
+        };
+        WorkflowNodeDto: {
+            /**
+             * @description Stable node id, unique within the graph.
+             * @example 1
+             */
+            id: string;
+            /**
+             * @description Node kind. Determines how the runtime interprets `data`.
+             * @example start
+             */
+            type: components["schemas"]["WorkflowNodeType"];
+            /** @description Canvas position. Optional — preserved for builder layout when present. */
+            position?: components["schemas"]["WorkflowNodePositionDto"];
+            /**
+             * @description Node-type-specific payload (intentionally open — shape varies by `type`). Defaults to `{}`.
+             * @example {}
+             */
+            data?: {
+                [key: string]: unknown;
+            };
+        };
+        WorkflowNodePositionDto: {
+            /** @example 0 */
+            x: number;
+            /** @example 50 */
+            y: number;
+        };
+        /**
+         * @description Node kind. Determines how the runtime interprets `data`.
+         * @enum {string}
+         */
+        WorkflowNodeType: "start" | "action" | "condition" | "agent" | "humanApproval";
+        WorkflowStructureDto: {
+            /** @description Workflow nodes. Defaults to `[]`. */
+            nodes?: components["schemas"]["WorkflowNodeDto"][];
+            /** @description Directed edges connecting the nodes. Defaults to `[]`. */
+            edges?: components["schemas"]["WorkflowEdgeDto"][];
         };
         ActiveConversationRunDto: {
             /** @description Run identifier. */
