@@ -12,8 +12,8 @@ describe('shipped examples', () => {
     expect(onDisk.sort()).toEqual([...EXPECTED].sort())
   })
 
-  it.each(EXPECTED)('%s imports from @modus/sdk', (filename) => {
+  it.each(EXPECTED)('%s imports from @getmodus/sdk', (filename) => {
     const text = readFileSync(join(EXAMPLES_DIR, filename), 'utf8')
-    expect(text).toMatch(/@modus\/sdk/)
+    expect(text).toMatch(/@getmodus\/sdk/)
   })
 })

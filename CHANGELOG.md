@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- npm package scope is **`@getmodus/sdk`** (npm org `getmodus`; `@modus` scope was unavailable). Install with `npm install @getmodus/sdk`.
+
 ### Changed (BREAKING)
 
 - **MCP `get_context_data` batch + ACL (BREAKING)** — Renamed from `fetch_context_file`. Pass `{ items[], sessionId? }` instead of top-level `itemId`. Response `{ results[] }` with per-item `ok` / errors (max 20). ACL + scope surface authorization; optional `sessionId` for Mongo offload cache.
@@ -33,9 +37,9 @@
 
 ### Added
 
-- **`@modus/sdk`** — official TypeScript client for Modus (Node.js 18+).
+- **`@getmodus/sdk`** — official TypeScript client for Modus (Node.js 18+).
 - **`Modus`** client — read / invoke: skills, agents, context, connections, Modus assistant chat, runs.
-- **`ModusManagement`** (`@modus/sdk/management`) — configure: CRUD, deploy, context creators, usage, org admin.
+- **`ModusManagement`** (`@getmodus/sdk/management`) — configure: CRUD, deploy, context creators, usage, org admin.
 - Cursor-based **`Page<T>`** pagination with `autoPagingIter()` (AIP-158 `pageSize` / `pageToken`).
 - Automatic retry on 429 and 5xx with exponential backoff and `Retry-After` support.
 - SSE streaming chat via `ChatStream` (`textStream()`, `eventStream()`).

@@ -1,5 +1,5 @@
 /**
- * @modus/sdk — official TypeScript client for Modus.
+ * @getmodus/sdk — official TypeScript client for Modus.
  */
 
 export type { components, paths, operations } from './_generated/v1.js'

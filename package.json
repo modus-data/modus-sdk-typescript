@@ -1,5 +1,5 @@
 {
-  "name": "@modus/sdk",
+  "name": "@getmodus/sdk",
   "version": "0.0.0",
   "description": "Official TypeScript client for Modus — your organization's context layer for AI",
   "type": "module",

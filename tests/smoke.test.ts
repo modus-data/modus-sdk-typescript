@@ -5,7 +5,7 @@ import { OPERATIONS } from '../src/_generated/operations.js'
 
 const TEST_KEY = 'modus_test_key_smoke'
 
-describe('@modus/sdk scaffold', () => {
+describe('@getmodus/sdk scaffold', () => {
   it('exports Modus and ModusManagement', () => {
     const client = new Modus({ apiKey: TEST_KEY })
     expect(client).toBeInstanceOf(Modus)

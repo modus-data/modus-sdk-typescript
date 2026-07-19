@@ -22,7 +22,7 @@
       "executor": "nx:run-commands",
       "dependsOn": [],
       "options": {
-        "command": "pnpm --filter @modus/sdk run build",
+        "command": "pnpm --filter @getmodus/sdk run build",
         "cwd": "{workspaceRoot}"
       },
       "outputs": ["{projectRoot}/dist"]
@@ -31,7 +31,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "pnpm --filter @modus/sdk exec vitest run",
+        "command": "pnpm --filter @getmodus/sdk exec vitest run",
         "cwd": "{workspaceRoot}"
       },
       "inputs": [
@@ -52,7 +52,7 @@
     "clean": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm --filter @modus/sdk run clean",
+        "command": "pnpm --filter @getmodus/sdk run clean",
         "cwd": "{workspaceRoot}"
       },
       "cache": false

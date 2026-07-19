@@ -7,7 +7,7 @@ Thank you for your interest in the Modus TypeScript SDK.
 Please open a [GitHub issue](https://github.com/modus-data/modus-sdk-typescript/issues)
 for bug reports and feature requests. Include:
 
-- SDK version (`npm list @modus/sdk` or `package.json`)
+- SDK version (`npm list @getmodus/sdk` or `package.json`)
 - Node.js version
 - A minimal reproducible example
 

@@ -1,4 +1,4 @@
-# @modus/sdk
+# @getmodus/sdk
 
 Official TypeScript client for Modus (pre-release).
 
@@ -7,7 +7,7 @@ Official TypeScript client for Modus (pre-release).
 ## Install (coming soon)
 
 ```bash
-npm install @modus/sdk@beta
+npm install @getmodus/sdk@beta
 ```
 
 ## Usage
@@ -15,8 +15,8 @@ npm install @modus/sdk@beta
 ### ESM (`import`)
 
 ```ts
-import { Modus } from '@modus/sdk'
-import { ModusManagement } from '@modus/sdk/management'
+import { Modus } from '@getmodus/sdk'
+import { ModusManagement } from '@getmodus/sdk/management'
 
 const client = new Modus({ apiKey: process.env.MODUS_API_KEY })
 const mgmt = new ModusManagement({ apiKey: process.env.MODUS_API_KEY })
@@ -28,8 +28,8 @@ const draft = await mgmt.scopes.create({ name: 'Analyst', model: 'claude-sonnet-
 ### CommonJS (`require`)
 
 ```js
-const { Modus } = require('@modus/sdk')
-const { ModusManagement } = require('@modus/sdk/management')
+const { Modus } = require('@getmodus/sdk')
+const { ModusManagement } = require('@getmodus/sdk/management')
 
 const client = new Modus({ apiKey: process.env.MODUS_API_KEY })
 ```

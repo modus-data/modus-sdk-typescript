@@ -5,7 +5,7 @@ import type { HttpClient } from './_http.js'
 export function getOperation(operationId: string): OperationSpec {
   if (!(operationId in OPERATIONS)) {
     throw new Error(
-      `Unknown API operation ${JSON.stringify(operationId)}. Upgrade @modus/sdk or report a version mismatch.`,
+      `Unknown API operation ${JSON.stringify(operationId)}. Upgrade @getmodus/sdk or report a version mismatch.`,
     )
   }
   return OPERATIONS[operationId as OperationId]
