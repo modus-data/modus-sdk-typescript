@@ -40,6 +40,15 @@
         "{workspaceRoot}/packages/openapi-portal/src/**/*.ts"
       ]
     },
+    "test-staging-smoke": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "pnpm --filter @getmodus/sdk run test:staging-smoke",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    },
     "lint": {
       "executor": "nx:run-commands",
       "dependsOn": [],

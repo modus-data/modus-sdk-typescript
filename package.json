@@ -55,6 +55,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "test:staging-smoke": "vitest run --config vitest.staging-smoke.config.ts",
     "clean": "rimraf dist tsconfig.tsbuildinfo"
   },
   "devDependencies": {
