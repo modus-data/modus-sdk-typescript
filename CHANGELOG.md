@@ -3,6 +3,8 @@
 **Current npm release:** [`0.2.1`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.1).
 
 
+## [Unreleased]
+
 ## [0.2.1] — 2026-07-20
 
 ### Changed
@@ -32,8 +34,6 @@
 ### Removed
 
 - Legacy **`client.skills` / `client.agents`** and **`mgmt.skills` / `mgmt.agents`** accessors — use `scopes` / `workflows`.
-
-## [Unreleased]
 
 ## [0.1.0] — 2026-07-20
 
