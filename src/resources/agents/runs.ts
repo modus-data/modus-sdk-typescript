@@ -306,10 +306,16 @@ export class WorkflowRunsResource {
     options: { idempotencyKey?: string },
   ): AgentRunStream {
     const runId = options.idempotencyKey?.trim() || body.runId?.trim() || randomRunId()
+    const sessionId =
+      typeof (body as { sessionId?: unknown }).sessionId === 'string' &&
+      (body as { sessionId: string }).sessionId.trim()
+        ? (body as { sessionId: string }).sessionId.trim()
+        : randomRunId()
     const op = getOperation(operationId)
     const path = formatOperationPath(operationId, pathParams)
     const lines = this.http.streamPost(path, {
       ...body,
+      sessionId,
       streamProtocolVersion: 2,
     }, {
       baseUrl: operationBaseUrl(this.http, op),

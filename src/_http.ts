@@ -204,7 +204,13 @@ export class HttpClient {
     try {
       const response = await this.config.fetch(url, {
         method,
-        headers: { ...this.defaultHeaders(), ...options.headers },
+        // Agent-service negotiates SSE vs JSON polling on Accept; JSON-only
+        // Accept returns {"runId","status":"pending"} instead of token SSE.
+        headers: {
+          ...this.defaultHeaders(),
+          ...options.headers,
+          Accept: 'text/event-stream',
+        },
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })

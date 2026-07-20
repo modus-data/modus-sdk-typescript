@@ -36,6 +36,21 @@ describe('HttpClient.streamPost', () => {
     expect(lines).toEqual(['data: {"chunk":1}', 'data: {"chunk":2}'])
   })
 
+  it('sends Accept text/event-stream (not JSON-only) on stream requests', async () => {
+    const fetch = vi.fn().mockResolvedValue(sseResponse(['data: {"type":"done"}\n\n']))
+    const config = createModusConfig({
+      apiKey: TEST_KEY,
+      maxRetries: 0,
+      fetch,
+    })
+    const http = new HttpClient(config)
+    for await (const _ of http.streamPost('/agent/v1/modus/runs', { message: 'hi' })) {
+      // drain
+    }
+    const init = fetch.mock.calls[0]?.[1] as { headers?: Record<string, string> }
+    expect(init.headers?.Accept).toBe('text/event-stream')
+  })
+
   it('reads error body on non-2xx without attempting to stream', async () => {
     const config = createModusConfig({
       apiKey: TEST_KEY,

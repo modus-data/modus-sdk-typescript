@@ -82,6 +82,24 @@ describe('agent-service resources', () => {
     expect(events.at(-1)).toMatchObject({ type: 'done', runId: 'modus-1' })
   })
 
+  it('createModus mints sessionId when omitted', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      sseResponse(['data: {"type":"done","runId":"modus-2","threadId":"t2"}\n\n']),
+    )
+    const workflows = resource(fetch)
+    const run = workflows.runs.createModus({
+      message: 'hi',
+      organizationId: 'org_123',
+    } as Parameters<typeof workflows.runs.createModus>[0])
+    for await (const _ of run) {
+      // drain
+    }
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)) as { sessionId?: string }
+    expect(typeof body.sessionId).toBe('string')
+    expect(body.sessionId!.length).toBeGreaterThan(0)
+    expect(fetch.mock.calls[0]?.[1]?.headers?.Accept).toBe('text/event-stream')
+  })
+
   it('falls back to body runId when idempotency key is blank', async () => {
     const fetch = vi.fn().mockResolvedValue(
       sseResponse(['data: {"type":"done","runId":"body-run","threadId":"thread-1"}\n\n']),
