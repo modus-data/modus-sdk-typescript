@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { ModusConfig } from '../../_config.js'
+import { resolveAgentRunSessionId } from '../../_agent_run_request.js'
 import { ModusError } from '../../_exceptions.js'
 import type { OperationId } from '../../_generated/operations.js'
 import {
@@ -93,6 +94,10 @@ function parseActiveRunsPage(
 
 function randomRunId(): string {
   return randomUUID()
+}
+
+function sessionIdFromBody(body: { sessionId?: string }): string {
+  return resolveAgentRunSessionId(body.sessionId)
 }
 
 export interface AgentRunStream extends AsyncIterable<RunEvent> {
@@ -306,11 +311,7 @@ export class WorkflowRunsResource {
     options: { idempotencyKey?: string },
   ): AgentRunStream {
     const runId = options.idempotencyKey?.trim() || body.runId?.trim() || randomRunId()
-    const sessionId =
-      typeof (body as { sessionId?: unknown }).sessionId === 'string' &&
-      (body as { sessionId: string }).sessionId.trim()
-        ? (body as { sessionId: string }).sessionId.trim()
-        : randomRunId()
+    const sessionId = sessionIdFromBody(body as { sessionId?: string })
     const op = getOperation(operationId)
     const path = formatOperationPath(operationId, pathParams)
     const lines = this.http.streamPost(path, {

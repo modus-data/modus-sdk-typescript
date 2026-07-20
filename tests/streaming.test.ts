@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
-import { AuthenticationError } from '../src/_exceptions.js'
+import { AuthenticationError, ModusError } from '../src/_exceptions.js'
 import { HttpClient } from '../src/_http.js'
 
 const TEST_KEY = 'modus_test_key_stream'
@@ -49,6 +49,22 @@ describe('HttpClient.streamPost', () => {
     }
     const init = fetch.mock.calls[0]?.[1] as { headers?: Record<string, string> }
     expect(init.headers?.Accept).toBe('text/event-stream')
+  })
+
+  it('rejects JSON polling responses instead of empty success', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ runId: 'r1', status: 'pending' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0, fetch })
+    const http = new HttpClient(config)
+    await expect(async () => {
+      for await (const _ of http.streamPost('/agent/v1/modus/runs', { message: 'hi' })) {
+        // drain
+      }
+    }).rejects.toBeInstanceOf(ModusError)
   })
 
   it('reads error body on non-2xx without attempting to stream', async () => {

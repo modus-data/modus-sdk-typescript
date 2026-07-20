@@ -1,10 +1,10 @@
-import { randomUUID } from 'node:crypto'
 import {
   ModusError,
   RunCancelledError,
   StreamTimeoutError,
 } from './_exceptions.js'
 import type { ModusConfig } from './_config.js'
+import { resolveAgentRunSessionId } from './_agent_run_request.js'
 import type { HttpClient } from './_http.js'
 import { parseSseStream } from './_streaming.js'
 import { validateChatModel, validateId } from './_validation.js'
@@ -18,7 +18,7 @@ function effectiveThreadId(threadId?: string): string | undefined {
 }
 
 function resolveSessionId(threadId?: string): string {
-  return effectiveThreadId(threadId) ?? randomUUID()
+  return resolveAgentRunSessionId(effectiveThreadId(threadId))
 }
 
 function chatPath(

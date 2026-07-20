@@ -168,5 +168,18 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     expect(tokens).toBeGreaterThan(0)
     expect(final.content?.length).toBeGreaterThan(0)
     expect(final.threadId || final.runId).toBeTruthy()
+
+    // createModus must mint sessionId + negotiate SSE (not JSON pending).
+    let createTokens = 0
+    const createRun = c.workflows.runs.createModus({
+      message: 'sdk staging smoke — createModus one short word',
+      config: { model },
+    } as Parameters<typeof c.workflows.runs.createModus>[0])
+    for await (const event of createRun) {
+      if (event.type === 'token' && event.content.length > 0) {
+        createTokens += 1
+      }
+    }
+    expect(createTokens).toBeGreaterThan(0)
   }, 300_000)
 })
