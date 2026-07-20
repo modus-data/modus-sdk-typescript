@@ -3,7 +3,11 @@ import type { HttpClient } from '../_http.js'
 import { buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
-import type { RecordSuggestionEventRequest, SuggestionQuestion } from '../types/suggestions.js'
+import {
+  normalizeRecordSuggestionEvent,
+  type RecordSuggestionEventRequest,
+  type SuggestionQuestion,
+} from '../types/suggestions.js'
 
 const DEFAULT_SUGGESTIONS_PAGE_SIZE = 5
 const MAX_SUGGESTIONS_PAGE_SIZE = 12
@@ -63,7 +67,7 @@ export class SuggestionsResource {
     validateId(id, 'id')
     await invokeWithRetry(this.config, this.http, 'SuggestionsController_recordEvent', {
       pathParams: { id },
-      jsonBody: event,
+      jsonBody: normalizeRecordSuggestionEvent(event),
     })
   }
 }

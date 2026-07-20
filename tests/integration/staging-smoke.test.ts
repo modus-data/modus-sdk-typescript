@@ -2,9 +2,11 @@
  * Staging journey smoke — real PAT against staging (or any reachable API).
  *
  * Env:
- *   MODUS_API_KEY   required
- *   MODUS_BASE_URL  default https://api.staging.getmodus.com
- *   MODUS_SCOPE_ID  optional
+ *   MODUS_API_KEY     required
+ *   MODUS_BASE_URL    default https://api.staging.getmodus.com
+ *   MODUS_AGENT_HOST  default https://agent.staging.getmodus.com (chat/stream)
+ *   MODUS_SMOKE_MODEL default claude-sonnet-5
+ *   MODUS_SCOPE_ID    optional
  *
  * Run:
  *   export MODUS_API_KEY=modus_...
@@ -108,4 +110,33 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     })
     await expect(bad.scopes.list({ pageSize: 1 })).rejects.toBeInstanceOf(AuthenticationError)
   }, 180_000)
+
+  it('buffered chat + streaming via agent host', async () => {
+    const model = (process.env.MODUS_SMOKE_MODEL || 'claude-sonnet-5') as import('../../src/types/chat.js').ChatModel
+    const agentHost =
+      process.env.MODUS_AGENT_HOST || 'https://agent.staging.getmodus.com'
+    const c = new Modus({
+      baseUrl: baseUrl(),
+      agentHost,
+      timeoutMs: 180_000,
+    })
+
+    const buffered = await c.modus.chat('sdk staging smoke — reply with one short word', {
+      model,
+    })
+    expect(buffered.content?.length).toBeGreaterThan(0)
+    expect(buffered.threadId).toBeTruthy()
+
+    const stream = c.modus.chatStream('sdk staging smoke — stream one short word', {
+      model,
+    })
+    let tokens = 0
+    for await (const chunk of stream.textStream()) {
+      if (chunk.length > 0) tokens += 1
+    }
+    const final = stream.getFinalResult()
+    expect(tokens).toBeGreaterThan(0)
+    expect(final.content?.length).toBeGreaterThan(0)
+    expect(final.threadId || final.runId).toBeTruthy()
+  }, 300_000)
 })

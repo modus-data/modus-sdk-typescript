@@ -161,6 +161,10 @@ import { ModusManagement } from '@getmodus/sdk/management'
 const mgmt = new ModusManagement() // reads MODUS_API_KEY
 const scope = await mgmt.scopes.create({ name: 'Analyst', model: 'claude-sonnet-5' })
 await mgmt.scopes.deploy(scope.id)
+
+// Create returns contextItemId (also available as .uid); list/get use .uid
+const note = await mgmt.context.createNote('Title', 'Body')
+console.log(note.contextItemId, note.uid) // same UUID
 ```
 
 Requires a token with write access to scopes and workflows (same as the Modus UI).

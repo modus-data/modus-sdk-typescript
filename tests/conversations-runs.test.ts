@@ -3,7 +3,7 @@ import { Modus } from '../src/index.js'
 import { conversationSkillId } from '../src/types/conversations.js'
 
 const TEST_KEY = 'modus_test_key_conversations'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
 
 function makeListItem(i = 0) {
   return {

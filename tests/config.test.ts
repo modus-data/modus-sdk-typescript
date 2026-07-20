@@ -19,8 +19,14 @@ describe('config', () => {
   })
 
   it('strips trailing slash from baseUrl', () => {
-    const cfg = createModusConfig({ apiKey: TEST_KEY, baseUrl: 'https://api.modus.com/' })
-    expect(cfg.baseUrl).toBe('https://api.modus.com')
+    const cfg = createModusConfig({ apiKey: TEST_KEY, baseUrl: 'https://api.getmodus.com/' })
+    expect(cfg.baseUrl).toBe('https://api.getmodus.com')
+  })
+
+  it('defaults agentHost to production agent origin', () => {
+    const cfg = createModusConfig({ apiKey: TEST_KEY })
+    expect(cfg.agentHost).toBe('https://agent.getmodus.com')
+    expect(cfg.baseUrls['agent-service']).toBe('https://agent.getmodus.com')
   })
 
   it('normalizes service base URL overrides', () => {
@@ -29,6 +35,7 @@ describe('config', () => {
       baseUrls: { 'agent-service': 'http://localhost:3130/' },
     })
     expect(cfg.baseUrls['agent-service']).toBe('http://localhost:3130')
+    expect(cfg.agentHost).toBe('http://localhost:3130')
   })
 
   it('rejects negative maxRetries', () => {

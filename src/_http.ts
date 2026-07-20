@@ -177,6 +177,10 @@ export class HttpClient {
     return this.request('POST', path, { json, ...options })
   }
 
+  put(path: string, json?: unknown, options: RequestOptions = {}): Promise<unknown> {
+    return this.request('PUT', path, { json, ...options })
+  }
+
   patch(
     path: string,
     json?: unknown,

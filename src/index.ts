@@ -35,7 +35,8 @@ export type {
 export type { ChatModel, ChatRequest, ChatResult } from './types/chat.js'
 export type { ModusOptions } from './_config.js'
 export type { Skill, SkillStatus, SkillVariation } from './types/skills.js'
-export type { Agent, AgentType } from './types/agents.js'
+export type { Agent } from './types/agents.js'
+export { AgentType } from './types/agents.js'
 export type {
   AgentRun,
   AgentRunCreateRequest,

@@ -67,6 +67,8 @@ export async function invokeOperation(
       return http.get(path, params, requestOptions)
     case 'POST':
       return http.post(path, options.jsonBody, requestOptions)
+    case 'PUT':
+      return http.put(path, options.jsonBody, requestOptions)
     case 'PATCH':
       return http.patch(path, options.jsonBody, params, requestOptions)
     case 'DELETE':

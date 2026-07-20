@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { ModusConfig } from '../../_config.js'
 import { ModusError } from '../../_exceptions.js'
 import type { OperationId } from '../../_generated/operations.js'
@@ -91,12 +92,22 @@ function parseActiveRunsPage(
 }
 
 function randomRunId(): string {
-  return crypto.randomUUID()
+  return randomUUID()
 }
 
-export interface AgentRunStream {
+export interface AgentRunStream extends AsyncIterable<RunEvent> {
   readonly runId: string
   readonly events: AsyncIterable<RunEvent>
+}
+
+export function makeAgentRunStream(runId: string, events: AsyncIterable<RunEvent>): AgentRunStream {
+  return {
+    runId,
+    events,
+    [Symbol.asyncIterator]() {
+      return events[Symbol.asyncIterator]()
+    },
+  }
 }
 
 export class WorkflowRunsResource {
@@ -179,36 +190,36 @@ export class WorkflowRunsResource {
     return parseRun(data)
   }
 
-  async create(
+  create(
     workflowId: number | string,
     body: CreateAgentRunRequest,
     options: { idempotencyKey?: string } = {},
-  ): Promise<AgentRunStream> {
+  ): AgentRunStream {
     validateId(workflowId, 'workflow_id')
     return this.createRun('WorkflowRunsController_create', body, { id: workflowId }, options)
   }
 
-  async createScope(
+  createScope(
     scopeId: number | string,
     body: SkillRunCreateRequest,
     options: { idempotencyKey?: string } = {},
-  ): Promise<AgentRunStream> {
+  ): AgentRunStream {
     validateId(scopeId, 'scope_id')
     return this.createRun('ScopeRunsController_create', body, { id: scopeId }, options)
   }
 
-  async createModus(
+  createModus(
     body: ModusRunCreateRequest,
     options: { idempotencyKey?: string } = {},
-  ): Promise<AgentRunStream> {
+  ): AgentRunStream {
     return this.createRun('ModusRunsController_create', body, {}, options)
   }
 
-  async resume(
+  resume(
     runId: string,
     body: ResumeRunRequest,
     options: { idempotencyKey?: string } = {},
-  ): Promise<AgentRunStream> {
+  ): AgentRunStream {
     validateId(runId, 'run_id')
     return this.createRun('ResumeRunsController_create', body, { runId }, options)
   }
@@ -285,7 +296,7 @@ export class WorkflowRunsResource {
       baseUrl: operationBaseUrl(this.http, op),
       headers: options.lastEventId ? { 'Last-Event-ID': options.lastEventId } : undefined,
     })
-    return { runId, events: this.parseEvents(lines) }
+    return makeAgentRunStream(runId, this.parseEvents(lines))
   }
 
   private createRun(
@@ -304,7 +315,7 @@ export class WorkflowRunsResource {
       baseUrl: operationBaseUrl(this.http, op),
       headers: { 'Idempotency-Key': runId },
     })
-    return { runId, events: this.parseEvents(lines) }
+    return makeAgentRunStream(runId, this.parseEvents(lines))
   }
 
   private async *parseEvents(lines: AsyncIterable<string>): AsyncGenerator<RunEvent> {

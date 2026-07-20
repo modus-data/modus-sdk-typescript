@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ModusManagement } from '../src/management/index.js'
 
 const TEST_KEY = 'modus_test_key_mgmt'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
 
 describe('ModusManagement.workflows', () => {
   it('create posts workflow body', async () => {
@@ -41,13 +41,14 @@ describe('ModusManagement.workflows', () => {
 describe('ModusManagement.context', () => {
   it('createNote posts note body', async () => {
     const fetch = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ uid: 'note-1', contextType: 'note' }), {
+      new Response(JSON.stringify({ contextItemId: 'note-1', kind: 'note' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }),
     )
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
     const created = await mgmt.context.createNote('Title', 'Body')
+    expect(created.contextItemId).toBe('note-1')
     expect(created.uid).toBe('note-1')
     expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/context/notes')
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({

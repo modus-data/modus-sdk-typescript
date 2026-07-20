@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ModusManagement } from '../src/management/index.js'
 
 const TEST_KEY = 'modus_test_key_mgmt'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
 
 describe('ModusManagement.scopes', () => {
   it('create posts scope body', async () => {

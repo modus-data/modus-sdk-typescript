@@ -117,8 +117,8 @@ export class ScopesResource {
   chatStream(
     scopeId: number | string,
     message: string,
-    options: { model: ChatModel; threadId?: string },
+    options: { model: ChatModel; threadId?: string; version?: string },
   ): ChatStream {
-    return chatStreamSession(this.http, 'scopes', scopeId, message, options)
+    return chatStreamSession(this.http, this.config, 'scopes', scopeId, message, options)
   }
 }

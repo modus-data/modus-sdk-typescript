@@ -307,7 +307,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -573,7 +573,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -795,7 +795,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -991,7 +991,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -1187,7 +1187,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -1399,7 +1399,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -1593,7 +1593,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -1859,7 +1859,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -2084,7 +2084,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -2281,7 +2281,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -2523,7 +2523,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -2717,7 +2717,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -2993,7 +2993,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -3203,7 +3203,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -3407,7 +3407,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -3612,7 +3612,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -3816,7 +3816,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -4019,7 +4019,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -4302,7 +4302,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -4498,7 +4498,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -4705,7 +4705,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -4957,7 +4957,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -5167,7 +5167,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -5377,7 +5377,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -5609,7 +5609,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -5797,7 +5797,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -6011,7 +6011,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -6231,7 +6231,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -6508,7 +6508,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -6738,7 +6738,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -6952,7 +6952,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -7169,7 +7169,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -7365,7 +7365,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -7569,7 +7569,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -7765,7 +7765,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -7975,7 +7975,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -8180,7 +8180,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -8387,7 +8387,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -8629,7 +8629,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -8850,7 +8850,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -9084,7 +9084,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -9282,7 +9282,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -9479,7 +9479,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -9689,7 +9689,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -9910,7 +9910,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -10133,7 +10133,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -10340,7 +10340,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -10535,7 +10535,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -10732,7 +10732,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -10939,7 +10939,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -11168,7 +11168,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -11367,7 +11367,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -11683,7 +11683,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -11886,7 +11886,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -12089,7 +12089,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -12268,7 +12268,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -12523,7 +12523,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -12740,7 +12740,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -12950,7 +12950,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -13184,7 +13184,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -13372,7 +13372,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -13589,7 +13589,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -13802,7 +13802,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -14026,7 +14026,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -14214,7 +14214,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -14456,7 +14456,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -14653,7 +14653,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -14850,7 +14850,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -15103,7 +15103,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -15317,7 +15317,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -15536,7 +15536,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -15743,7 +15743,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       },
@@ -15938,7 +15938,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -16135,7 +16135,7 @@
         "x-modus-service": "modus-api",
         "servers": [
           {
-            "url": "https://api.modus.com"
+            "url": "https://api.getmodus.com"
           }
         ]
       }
@@ -16204,7 +16204,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16286,7 +16286,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16356,7 +16356,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16405,7 +16405,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16444,7 +16444,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16493,7 +16493,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16542,7 +16542,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16621,7 +16621,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16689,7 +16689,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16768,7 +16768,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16827,7 +16827,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16876,7 +16876,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }
@@ -16955,7 +16955,7 @@
         "x-modus-service": "agent-service",
         "servers": [
           {
-            "url": "https://agent.modus.com"
+            "url": "https://agent.getmodus.com"
           }
         ]
       }

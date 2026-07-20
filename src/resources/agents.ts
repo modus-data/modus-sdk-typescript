@@ -1,9 +1,11 @@
+import { chatBuffered, chatStreamSession, type ChatStream } from '../_chat.js'
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
 import type { Agent, AgentType } from '../types/agents.js'
+import type { ChatModel, ChatResult } from '../types/chat.js'
 import type { VariationView } from '../types/views.js'
 import { WorkflowRunsResource } from './agents/runs.js'
 import { AgentWorkflowActionsResource } from './agents/workflow-actions.js'
@@ -106,5 +108,21 @@ export class WorkflowsResource {
       query: Object.keys(query).length > 0 ? query : undefined,
     })
     return parseWorkflow(data)
+  }
+
+  chat(
+    workflowId: number | string,
+    message: string,
+    options: { model: ChatModel; threadId?: string },
+  ): Promise<ChatResult> {
+    return chatBuffered(this.http, 'workflows', workflowId, message, options)
+  }
+
+  chatStream(
+    workflowId: number | string,
+    message: string,
+    options: { model: ChatModel; threadId?: string; version?: string },
+  ): ChatStream {
+    return chatStreamSession(this.http, this.config, 'workflows', workflowId, message, options)
   }
 }

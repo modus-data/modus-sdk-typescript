@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Modus } from '../src/index.js'
 
 const TEST_KEY = 'modus_test_key_suggestions'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
 
 describe('Modus.suggestions', () => {
   it('lists suggestion questions with scoped query params', async () => {
@@ -51,6 +51,23 @@ describe('Modus.suggestions', () => {
       skill_id: 42,
       thread_id: 'thread-1',
       metadata: { placement: 'home' },
+    })
+  })
+
+  it('normalizes camelCase recordEvent fields to snake_case wire keys', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await client.suggestions.recordEvent('predefined:q1', {
+      eventType: 'clicked',
+      source: 'home',
+      skillId: 42,
+      threadId: 'thread-1',
+    })
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      event_type: 'clicked',
+      source: 'home',
+      skill_id: 42,
+      thread_id: 'thread-1',
     })
   })
 })
