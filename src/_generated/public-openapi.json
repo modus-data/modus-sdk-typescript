@@ -21373,9 +21373,6 @@
           "experimentalFeatures": {
             "type": "boolean"
           },
-          "modelOnly": {
-            "type": "boolean"
-          },
           "debug": {
             "type": "boolean"
           }
@@ -21586,9 +21583,6 @@
           "experimentalFeatures": {
             "type": "boolean"
           },
-          "modelOnly": {
-            "type": "boolean"
-          },
           "debug": {
             "type": "boolean"
           },
@@ -21664,9 +21658,6 @@
             "description": "Streaming protocol version. Version 2 supports assistant-content replacement events."
           },
           "experimentalFeatures": {
-            "type": "boolean"
-          },
-          "modelOnly": {
             "type": "boolean"
           },
           "debug": {
@@ -21749,9 +21740,6 @@
             }
           },
           "experimentalFeatures": {
-            "type": "boolean"
-          },
-          "modelOnly": {
             "type": "boolean"
           },
           "debug": {
@@ -21868,9 +21856,6 @@
             "description": "Streaming protocol version. Version 2 supports assistant-content replacement events."
           },
           "experimentalFeatures": {
-            "type": "boolean"
-          },
-          "modelOnly": {
             "type": "boolean"
           },
           "debug": {

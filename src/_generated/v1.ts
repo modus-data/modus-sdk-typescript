@@ -4027,7 +4027,6 @@ export interface components {
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
-            modelOnly?: boolean;
             debug?: boolean;
         };
         AttachmentsDto: {
@@ -4106,7 +4105,6 @@ export interface components {
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
-            modelOnly?: boolean;
             debug?: boolean;
             /** @description Saved scope ids to scope the Modus run to. */
             subordinateSkillIds?: number[];
@@ -4139,7 +4137,6 @@ export interface components {
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
-            modelOnly?: boolean;
             debug?: boolean;
             /**
              * @description Decision that resumes the interrupted run.
@@ -4165,7 +4162,6 @@ export interface components {
             toolset?: Record<string, never>;
             strategies?: string[];
             experimentalFeatures?: boolean;
-            modelOnly?: boolean;
             debug?: boolean;
             /** @description Set false to keep composer output inline. */
             composerFileOffload?: boolean;
@@ -4210,7 +4206,6 @@ export interface components {
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
-            modelOnly?: boolean;
             debug?: boolean;
             /** @description Subordinate scope ids for an unsaved supervisor-scope draft test. */
             subordinateSkillIds?: number[];
