@@ -98,9 +98,8 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     await m.context.items.delete(createdUid)
     createdUid = undefined
 
-    await expect(c.scopes.get('__sdk_staging_smoke_missing_scope__')).rejects.toBeInstanceOf(
-      NotFoundError,
-    )
+    // Scope path param is numeric (ParseIntPipe); a missing id → 404.
+    await expect(c.scopes.get(999_999_999)).rejects.toBeInstanceOf(NotFoundError)
 
     const bad = new Modus({
       apiKey: 'modus_00000000_dead_beef_invalid_key_for_smoke',
