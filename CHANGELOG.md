@@ -1,12 +1,16 @@
 # Changelog
 
-**Current npm release:** [`0.1.0`](https://www.npmjs.com/package/@getmodus/sdk) (2026-07-20) — first npm publish of `@getmodus/sdk`.
+**Current npm release:** [`0.2.1`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.1).
 
-Next aligned cut: **`0.2.0`** (production-ready surface matching live public API).
 
-## [Unreleased]
+## [0.2.1] — 2026-07-20
 
-Content below ships as **`0.2.0`**.
+### Changed
+
+- Public README brought to parity with the Python SDK guide (product framing, auth, Modus vs scopes, chat/stream/context, management, pagination, errors).
+- Added `assets/modus-logo.png` / `.svg` for GitHub mirror and package docs.
+
+## [0.2.0] — 2026-07-20
 
 ### Added
 
@@ -28,6 +32,8 @@ Content below ships as **`0.2.0`**.
 ### Removed
 
 - Legacy **`client.skills` / `client.agents`** and **`mgmt.skills` / `mgmt.agents`** accessors — use `scopes` / `workflows`.
+
+## [Unreleased]
 
 ## [0.1.0] — 2026-07-20
 
