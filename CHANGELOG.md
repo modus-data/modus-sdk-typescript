@@ -1,25 +1,11 @@
 # Changelog
 
-**Current npm release:** [`0.2.1`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.1).
+**Current npm release:** [`0.2.2`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.2).
 
 
 ## [Unreleased]
 
-### Fixed
-
-- `chatStream` posts to agent-host `/agent/v1/.../runs` (parity with Python), not `/api/v1/.../chat/stream`.
-- Streaming always sends `sessionId`; optional `organizationId` / `MODUS_ORGANIZATION_ID`.
-- Default API/agent hosts are `*.getmodus.com`.
-- `invokeOperation` supports **PUT** (unblocks `supervision.set` / `evaluations.updateConfig`).
-- Agent-service calls honor `agentHost` / `MODUS_AGENT_HOST` over codegen `serverUrl`.
-- `suggestions.recordEvent` accepts camelCase aliases and sends snake_case wire keys.
-- `runs.create` / `createModus` / `createScope` / `resume` return a sync async-iterable stream (not a Promise wrapper).
-
-### Added
-
-- Runtime `AgentType.task` / `AgentType.workflow` (not type-only).
-- Create responses expose `.uid` as an alias of `contextItemId`.
-- Staging smoke includes buffered chat + streaming as a hard gate.
+## [0.2.2] — 2026-07-20
 
 ## [0.2.1] — 2026-07-20
 
