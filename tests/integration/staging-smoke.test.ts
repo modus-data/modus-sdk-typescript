@@ -44,8 +44,9 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     }
   })
 
-  it('auth → browse → pagination → compose → note write/cleanup → typed errors', async () => {
+  it('auth → browse → pagination → compose → mgmt reads → note write → errors', async () => {
     const c = client()
+    const m = mgmt()
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     const runId = crypto.randomUUID().slice(0, 8)
 
@@ -60,13 +61,28 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     if (scopeId) {
       const got = await c.scopes.get(scopeId)
       expect(got.id).toBeTruthy()
+      const convos = await c.scopes.conversations(scopeId).list({ pageSize: 5 })
+      expect(Array.isArray(convos.items)).toBe(true)
     }
 
     const workflows = await c.workflows.list({ pageSize: 5 })
     expect(Array.isArray(workflows.items)).toBe(true)
+    if (workflows.items[0]?.id != null) {
+      const wf = await c.workflows.get(workflows.items[0].id)
+      expect(wf.id).toBeTruthy()
+    }
 
     const notes = await c.context.items.list({ pageSize: 1, contextType: 'note' })
     expect(Array.isArray(notes.items)).toBe(true)
+
+    const connections = await c.connections.list({ pageSize: 5 })
+    expect(Array.isArray(connections.items)).toBe(true)
+
+    const suggestions = await c.suggestions.list({ pageSize: 5 })
+    expect(Array.isArray(suggestions.items)).toBe(true)
+
+    const activeRuns = await c.workflows.runs.active({ pageSize: 5 })
+    expect(Array.isArray(activeRuns.items)).toBe(true)
 
     const page1 = await c.scopes.list({ pageSize: 1 })
     if (page1.nextPageToken) {
@@ -86,7 +102,21 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
       expect(scopeComposed).toBeTruthy()
     }
 
-    const m = mgmt()
+    const mgmtScopes = await m.scopes.list({ pageSize: 5 })
+    expect(Array.isArray(mgmtScopes.items)).toBe(true)
+
+    const members = await m.users.listOrgMembers()
+    expect(Array.isArray(members)).toBe(true)
+
+    const until = new Date()
+    const since = new Date(until.getTime() - 24 * 60 * 60 * 1000)
+    const usage = await m.usage.list({
+      since: since.toISOString(),
+      until: until.toISOString(),
+      rollup: 'day',
+    })
+    expect(usage).toBeTruthy()
+
     const title = `[SDK Staging Smoke] ${stamp}-${runId}`
     const created = await m.context.createNote(title, 'staging smoke note — safe to delete')
     createdUid = created.contextItemId
@@ -109,7 +139,7 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
       timeoutMs: 30_000,
     })
     await expect(bad.scopes.list({ pageSize: 1 })).rejects.toBeInstanceOf(AuthenticationError)
-  }, 180_000)
+  }, 240_000)
 
   it('buffered chat + streaming via agent host', async () => {
     const model = (process.env.MODUS_SMOKE_MODEL || 'claude-sonnet-5') as import('../../src/types/chat.js').ChatModel
