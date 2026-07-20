@@ -8187,7 +8187,7 @@
     },
     "/api/v1/scopes/{id}/mcp-config": {
       "patch": {
-        "description": "Writes coreTools, mcpToolExposure, and other MCP-tab fields to the active variation immediately so MCP clients see the change without a full scope deploy. Mirrors the same config onto a forked draft when present. Requires manage permission; unpublished scopes return 404.\n\n**Requires:** `scopes:write`",
+        "description": "Writes coreTools and mcpToolExposure to the scope draft variation. Changes take effect for MCP clients on the next scope deploy — the active (published) variation is not mutated live. Requires manage permission; unpublished scopes return 404.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_patchMcpConfig",
         "parameters": [
           {

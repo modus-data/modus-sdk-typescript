@@ -673,7 +673,7 @@ export interface paths {
         head?: never;
         /**
          * Update scope MCP config
-         * @description Writes coreTools, mcpToolExposure, and other MCP-tab fields to the active variation immediately so MCP clients see the change without a full scope deploy. Mirrors the same config onto a forked draft when present. Requires manage permission; unpublished scopes return 404.
+         * @description Writes coreTools and mcpToolExposure to the scope draft variation. Changes take effect for MCP clients on the next scope deploy — the active (published) variation is not mutated live. Requires manage permission; unpublished scopes return 404.
          *
          *     **Requires:** `scopes:write`
          */
