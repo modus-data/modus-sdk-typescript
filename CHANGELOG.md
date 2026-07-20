@@ -1,12 +1,9 @@
 # Changelog
 
-**Current npm release:** [`0.1.0`](https://www.npmjs.com/package/@getmodus/sdk) (2026-07-20) — first npm publish of `@getmodus/sdk`.
+**Current npm release:** [`0.2.0`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.0).
 
-Next aligned cut: **`0.2.0`** (production-ready surface matching live public API).
 
-## [Unreleased]
-
-Content below ships as **`0.2.0`**.
+## [0.2.0] — 2026-07-20
 
 ### Added
 
@@ -28,6 +25,8 @@ Content below ships as **`0.2.0`**.
 ### Removed
 
 - Legacy **`client.skills` / `client.agents`** and **`mgmt.skills` / `mgmt.agents`** accessors — use `scopes` / `workflows`.
+
+## [Unreleased]
 
 ## [0.1.0] — 2026-07-20
 
