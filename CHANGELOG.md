@@ -7,6 +7,11 @@
 
 ## [0.2.3] — 2026-07-20
 
+### Fixed
+
+- Streaming requests send `Accept: text/event-stream`; a non-SSE response (e.g. JSON polling body) raises `ModusError` instead of returning an empty stream.
+- `createModus` / `createScope` / `runs.create()` / `resume()` always mint (or reuse) a `sessionId`.
+
 ## [0.2.2] — 2026-07-20
 
 ### Fixed
