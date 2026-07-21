@@ -99,8 +99,7 @@ export const OPERATIONS: Record<string, string> = {
   SuggestionsController_recordEvent: 'client.suggestions.recordEvent()',
   // --- Usage ---
   UsageController_list: 'mgmt.usage.list()',
-  // --- Organization ---
-  OrganizationController_deleteOrganization: 'mgmt.organization.delete()',
+  // --- Users ---
   MemberGroupsController_list: 'mgmt.users.listMemberGroups()',
   OrgMembersController_list: 'mgmt.users.listOrgMembers()',
 }

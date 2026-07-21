@@ -304,16 +304,6 @@ export const OPERATIONS = {
     requestSchema: null,
     responseSchema: "ListOrgMembersResponseDto",
   },
-  "OrganizationController_deleteOrganization": {
-    method: "DELETE",
-    path: "/api/v1/users/organization",
-    service: "modus-api",
-    serverUrl: "https://api.getmodus.com",
-    pathParams: [],
-    queryParams: [],
-    requestSchema: null,
-    responseSchema: null,
-  },
   "ResumeRunsController_create": {
     method: "POST",
     path: "/agent/v1/runs/{runId}/resume",

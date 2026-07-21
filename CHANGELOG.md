@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+### Removed
+
+- `mgmt.organization.delete()` — organization deletion is no longer part of the
+  public API / PAT surface (SPA-only).
+
 ## [0.2.3] — 2026-07-20
 
 ### Fixed

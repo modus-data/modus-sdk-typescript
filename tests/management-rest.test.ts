@@ -90,13 +90,3 @@ describe('ModusManagement.usage', () => {
     expect(url).toContain('rollup=day')
   })
 })
-
-describe('ModusManagement.organization', () => {
-  it('delete calls DELETE organization', async () => {
-    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
-    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
-    await mgmt.organization.delete()
-    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/users/organization')
-    expect(fetch.mock.calls[0]?.[1]?.method).toBe('DELETE')
-  })
-})
