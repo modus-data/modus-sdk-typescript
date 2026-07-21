@@ -23,12 +23,12 @@ describe('Modus.suggestions', () => {
       ),
     )
     const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
-    const page = await client.suggestions.list({ pageSize: 5, skillIds: [7, 42] })
+    const page = await client.suggestions.list({ pageSize: 5, scopeIds: [7, 42] })
     expect(page.items[0]?.label).toBe('Revenue')
     const url = String(fetch.mock.calls[0]?.[0])
     expect(url).toContain('/api/v1/suggestions/questions')
     expect(url).toContain('pageSize=5')
-    expect(url).toContain('skill_ids=7%2C42')
+    expect(url).toContain('scope_ids=7%2C42')
   })
 
   it('records suggestion events with snake_case body fields', async () => {

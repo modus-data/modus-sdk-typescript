@@ -27,7 +27,7 @@ describe('ModusManagement.workflows', () => {
   it('deploy unwraps workflow from response', async () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify({ agent: { id: 3, name: 'X', type: 'workflow', status: 'active' } }),
+        JSON.stringify({ workflow: { id: 3, name: 'X', type: 'workflow', status: 'active' } }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       ),
     )

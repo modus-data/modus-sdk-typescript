@@ -11,9 +11,7 @@ describe('ScopesResource', () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          // The /api/v1/scopes list response keeps the server DTO envelope
-          // key `skills` (only the path/opId moved to the scopes vocab).
-          skills: [{ id: 1, name: 'Analyst' }],
+          scopes: [{ id: 1, name: 'Analyst' }],
           nextPageToken: 'tok1',
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },

@@ -2,7 +2,7 @@ import type { ModusConfig } from '../../_config.js'
 import type { OperationId } from '../../_generated/operations.js'
 import type { HttpClient } from '../../_http.js'
 import { updateMaskQuery } from '../../_query.js'
-import { aipListParams, buildAipPage, resolveListItemsKey, type Page } from '../../_pagination.js'
+import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId, validatePageSize } from '../../_validation.js'
 import type { Workflow, WorkflowType } from '../../types/workflows.js'
@@ -137,10 +137,10 @@ export class ManagementWorkflowsResource {
         query: workflowsListParams(pageSize, pageToken, search, type, view, includeVariation),
       }),
     )
-    // Prefer `workflows`; fall back to deprecated `agents` while dual envelopes ship.
+    // List envelope is `workflows` only (Release N+1).
     return buildAipPage(
       data,
-      resolveListItemsKey(data, 'workflows', 'agents'),
+      'workflows',
       parseWorkflow,
       (token) => this.listPage(pageSize, token, search, type, view, includeVariation),
     )
@@ -211,9 +211,7 @@ export class ManagementWorkflowsResource {
         jsonBody: {},
       }),
     )
-    return parseWorkflow(
-      data.workflow !== undefined ? data.workflow : data.agent,
-    )
+    return parseWorkflow(data.workflow)
   }
 
   async toggle(workflowId: number | string, options: { active: boolean }): Promise<Workflow> {

@@ -1,6 +1,6 @@
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
-import { aipListParams, buildAipPage, resolveListItemsKey, type Page } from '../_pagination.js'
+import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
 import type { Workflow, WorkflowType } from '../types/workflows.js'
@@ -84,10 +84,10 @@ export class WorkflowsResource {
         ),
       }),
     )
-    // Prefer `workflows`; fall back to deprecated `agents` while dual envelopes ship.
+    // List responses require the canonical `workflows` key (dual `agents` envelope removed).
     return buildAipPage(
       data,
-      resolveListItemsKey(data, 'workflows', 'agents'),
+      'workflows',
       parseWorkflow,
       (token) => this.listPage(pageSize, token, search, type, view, includeVariation),
     )

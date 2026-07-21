@@ -6,14 +6,15 @@
 
 ## [Unreleased]
 
+> **Breaking removals below ship in the next major SDK release** (not a `0.2.x`
+> patch). See `distribution/docs/COMPATIBILITY.md`.
+
 ### Deprecated
 
 - **`Skill` / `Agent` type names** — use `Scope` / `Workflow` (OpenAPI `ScopeDto` / `WorkflowDto`).
-- **OpenAPI `SkillDto` / `AgentDto`** — deprecated twins of `ScopeDto` / `WorkflowDto`.
 - **`CreateSkillOptions` / `UpdateSkillOptions`** — use `CreateScopeOptions` / `UpdateScopeOptions`.
 - **`CreateAgentOptions` / `UpdateAgentOptions`** — use `CreateWorkflowOptions` / `UpdateWorkflowOptions`.
 - **`conversationSkillId()`** — use `conversationScopeId()`.
-- List envelopes still include deprecated `skills` / `agents` keys; parsers prefer `scopes` / `workflows`.
 
 ### Changed
 
@@ -22,6 +23,9 @@
 
 ### Removed
 
+- Dual list/deploy envelopes — responses use `scopes` / `workflows` and `scope` / `workflow` only (no `skills` / `agents` / `skill` / `agent` aliases).
+- OpenAPI public schema aliases **`SkillDto` / `AgentDto`** — use `ScopeDto` / `WorkflowDto`.
+- Conversation `kind=skills` — use `kind=scopes`.
 - `mgmt.organization.delete()` — organization deletion is no longer part of the
   public API / PAT surface (SPA-only).
 

@@ -35,7 +35,7 @@ const SAMPLE_VALUE_ENTRY = { value: 123 }
 const SAMPLE_MEMORY = { id: 'mem_01', memory: 'User prefers bullet points.' }
 const SAMPLE_CONVERSATION_LIST_ITEM = {
   threadId: 'thread-0',
-  skillId: 42,
+  scopeId: 42,
   firstMessage: 'Hello',
   title: null,
   messageCount: 5,
@@ -90,7 +90,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
     sampleItem: SAMPLE_SUGGESTION,
     clientKind: 'modus',
     expectedPageSize: 5,
-    invoke: (c) => c.suggestions.list({ pageSize: 5, pageToken: 'tok_abc', skillIds: [7, 42] }),
+    invoke: (c) => c.suggestions.list({ pageSize: 5, pageToken: 'tok_abc', scopeIds: [7, 42] }),
   },
   {
     operationId: 'ContextItemsController_list',

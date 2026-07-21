@@ -32,7 +32,7 @@ describe('ModusManagement.scopes', () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          skill: { id: 42, name: 'X', status: 'active' },
+          scope: { id: 42, name: 'X', status: 'active' },
           deployedAt: '2026-01-01T00:00:00.000Z',
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },

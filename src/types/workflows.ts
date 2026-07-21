@@ -11,8 +11,8 @@ export const WorkflowType = {
 
 export type WorkflowType = (typeof WorkflowType)[keyof typeof WorkflowType]
 
-/** @deprecated Use `Workflow` instead. Same shape as OpenAPI `AgentDto`. */
-export type Agent = components['schemas']['AgentDto']
+/** @deprecated Use `Workflow` instead. */
+export type Agent = Workflow
 /** @deprecated Use `WorkflowType` instead. */
 export type AgentType = WorkflowType
 /** @deprecated Use `WorkflowType` instead. */

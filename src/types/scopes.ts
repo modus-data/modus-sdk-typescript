@@ -5,8 +5,8 @@ export type Scope = components['schemas']['ScopeDto']
 export type ScopeStatus = Scope['status']
 export type ScopeVariation = components['schemas']['SkillVariationDto']
 
-/** @deprecated Use `Scope` instead. Same shape as OpenAPI `SkillDto`. */
-export type Skill = components['schemas']['SkillDto']
+/** @deprecated Use `Scope` instead. */
+export type Skill = Scope
 /** @deprecated Use `ScopeStatus` instead. */
 export type SkillStatus = ScopeStatus
 /** @deprecated Use `ScopeVariation` instead. */

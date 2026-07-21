@@ -1,7 +1,7 @@
 import { chatBuffered, chatStreamSession, type ChatStream } from '../_chat.js'
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
-import { aipListParams, buildAipPage, resolveListItemsKey, type Page } from '../_pagination.js'
+import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
 import type { ChatModel, ChatResult } from '../types/chat.js'
@@ -72,10 +72,10 @@ export class ScopesResource {
         query: scopesListParams(pageSize, pageToken, search, view, managerId),
       }),
     )
-    // Prefer `scopes`; fall back to deprecated `skills` while dual envelopes ship.
+    // List responses require the canonical `scopes` key (dual `skills` envelope removed).
     return buildAipPage(
       data,
-      resolveListItemsKey(data, 'scopes', 'skills'),
+      'scopes',
       parseScope,
       (token) => this.listPage(pageSize, token, search, view, managerId),
     )

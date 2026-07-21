@@ -640,7 +640,7 @@ export const OPERATIONS = {
     service: "modus-api",
     serverUrl: "https://api.getmodus.com",
     pathParams: [],
-    queryParams: ["pageToken","pageSize","scope_id","skill_id","scope_ids","skill_ids"],
+    queryParams: ["pageToken","pageSize","scope_id","scope_ids"],
     requestSchema: null,
     responseSchema: "ListSuggestionQuestionsResponseDto",
   },

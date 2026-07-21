@@ -2,7 +2,7 @@ import type { ModusConfig } from '../../_config.js'
 import type { OperationId } from '../../_generated/operations.js'
 import type { HttpClient } from '../../_http.js'
 import { updateMaskQuery } from '../../_query.js'
-import { aipListParams, buildAipPage, resolveListItemsKey, type Page } from '../../_pagination.js'
+import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId, validatePageSize } from '../../_validation.js'
 import { ScopeConversationsResource } from '../../resources/scopes/conversations.js'
@@ -161,10 +161,10 @@ export class ManagementScopesResource {
         query: scopesListParams(pageSize, pageToken, search, view, managerId),
       }),
     )
-    // Prefer `scopes`; fall back to deprecated `skills` while dual envelopes ship.
+    // List envelope is `scopes` only (Release N+1).
     return buildAipPage(
       data,
-      resolveListItemsKey(data, 'scopes', 'skills'),
+      'scopes',
       parseScope,
       (token) => this.listPage(pageSize, token, search, view, managerId),
     )
@@ -241,9 +241,7 @@ export class ManagementScopesResource {
         jsonBody: {},
       }),
     )
-    return parseScope(
-      data.scope !== undefined ? data.scope : data.skill,
-    )
+    return parseScope(data.scope)
   }
 
   async delete(scopeId: number | string): Promise<void> {

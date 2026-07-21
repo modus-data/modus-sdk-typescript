@@ -77,13 +77,13 @@ describe('pagination helpers', () => {
   })
 
   it('buildAipPage validates shape', () => {
-    expect(() => buildAipPage({ error: 'x' }, 'skills', (x) => x, () => makePage([]))).toThrow(
+    expect(() => buildAipPage({ error: 'x' }, 'scopes', (x) => x, () => makePage([]))).toThrow(
       ModusError,
     )
     expect(() =>
-      buildAipPage({ skills: { id: 1 } }, 'skills', (x) => x, () => makePage([])),
+      buildAipPage({ scopes: { id: 1 } }, 'scopes', (x) => x, () => makePage([])),
     ).toThrow(/must be a list/)
-    const page = buildAipPage({ skills: [], nextPageToken: null }, 'skills', (x) => x, () =>
+    const page = buildAipPage({ scopes: [], nextPageToken: null }, 'scopes', (x) => x, () =>
       makePage([]),
     )
     expect(page.items).toEqual([])
