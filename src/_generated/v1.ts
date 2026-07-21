@@ -2817,10 +2817,7 @@ export interface components {
         ListAgentsResponseDto: {
             /** @description Page of workflows the caller can at least `use`. Workflows the caller cannot see are filtered out (not enumerated). */
             workflows: components["schemas"]["WorkflowDto"][];
-            /**
-             * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
-             * @example eyJsYXN0SWQiOjQyfQ
-             */
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
             nextPageToken: string | null;
         };
         ListAutomationRunsResponseDto: {
@@ -2845,10 +2842,7 @@ export interface components {
         ListConnectionsResponseDto: {
             /** @description Page of integration connections the caller can `use`. Connections the caller cannot access are filtered out (not enumerated). */
             connections: components["schemas"]["ConnectionDto"][];
-            /**
-             * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
-             * @example eyJjcmVhdGVkQXQiOiIyMDI2
-             */
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
             nextPageToken: string | null;
         };
         ListContextItemValuesResponseDto: {
@@ -2905,8 +2899,8 @@ export interface components {
         };
         ListEvaluationRunsResponseDto: {
             runs: components["schemas"]["EvaluationRunDto"][];
-            /** @description Token for next page */
-            nextPageToken?: string;
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
+            nextPageToken: string | null;
         };
         ListMemberGroupsResponseDto: {
             groups: components["schemas"]["MemberGroupDto"][];
@@ -2928,10 +2922,7 @@ export interface components {
         ListSkillsResponseDto: {
             /** @description Page of scopes the caller can at least `use`. Scopes the caller cannot see are filtered out (not enumerated). */
             scopes: components["schemas"]["ScopeDto"][];
-            /**
-             * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
-             * @example eyJsYXN0SWQiOjQyfQ
-             */
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
             nextPageToken: string | null;
         };
         ListSuggestionQuestionsResponseDto: {
@@ -4434,25 +4425,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -4623,25 +4595,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -4796,25 +4749,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -4983,25 +4917,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -5155,25 +5070,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5341,25 +5237,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -5520,25 +5397,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5716,25 +5574,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -5889,25 +5728,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6075,25 +5895,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -6247,25 +6048,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6436,25 +6218,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6637,25 +6400,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -6810,25 +6554,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6997,25 +6722,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -7170,25 +6876,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7357,25 +7044,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -7530,25 +7198,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7730,25 +7379,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -7902,25 +7532,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8085,25 +7696,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8281,25 +7873,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -8454,25 +8027,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8643,25 +8197,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -8813,25 +8348,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9006,25 +8522,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -9189,25 +8686,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -9365,25 +8843,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9566,25 +9025,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -9752,25 +9192,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -9799,6 +9220,7 @@ export interface operations {
             path: {
                 /** @description Numeric scope id. */
                 id: unknown;
+                /** @description Thread id from a prior chat response. */
                 threadId: string;
             };
             cookie?: never;
@@ -9929,25 +9351,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10119,25 +9522,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -10291,25 +9675,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10481,25 +9846,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -10663,25 +10009,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -10715,7 +10042,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Evaluation run accepted and queued. The run executes asynchronously; poll `GET /scopes/{id}/evaluations/runs/{runId}` for status. */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10835,25 +10163,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11023,25 +10332,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -11199,25 +10489,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11397,25 +10668,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -11580,25 +10832,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -11752,25 +10985,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11945,25 +11159,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -12117,25 +11312,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12299,25 +11475,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12489,25 +11646,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -12665,25 +11803,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12855,25 +11974,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -13027,25 +12127,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13213,25 +12294,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -13387,25 +12449,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13579,25 +12622,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -13753,25 +12777,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13955,25 +12960,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -14134,25 +13120,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -14306,25 +13273,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -14502,25 +13450,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -14675,25 +13604,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -14864,25 +13774,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -15034,25 +13925,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15227,25 +14099,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -15410,25 +14263,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -15585,25 +14419,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15775,25 +14590,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -15945,25 +14741,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16124,25 +14901,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16319,25 +15077,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -16491,25 +15230,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16690,25 +15410,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -16866,25 +15567,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17056,25 +15738,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -17232,25 +15895,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17418,25 +16062,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -17590,25 +16215,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
