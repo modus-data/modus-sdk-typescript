@@ -4,7 +4,7 @@ import { HttpClient } from '../src/_http.js'
 import { CustomContextItemsResource } from '../src/resources/context/custom-items.js'
 import { ContextItemsResource } from '../src/resources/context/items.js'
 import { ModusResource } from '../src/resources/modus/modus.js'
-import { ScopesResource } from '../src/resources/skills.js'
+import { ScopesResource } from '../src/resources/scopes.js'
 
 const TEST_KEY = 'modus_test_key_context'
 

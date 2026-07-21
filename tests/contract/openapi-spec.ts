@@ -126,11 +126,16 @@ export function listResponseArrayKeys(
   const schemas = openapi.components as { schemas?: Record<string, Record<string, unknown>> }
   const schema = schemas?.schemas?.[schemaName]
   if (!schema) throw new Error(`schema ${schemaName} not found`)
-  const props = schema.properties as Record<string, { type?: string }> | undefined
+  const props = schema.properties as
+    | Record<string, { type?: string; deprecated?: boolean }>
+    | undefined
   const required = new Set((schema.required as string[] | undefined) ?? [])
   const arrayKeys = new Set<string>()
   for (const [name, prop] of Object.entries(props ?? {})) {
-    if (prop.type === 'array' && required.has(name)) arrayKeys.add(name)
+    // Release N dual envelopes mark the old plural deprecated; SDK itemsKey is the canonical one.
+    if (prop.type === 'array' && required.has(name) && prop.deprecated !== true) {
+      arrayKeys.add(name)
+    }
   }
   return arrayKeys
 }

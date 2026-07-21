@@ -329,7 +329,7 @@ export interface paths {
         };
         /**
          * List Modus conversations
-         * @description Returns a page of your conversations across Modus and scopes. Use `kind=modus` for direct Modus chats only, or `kind=skills` to exclude them. Pass `nextPageToken` as `pageToken` for the next page.
+         * @description Returns a page of your conversations across Modus and scopes. Use `kind=modus` for direct Modus chats only, or `kind=scopes` (deprecated alias: `skills`) to exclude them. Pass `nextPageToken` as `pageToken` for the next page.
          *
          *     **Requires:** `scopes:read`
          */
@@ -905,9 +905,9 @@ export interface paths {
         };
         /**
          * List approved suggested questions for Home
-         * @description Returns approved, active suggested questions scoped to the caller organization. When `skill_id` is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.
+         * @description Returns approved, active suggested questions scoped to the caller organization. When `scope_id` (or deprecated `skill_id`) is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.
          *
-         *     **Requires:** `skills:read`
+         *     **Requires:** `scopes:read`
          */
         get: operations["SuggestionsController_listApproved"];
         put?: never;
@@ -931,7 +931,7 @@ export interface paths {
          * Record a first-party suggested-question usage event
          * @description Records Home suggestion interactions without relying on external analytics. Unknown suggestion ids return not found.
          *
-         *     **Requires:** `skills:read`
+         *     **Requires:** `scopes:read`
          */
         post: operations["SuggestionsController_recordEvent"];
         delete?: never;
@@ -1690,6 +1690,11 @@ export interface components {
         };
         AgentDeployResponseDto: {
             /** @description The workflow after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
+            workflow: components["schemas"]["WorkflowDto"];
+            /**
+             * @deprecated
+             * @description Deprecated. Use `workflow`. Same object as `workflow` (kept for Release N compatibility).
+             */
             agent: components["schemas"]["AgentDto"];
             /**
              * @description Server-side timestamp at which the deploy completed.
@@ -1697,6 +1702,10 @@ export interface components {
              */
             deployedAt: string;
         };
+        /**
+         * @deprecated
+         * @description Deprecated. Use `WorkflowDto`.
+         */
         AgentDto: {
             /**
              * @description Numeric workflow id (stable per-org; not reused after delete).
@@ -1757,7 +1766,7 @@ export interface components {
             accessConfig: components["schemas"]["AgentAccessConfigDto"];
             /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
             pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
-            /** @description Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/agents/:id`; absent on list rows. */
+            /** @description Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/workflows/:id`; absent on list rows. */
             variation?: components["schemas"]["AgentVariationDto"];
             /**
              * @description Creation timestamp.
@@ -2171,6 +2180,12 @@ export interface components {
              * @description Numeric scope id returned by the list/detail adapter. This is not conversation ownership.
              * @example 42
              */
+            scopeId: number;
+            /**
+             * @deprecated
+             * @description Deprecated. Use `scopeId`. Same value as `scopeId` (kept for Release N compatibility).
+             * @example 42
+             */
             skillId: number;
             /** @description Conversation turns, in chronological order. */
             messages: components["schemas"]["ConversationMessageDto"][];
@@ -2195,6 +2210,12 @@ export interface components {
             threadId: string;
             /**
              * @description Numeric scope id returned by the list adapter. This is not conversation ownership.
+             * @example 42
+             */
+            scopeId: number;
+            /**
+             * @deprecated
+             * @description Deprecated. Use `scopeId`. Same value as `scopeId` (kept for Release N compatibility).
              * @example 42
              */
             skillId: number;
@@ -2624,6 +2645,11 @@ export interface components {
         };
         DeployResponseDto: {
             /** @description The scope after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
+            scope: components["schemas"]["ScopeDto"];
+            /**
+             * @deprecated
+             * @description Deprecated. Use `scope`. Same object as `scope` (kept for Release N compatibility).
+             */
             skill: components["schemas"]["SkillDto"];
             /**
              * @description Server-side timestamp at which the deploy completed.
@@ -2910,6 +2936,11 @@ export interface components {
         };
         ListAgentsResponseDto: {
             /** @description Page of workflows the caller can at least `use`. Workflows the caller cannot see are filtered out (not enumerated). */
+            workflows: components["schemas"]["WorkflowDto"][];
+            /**
+             * @deprecated
+             * @description Deprecated. Use `workflows`. Same page array as `workflows` (kept for Release N compatibility).
+             */
             agents: components["schemas"]["AgentDto"][];
             /**
              * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
@@ -3021,6 +3052,11 @@ export interface components {
         };
         ListSkillsResponseDto: {
             /** @description Page of scopes the caller can at least `use`. Scopes the caller cannot see are filtered out (not enumerated). */
+            scopes: components["schemas"]["ScopeDto"][];
+            /**
+             * @deprecated
+             * @description Deprecated. Use `scopes`. Same page array as `scopes` (kept for Release N compatibility).
+             */
             skills: components["schemas"]["SkillDto"][];
             /**
              * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
@@ -3271,6 +3307,90 @@ export interface components {
          * @enum {string}
          */
         ResourceLifecycleStatus: "draft" | "active" | "deleted";
+        ScopeDto: {
+            /**
+             * @description Numeric scope id (stable per-org; not reused after delete).
+             * @example 42
+             */
+            id: number;
+            /**
+             * @description URL-safe slug used in human-readable links. Unique per org.
+             * @example customer-churn-analyzer-a3f
+             */
+            slug: string;
+            /**
+             * @description Display name of the scope. Shown in the builder and in run logs.
+             * @example Customer Churn Analyzer
+             */
+            name: string;
+            /**
+             * @description Optional one-paragraph description of what this scope does.
+             * @example Predicts churn risk for a customer given a 90-day usage window.
+             */
+            description?: string | null;
+            /**
+             * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
+             * @example active
+             */
+            status: components["schemas"]["ResourceLifecycleStatus"];
+            /**
+             * @description Org UUID this scope belongs to. Matches the caller’s principal.
+             * @example 00000000-0000-0000-0000-000000000001
+             */
+            orgUuid: string;
+            /**
+             * @description Active (deployed) variation id. Null until the scope is first deployed.
+             * @example 00000000-0000-4000-a000-000000000100
+             */
+            activeVariationId?: string | null;
+            /**
+             * @description Most recent draft variation id. Null when there is no draft pending.
+             * @example 00000000-0000-4000-a000-000000000101
+             */
+            draftVariationId?: string | null;
+            /**
+             * @description True when the draft variation differs from the active variation (deploy would publish changes).
+             * @example false
+             */
+            hasUnpublishedChanges: boolean;
+            /** @description Access configuration — who in the org can use / manage this scope. */
+            accessConfig: components["schemas"]["AccessConfigDto"];
+            /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
+            pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
+            /** @description Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/scopes/:id`; absent on list rows. */
+            variation?: components["schemas"]["SkillVariationDto"];
+            /**
+             * @description Creation timestamp.
+             * @example 2026-05-01T10:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * @description Most recent update timestamp.
+             * @example 2026-05-11T10:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * @description Soft-delete timestamp. Null for active scopes.
+             * @example null
+             */
+            deletedAt?: string | null;
+            /**
+             * @description Whether the requesting principal can manage (edit/delete/deploy) this scope. Derived server-side from the principal + accessConfig. Present on every Scope response.
+             * @example true
+             */
+            canManage: boolean;
+            /**
+             * @description Whether the requesting principal can use (run, view history of) this scope. Derived server-side from the principal + accessConfig.
+             * @example true
+             */
+            canUse: boolean;
+            /**
+             * @description Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true.
+             * @example needs_group_manage
+             * @enum {string|null}
+             */
+            manageDenial: "not_owner" | "needs_group_manage" | null;
+        };
         SearchMemoriesRequestDto: {
             /**
              * @description Search query string (semantic search over the scope's memories).
@@ -3361,6 +3481,10 @@ export interface components {
              */
             runId: string;
         };
+        /**
+         * @deprecated
+         * @description Deprecated. Use `ScopeDto`.
+         */
         SkillDto: {
             /**
              * @description Numeric scope id (stable per-org; not reused after delete).
@@ -3411,7 +3535,7 @@ export interface components {
             accessConfig: components["schemas"]["AccessConfigDto"];
             /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
             pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
-            /** @description Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/skills/:id`; absent on list rows. */
+            /** @description Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/scopes/:id`; absent on list rows. */
             variation?: components["schemas"]["SkillVariationDto"];
             /**
              * @description Creation timestamp.
@@ -3923,6 +4047,100 @@ export interface components {
             output_tokens: number;
             /** @description Total credits consumed across all buckets in the window. */
             credits: number;
+        };
+        WorkflowDto: {
+            /**
+             * @description Numeric workflow id (stable per-org; not reused after delete).
+             * @example 42
+             */
+            id: number;
+            /**
+             * @description URL-safe slug used in human-readable links. Unique per org.
+             * @example customer-churn-agent-a3f
+             */
+            slug: string;
+            /**
+             * @description Display name of the workflow. Shown in the builder and in run logs.
+             * @example Customer Churn Analyzer
+             */
+            name: string;
+            /**
+             * @description Optional one-paragraph description of what this workflow does.
+             * @example Predicts churn risk for a customer given a 90-day usage window.
+             */
+            description?: string | null;
+            /**
+             * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
+             * @example active
+             */
+            status: components["schemas"]["ResourceLifecycleStatus"];
+            /**
+             * @description Type of workflow. `task` = single-step scope orchestration; `workflow` = multi-step graph.
+             * @example task
+             */
+            type: components["schemas"]["AgentType"];
+            /**
+             * @description Org UUID this workflow belongs to. Matches the caller’s principal.
+             * @example 00000000-0000-0000-0000-000000000001
+             */
+            orgUuid: string;
+            /**
+             * @description Active (deployed) variation id. Null until the workflow is first deployed.
+             * @example 00000000-0000-4000-a000-000000000100
+             */
+            activeVariationId?: string | null;
+            /**
+             * @description Most recent draft variation id. Null when there is no draft pending.
+             * @example 00000000-0000-4000-a000-000000000101
+             */
+            draftVariationId?: string | null;
+            /**
+             * @description True when the draft variation differs from the active variation (deploy would publish changes).
+             * @example false
+             */
+            hasUnpublishedChanges: boolean;
+            /**
+             * @description Whether the workflow’s schedule is currently active. Toggle via POST /api/v1/workflows/{id}/toggle.
+             * @example true
+             */
+            isEnabled: boolean;
+            /** @description Access configuration — who in the org can use / manage this workflow. */
+            accessConfig: components["schemas"]["AgentAccessConfigDto"];
+            /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
+            pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
+            /** @description Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/workflows/:id`; absent on list rows. */
+            variation?: components["schemas"]["AgentVariationDto"];
+            /**
+             * @description Creation timestamp.
+             * @example 2026-05-01T10:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * @description Most recent update timestamp.
+             * @example 2026-05-11T10:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * @description Soft-delete timestamp. Null for active workflows.
+             * @example null
+             */
+            deletedAt?: string | null;
+            /**
+             * @description Whether the requesting principal can manage (edit/delete/deploy/toggle) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.
+             * @example true
+             */
+            canManage: boolean;
+            /**
+             * @description Whether the requesting principal can use (run, view history of) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.
+             * @example true
+             */
+            canUse: boolean;
+            /**
+             * @description Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true. Derived server-side from the principal + accessConfig.
+             * @example needs_group_manage
+             * @enum {string|null}
+             */
+            manageDenial: "not_owner" | "needs_group_manage" | null;
         };
         WorkflowEdgeDto: {
             /**
@@ -7594,8 +7812,8 @@ export interface operations {
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
                 includeTools?: boolean;
-                /** @description Filter conversations by type. `all` (default) returns every conversation; `modus` returns direct Modus chats only; `skills` excludes direct Modus chats. */
-                kind?: "all" | "modus" | "skills";
+                /** @description Filter conversations by type. `all` (default) returns every conversation; `modus` returns direct Modus chats only; `scopes` (or deprecated `skills`) excludes direct Modus chats. */
+                kind?: "all" | "modus" | "scopes" | "skills";
             };
             header?: never;
             path?: never;
@@ -8339,7 +8557,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -8521,7 +8739,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -8884,7 +9102,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -12002,7 +12220,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -12733,7 +12951,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -12912,7 +13130,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -13091,7 +13309,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -13272,7 +13490,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -13442,8 +13660,18 @@ export interface operations {
                 /** @description Max approved suggestions per page. Defaults to 5. Must be between 1 and 12. */
                 pageSize?: number;
                 /** @description Return suggestions scoped to this numeric scope id. Omit for org-general suggestions. */
+                scope_id?: number;
+                /**
+                 * @deprecated
+                 * @description Deprecated. Use `scope_id`. Same meaning as `scope_id` (kept for Release N compatibility).
+                 */
                 skill_id?: number;
                 /** @description Comma-separated numeric scope ids. Returns approved suggestions for these scopes plus org-general suggestions. */
+                scope_ids?: string;
+                /**
+                 * @deprecated
+                 * @description Deprecated. Use `scope_ids`. Same meaning as `scope_ids` (kept for Release N compatibility).
+                 */
                 skill_ids?: string;
             };
             header?: never;
@@ -14560,7 +14788,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -14742,7 +14970,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -15105,7 +15333,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -16376,7 +16604,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -16934,7 +17162,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17117,7 +17345,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17296,7 +17524,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17475,7 +17703,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */

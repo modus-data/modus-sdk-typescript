@@ -1,14 +1,14 @@
 import { chatBuffered, chatStreamSession, type ChatStream } from '../_chat.js'
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
-import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
+import { aipListParams, buildAipPage, resolveListItemsKey, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
 import type { ChatModel, ChatResult } from '../types/chat.js'
 import type { SkillContextComposition } from '../types/context-compose.js'
-import type { Skill } from '../types/skills.js'
+import type { Scope } from '../types/scopes.js'
 import type { VariationView } from '../types/views.js'
-import { ScopeConversationsResource } from './skills/conversations.js'
+import { ScopeConversationsResource } from './scopes/conversations.js'
 
 function scopesListParams(
   pageSize: number,
@@ -27,8 +27,8 @@ function scopesListParams(
   >
 }
 
-function parseScope(raw: unknown): Skill {
-  return raw as Skill
+function parseScope(raw: unknown): Scope {
+  return raw as Scope
 }
 
 /** Read / invoke access to Modus scopes (`/api/v1/scopes`). */
@@ -48,7 +48,7 @@ export class ScopesResource {
     search?: string
     view?: VariationView
     managerId?: number
-  } = {}): Promise<Page<Skill>> {
+  } = {}): Promise<Page<Scope>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
     return this.listPage(
@@ -66,24 +66,25 @@ export class ScopesResource {
     search?: string,
     view?: VariationView,
     managerId?: number,
-  ): Promise<Page<Skill>> {
+  ): Promise<Page<Scope>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'ScopesController_list', {
         query: scopesListParams(pageSize, pageToken, search, view, managerId),
       }),
     )
-    // The list response envelope key is the server DTO property name, which
-    // this rename intentionally left as `skills` (only paths/opIds/tags moved
-    // to the scopes vocab — response body schemas are unchanged).
-    return buildAipPage(data, 'skills', parseScope, (token) =>
-      this.listPage(pageSize, token, search, view, managerId),
+    // Prefer `scopes`; fall back to deprecated `skills` while dual envelopes ship.
+    return buildAipPage(
+      data,
+      resolveListItemsKey(data, 'scopes', 'skills'),
+      parseScope,
+      (token) => this.listPage(pageSize, token, search, view, managerId),
     )
   }
 
   async get(
     scopeId: number | string,
     options: { view?: VariationView } = {},
-  ): Promise<Skill> {
+  ): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const query = options.view !== undefined ? { view: options.view } : undefined
     const data = await invokeWithRetry(this.config, this.http, 'ScopesController_get', {

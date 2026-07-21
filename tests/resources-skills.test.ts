@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
 import { HttpClient } from '../src/_http.js'
-import { ScopesResource } from '../src/resources/skills.js'
+import { ScopesResource } from '../src/resources/scopes.js'
 
 const TEST_KEY = 'modus_test_key_resources'
 

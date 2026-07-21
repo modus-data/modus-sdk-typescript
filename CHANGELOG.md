@@ -3,7 +3,22 @@
 **Current npm release:** [`0.2.3`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.3).
 
 
+
 ## [Unreleased]
+
+### Deprecated
+
+- **`Skill` / `Agent` type names** — use `Scope` / `Workflow` (OpenAPI `ScopeDto` / `WorkflowDto`).
+- **OpenAPI `SkillDto` / `AgentDto`** — deprecated twins of `ScopeDto` / `WorkflowDto`.
+- **`CreateSkillOptions` / `UpdateSkillOptions`** — use `CreateScopeOptions` / `UpdateScopeOptions`.
+- **`CreateAgentOptions` / `UpdateAgentOptions`** — use `CreateWorkflowOptions` / `UpdateWorkflowOptions`.
+- **`conversationSkillId()`** — use `conversationScopeId()`.
+- List envelopes still include deprecated `skills` / `agents` keys; parsers prefer `scopes` / `workflows`.
+
+### Changed
+
+- SDK read types are exported as `Scope` / `Workflow` backed by generated `ScopeDto` / `WorkflowDto`.
+- Custom context create responses always expose `.uid` (same value as `contextItemId`).
 
 ### Removed
 

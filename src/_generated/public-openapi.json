@@ -4026,7 +4026,7 @@
     },
     "/api/v1/modus/conversations": {
       "get": {
-        "description": "Returns a page of your conversations across Modus and scopes. Use `kind=modus` for direct Modus chats only, or `kind=skills` to exclude them. Pass `nextPageToken` as `pageToken` for the next page.\n\n**Requires:** `scopes:read`",
+        "description": "Returns a page of your conversations across Modus and scopes. Use `kind=modus` for direct Modus chats only, or `kind=scopes` (deprecated alias: `skills`) to exclude them. Pass `nextPageToken` as `pageToken` for the next page.\n\n**Requires:** `scopes:read`",
         "operationId": "ModusConversationsController_list",
         "parameters": [
           {
@@ -4113,7 +4113,7 @@
             "name": "kind",
             "required": false,
             "in": "query",
-            "description": "Filter conversations by type. `all` (default) returns every conversation; `modus` returns direct Modus chats only; `skills` excludes direct Modus chats.",
+            "description": "Filter conversations by type. `all` (default) returns every conversation; `modus` returns direct Modus chats only; `scopes` (or deprecated `skills`) excludes direct Modus chats.",
             "schema": {
               "default": "all",
               "example": "all",
@@ -4121,6 +4121,7 @@
               "enum": [
                 "all",
                 "modus",
+                "scopes",
                 "skills"
               ]
             }
@@ -4997,7 +4998,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -5207,7 +5208,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -5439,7 +5440,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -9309,7 +9310,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -10170,7 +10171,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -10365,7 +10366,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -10562,7 +10563,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -10769,7 +10770,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SkillDto"
+                  "$ref": "#/components/schemas/ScopeDto"
                 }
               }
             }
@@ -10946,7 +10947,7 @@
     },
     "/api/v1/suggestions/questions": {
       "get": {
-        "description": "Returns approved, active suggested questions scoped to the caller organization. When `skill_id` is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.\n\n**Requires:** `skills:read`",
+        "description": "Returns approved, active suggested questions scoped to the caller organization. When `scope_id` (or deprecated `skill_id`) is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.\n\n**Requires:** `scopes:read`",
         "operationId": "SuggestionsController_listApproved",
         "parameters": [
           {
@@ -10972,7 +10973,7 @@
             }
           },
           {
-            "name": "skill_id",
+            "name": "scope_id",
             "required": false,
             "in": "query",
             "description": "Return suggestions scoped to this numeric scope id. Omit for org-general suggestions.",
@@ -10982,10 +10983,32 @@
             }
           },
           {
-            "name": "skill_ids",
+            "name": "skill_id",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Deprecated. Use `scope_id`. Same meaning as `scope_id` (kept for Release N compatibility).",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "scope_ids",
             "required": false,
             "in": "query",
             "description": "Comma-separated numeric scope ids. Returns approved suggestions for these scopes plus org-general suggestions.",
+            "schema": {
+              "example": "7,42",
+              "type": "string"
+            }
+          },
+          {
+            "name": "skill_ids",
+            "required": false,
+            "in": "query",
+            "deprecated": true,
+            "description": "Deprecated. Use `scope_ids`. Same meaning as `scope_ids` (kept for Release N compatibility).",
             "schema": {
               "example": "7,42",
               "type": "string"
@@ -11163,7 +11186,7 @@
           }
         ],
         "x-required-scopes": [
-          "skills:read"
+          "scopes:read"
         ],
         "x-modus-service": "modus-api",
         "servers": [
@@ -11175,7 +11198,7 @@
     },
     "/api/v1/suggestions/questions/{id}/events": {
       "post": {
-        "description": "Records Home suggestion interactions without relying on external analytics. Unknown suggestion ids return not found.\n\n**Requires:** `skills:read`",
+        "description": "Records Home suggestion interactions without relying on external analytics. Unknown suggestion ids return not found.\n\n**Requires:** `scopes:read`",
         "operationId": "SuggestionsController_recordEvent",
         "parameters": [
           {
@@ -11362,7 +11385,7 @@
           }
         ],
         "x-required-scopes": [
-          "skills:read"
+          "scopes:read"
         ],
         "x-modus-service": "modus-api",
         "servers": [
@@ -12391,7 +12414,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -12601,7 +12624,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -12835,7 +12858,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -14501,7 +14524,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -15187,7 +15210,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -15394,7 +15417,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -15589,7 +15612,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -15786,7 +15809,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentDto"
+                  "$ref": "#/components/schemas/WorkflowDto"
                 }
               }
             }
@@ -16960,8 +16983,17 @@
       "AgentDeployResponseDto": {
         "type": "object",
         "properties": {
-          "agent": {
+          "workflow": {
             "description": "The workflow after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowDto"
+              }
+            ]
+          },
+          "agent": {
+            "deprecated": true,
+            "description": "Deprecated. Use `workflow`. Same object as `workflow` (kept for Release N compatibility).",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentDto"
@@ -16975,6 +17007,7 @@
           }
         },
         "required": [
+          "workflow",
           "agent",
           "deployedAt"
         ]
@@ -17067,7 +17100,7 @@
             ]
           },
           "variation": {
-            "description": "Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/agents/:id`; absent on list rows.",
+            "description": "Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/workflows/:id`; absent on list rows.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentVariationDto"
@@ -17126,7 +17159,9 @@
           "canManage",
           "canUse",
           "manageDenial"
-        ]
+        ],
+        "deprecated": true,
+        "description": "Deprecated. Use `WorkflowDto`."
       },
       "AgentGroupPermissionDto": {
         "type": "object",
@@ -17722,9 +17757,15 @@
             "description": "Opaque thread/checkpoint id. It is not owned by a single scope; a conversation can span multiple workflows.",
             "example": "agent_42_abc-xyz"
           },
-          "skillId": {
+          "scopeId": {
             "type": "number",
             "description": "Numeric scope id returned by the list/detail adapter. This is not conversation ownership.",
+            "example": 42
+          },
+          "skillId": {
+            "type": "number",
+            "deprecated": true,
+            "description": "Deprecated. Use `scopeId`. Same value as `scopeId` (kept for Release N compatibility).",
             "example": 42
           },
           "messages": {
@@ -17755,6 +17796,7 @@
         },
         "required": [
           "threadId",
+          "scopeId",
           "skillId",
           "messages",
           "createdAt",
@@ -17769,9 +17811,15 @@
             "description": "Opaque thread id.",
             "example": "agent_42_abc-xyz"
           },
-          "skillId": {
+          "scopeId": {
             "type": "number",
             "description": "Numeric scope id returned by the list adapter. This is not conversation ownership.",
+            "example": 42
+          },
+          "skillId": {
+            "type": "number",
+            "deprecated": true,
+            "description": "Deprecated. Use `scopeId`. Same value as `scopeId` (kept for Release N compatibility).",
             "example": 42
           },
           "firstMessage": {
@@ -17823,6 +17871,7 @@
         },
         "required": [
           "threadId",
+          "scopeId",
           "skillId",
           "firstMessage",
           "title",
@@ -18430,8 +18479,17 @@
       "DeployResponseDto": {
         "type": "object",
         "properties": {
-          "skill": {
+          "scope": {
             "description": "The scope after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScopeDto"
+              }
+            ]
+          },
+          "skill": {
+            "deprecated": true,
+            "description": "Deprecated. Use `scope`. Same object as `scope` (kept for Release N compatibility).",
             "allOf": [
               {
                 "$ref": "#/components/schemas/SkillDto"
@@ -18445,6 +18503,7 @@
           }
         },
         "required": [
+          "scope",
           "skill",
           "deployedAt"
         ]
@@ -19076,8 +19135,16 @@
       "ListAgentsResponseDto": {
         "type": "object",
         "properties": {
-          "agents": {
+          "workflows": {
             "description": "Page of workflows the caller can at least `use`. Workflows the caller cannot see are filtered out (not enumerated).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowDto"
+            }
+          },
+          "agents": {
+            "deprecated": true,
+            "description": "Deprecated. Use `workflows`. Same page array as `workflows` (kept for Release N compatibility).",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AgentDto"
@@ -19091,6 +19158,7 @@
           }
         },
         "required": [
+          "workflows",
           "agents",
           "nextPageToken"
         ]
@@ -19347,8 +19415,16 @@
       "ListSkillsResponseDto": {
         "type": "object",
         "properties": {
-          "skills": {
+          "scopes": {
             "description": "Page of scopes the caller can at least `use`. Scopes the caller cannot see are filtered out (not enumerated).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScopeDto"
+            }
+          },
+          "skills": {
+            "deprecated": true,
+            "description": "Deprecated. Use `scopes`. Same page array as `scopes` (kept for Release N compatibility).",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SkillDto"
@@ -19362,6 +19438,7 @@
           }
         },
         "required": [
+          "scopes",
           "skills",
           "nextPageToken"
         ]
@@ -19921,6 +19998,139 @@
         ],
         "description": "Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted."
       },
+      "ScopeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Numeric scope id (stable per-org; not reused after delete).",
+            "example": 42
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL-safe slug used in human-readable links. Unique per org.",
+            "example": "customer-churn-analyzer-a3f"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the scope. Shown in the builder and in run logs.",
+            "example": "Customer Churn Analyzer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional one-paragraph description of what this scope does.",
+            "example": "Predicts churn risk for a customer given a 90-day usage window.",
+            "nullable": true
+          },
+          "status": {
+            "description": "Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.",
+            "example": "active",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ResourceLifecycleStatus"
+              }
+            ]
+          },
+          "orgUuid": {
+            "type": "string",
+            "description": "Org UUID this scope belongs to. Matches the caller’s principal.",
+            "example": "00000000-0000-0000-0000-000000000001"
+          },
+          "activeVariationId": {
+            "type": "string",
+            "description": "Active (deployed) variation id. Null until the scope is first deployed.",
+            "example": "00000000-0000-4000-a000-000000000100",
+            "nullable": true
+          },
+          "draftVariationId": {
+            "type": "string",
+            "description": "Most recent draft variation id. Null when there is no draft pending.",
+            "example": "00000000-0000-4000-a000-000000000101",
+            "nullable": true
+          },
+          "hasUnpublishedChanges": {
+            "type": "boolean",
+            "description": "True when the draft variation differs from the active variation (deploy would publish changes).",
+            "example": false
+          },
+          "accessConfig": {
+            "description": "Access configuration — who in the org can use / manage this scope.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AccessConfigDto"
+              }
+            ]
+          },
+          "pendingOwnershipTransfer": {
+            "description": "Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PendingOwnershipTransferDto"
+              }
+            ]
+          },
+          "variation": {
+            "description": "Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/scopes/:id`; absent on list rows.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SkillVariationDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Creation timestamp.",
+            "example": "2026-05-01T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Most recent update timestamp.",
+            "example": "2026-05-11T10:00:00.000Z"
+          },
+          "deletedAt": {
+            "type": "string",
+            "description": "Soft-delete timestamp. Null for active scopes.",
+            "example": null,
+            "nullable": true
+          },
+          "canManage": {
+            "type": "boolean",
+            "description": "Whether the requesting principal can manage (edit/delete/deploy) this scope. Derived server-side from the principal + accessConfig. Present on every Scope response.",
+            "example": true
+          },
+          "canUse": {
+            "type": "boolean",
+            "description": "Whether the requesting principal can use (run, view history of) this scope. Derived server-side from the principal + accessConfig.",
+            "example": true
+          },
+          "manageDenial": {
+            "type": "string",
+            "enum": [
+              "not_owner",
+              "needs_group_manage"
+            ],
+            "nullable": true,
+            "description": "Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true.",
+            "example": "needs_group_manage"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "status",
+          "orgUuid",
+          "hasUnpublishedChanges",
+          "accessConfig",
+          "createdAt",
+          "updatedAt",
+          "canManage",
+          "canUse",
+          "manageDenial"
+        ]
+      },
       "SearchMemoriesRequestDto": {
         "type": "object",
         "properties": {
@@ -20152,7 +20362,7 @@
             ]
           },
           "variation": {
-            "description": "Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/skills/:id`; absent on list rows.",
+            "description": "Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/scopes/:id`; absent on list rows.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/SkillVariationDto"
@@ -20209,7 +20419,9 @@
           "canManage",
           "canUse",
           "manageDenial"
-        ]
+        ],
+        "deprecated": true,
+        "description": "Deprecated. Use `ScopeDto`."
       },
       "SkillMcpInterfaceConfigDto": {
         "type": "object",
@@ -21028,6 +21240,155 @@
           "input_tokens",
           "output_tokens",
           "credits"
+        ]
+      },
+      "WorkflowDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Numeric workflow id (stable per-org; not reused after delete).",
+            "example": 42
+          },
+          "slug": {
+            "type": "string",
+            "description": "URL-safe slug used in human-readable links. Unique per org.",
+            "example": "customer-churn-agent-a3f"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the workflow. Shown in the builder and in run logs.",
+            "example": "Customer Churn Analyzer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional one-paragraph description of what this workflow does.",
+            "example": "Predicts churn risk for a customer given a 90-day usage window.",
+            "nullable": true
+          },
+          "status": {
+            "description": "Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.",
+            "example": "active",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ResourceLifecycleStatus"
+              }
+            ]
+          },
+          "type": {
+            "description": "Type of workflow. `task` = single-step scope orchestration; `workflow` = multi-step graph.",
+            "example": "task",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              }
+            ]
+          },
+          "orgUuid": {
+            "type": "string",
+            "description": "Org UUID this workflow belongs to. Matches the caller’s principal.",
+            "example": "00000000-0000-0000-0000-000000000001"
+          },
+          "activeVariationId": {
+            "type": "string",
+            "description": "Active (deployed) variation id. Null until the workflow is first deployed.",
+            "example": "00000000-0000-4000-a000-000000000100",
+            "nullable": true
+          },
+          "draftVariationId": {
+            "type": "string",
+            "description": "Most recent draft variation id. Null when there is no draft pending.",
+            "example": "00000000-0000-4000-a000-000000000101",
+            "nullable": true
+          },
+          "hasUnpublishedChanges": {
+            "type": "boolean",
+            "description": "True when the draft variation differs from the active variation (deploy would publish changes).",
+            "example": false
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "description": "Whether the workflow’s schedule is currently active. Toggle via POST /api/v1/workflows/{id}/toggle.",
+            "example": true
+          },
+          "accessConfig": {
+            "description": "Access configuration — who in the org can use / manage this workflow.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentAccessConfigDto"
+              }
+            ]
+          },
+          "pendingOwnershipTransfer": {
+            "description": "Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PendingOwnershipTransferDto"
+              }
+            ]
+          },
+          "variation": {
+            "description": "Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/workflows/:id`; absent on list rows.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentVariationDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Creation timestamp.",
+            "example": "2026-05-01T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Most recent update timestamp.",
+            "example": "2026-05-11T10:00:00.000Z"
+          },
+          "deletedAt": {
+            "type": "string",
+            "description": "Soft-delete timestamp. Null for active workflows.",
+            "example": null,
+            "nullable": true
+          },
+          "canManage": {
+            "type": "boolean",
+            "description": "Whether the requesting principal can manage (edit/delete/deploy/toggle) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.",
+            "example": true
+          },
+          "canUse": {
+            "type": "boolean",
+            "description": "Whether the requesting principal can use (run, view history of) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.",
+            "example": true
+          },
+          "manageDenial": {
+            "type": "string",
+            "enum": [
+              "not_owner",
+              "needs_group_manage"
+            ],
+            "nullable": true,
+            "description": "Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true. Derived server-side from the principal + accessConfig.",
+            "example": "needs_group_manage"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "status",
+          "type",
+          "orgUuid",
+          "hasUnpublishedChanges",
+          "isEnabled",
+          "accessConfig",
+          "createdAt",
+          "updatedAt",
+          "canManage",
+          "canUse",
+          "manageDenial"
         ]
       },
       "WorkflowEdgeDto": {

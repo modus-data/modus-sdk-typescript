@@ -19,7 +19,7 @@ function parseRun(raw: unknown): EvaluationRun {
   return raw as EvaluationRun
 }
 
-/** Scheduled and manual skill evaluations (`/api/v1/scopes/{id}/evaluations`). */
+/** Scheduled and manual scope evaluations (`/api/v1/scopes/{id}/evaluations`). */
 export class ScopeEvaluationsResource {
   constructor(
     private readonly http: HttpClient,

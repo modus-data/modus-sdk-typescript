@@ -165,7 +165,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'ScopesController_list',
     mockUrlSuffix: '/api/v1/scopes',
-    itemsKey: 'skills',
+    itemsKey: 'scopes',
     wrongItemsKey: 'workflows',
     sampleItem: SAMPLE_SKILL,
     clientKind: 'modus',
@@ -174,7 +174,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'ScopesController_list',
     mockUrlSuffix: '/api/v1/scopes',
-    itemsKey: 'skills',
+    itemsKey: 'scopes',
     wrongItemsKey: 'workflows',
     sampleItem: SAMPLE_SKILL,
     clientKind: 'management',
@@ -183,7 +183,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'WorkflowsController_list',
     mockUrlSuffix: '/api/v1/workflows',
-    itemsKey: 'agents',
+    itemsKey: 'workflows',
     wrongItemsKey: 'scopes',
     sampleItem: SAMPLE_AGENT,
     clientKind: 'modus',
@@ -192,7 +192,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'WorkflowsController_list',
     mockUrlSuffix: '/api/v1/workflows',
-    itemsKey: 'agents',
+    itemsKey: 'workflows',
     wrongItemsKey: 'scopes',
     sampleItem: SAMPLE_AGENT,
     clientKind: 'management',

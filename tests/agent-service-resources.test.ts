@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
 import { HttpClient } from '../src/_http.js'
-import { WorkflowsResource } from '../src/resources/agents.js'
+import { WorkflowsResource } from '../src/resources/workflows.js'
 
 const TEST_KEY = 'modus_test_key_agent_service'
 

@@ -1,8 +1,8 @@
 import { ModusClientBase } from '../_client-base.js'
 import type { ModusOptions } from '../_config.js'
-import { ManagementWorkflowsResource } from './agents/agents.js'
+import { ManagementWorkflowsResource } from './workflows/agents.js'
 import { ManagementContextResource } from './context/context.js'
-import { ManagementScopesResource } from './skills/skills.js'
+import { ManagementScopesResource } from './scopes/skills.js'
 import { ManagementUsageResource } from './usage.js'
 import { ManagementUsersResource } from './users.js'
 
@@ -25,14 +25,21 @@ export class ModusManagement extends ModusClientBase {
 }
 
 export type { ModusOptions }
-export type { CreateSkillOptions, UpdateSkillOptions } from './skills/skills.js'
 export type {
+  CreateScopeOptions,
+  UpdateScopeOptions,
+  CreateSkillOptions,
+  UpdateSkillOptions,
+} from './scopes/skills.js'
+export type {
+  CreateWorkflowOptions,
+  UpdateWorkflowOptions,
   CreateAgentOptions,
   UpdateAgentOptions,
   TriggerInput,
   AgentSelectionInput,
   WorkflowGraphInput,
-} from './agents/agents.js'
+} from './workflows/agents.js'
 export type { UserFeedback } from './context/context.js'
 export type { ToolsetInput } from './types/toolset.js'
 export type {

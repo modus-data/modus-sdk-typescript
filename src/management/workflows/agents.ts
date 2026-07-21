@@ -2,10 +2,10 @@ import type { ModusConfig } from '../../_config.js'
 import type { OperationId } from '../../_generated/operations.js'
 import type { HttpClient } from '../../_http.js'
 import { updateMaskQuery } from '../../_query.js'
-import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
+import { aipListParams, buildAipPage, resolveListItemsKey, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId, validatePageSize } from '../../_validation.js'
-import type { Agent, AgentType } from '../../types/agents.js'
+import type { Workflow, WorkflowType } from '../../types/workflows.js'
 import type { VariationView } from '../../types/views.js'
 import {
   accessConfigBodyForCreate,
@@ -50,7 +50,7 @@ function workflowsListParams(
   pageSize: number,
   pageToken: string | undefined,
   search?: string,
-  type?: AgentType,
+  type?: WorkflowType,
   view?: VariationView,
   includeVariation?: boolean,
 ): Record<string, string | number | boolean | undefined | null> {
@@ -65,13 +65,13 @@ function workflowsListParams(
   >
 }
 
-function parseWorkflow(raw: unknown): Agent {
-  return raw as Agent
+function parseWorkflow(raw: unknown): Workflow {
+  return raw as Workflow
 }
 
-export interface CreateAgentOptions {
+export interface CreateWorkflowOptions {
   name: string
-  type: AgentType
+  type: WorkflowType
   description?: string
   trigger?: TriggerInput
   agentSelection?: AgentSelectionInput
@@ -79,9 +79,12 @@ export interface CreateAgentOptions {
   guardrails?: string[]
 }
 
-export interface UpdateAgentOptions {
+/** @deprecated Use `CreateWorkflowOptions` instead. */
+export type CreateAgentOptions = CreateWorkflowOptions
+
+export interface UpdateWorkflowOptions {
   name?: string
-  type?: AgentType
+  type?: WorkflowType
   description?: string
   trigger?: TriggerInput
   agentSelection?: AgentSelectionInput
@@ -89,6 +92,9 @@ export interface UpdateAgentOptions {
   guardrails?: string[]
   updateMask?: string
 }
+
+/** @deprecated Use `UpdateWorkflowOptions` instead. */
+export type UpdateAgentOptions = UpdateWorkflowOptions
 
 export class ManagementWorkflowsResource {
   protected readonly ops: ManagementWorkflowsOperations = MANAGEMENT_WORKFLOW_OPERATIONS
@@ -102,10 +108,10 @@ export class ManagementWorkflowsResource {
     pageSize?: number
     pageToken?: string
     search?: string
-    type?: AgentType
+    type?: WorkflowType
     view?: VariationView
     includeVariation?: boolean
-  } = {}): Promise<Page<Agent>> {
+  } = {}): Promise<Page<Workflow>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
     return this.listPage(
@@ -122,23 +128,25 @@ export class ManagementWorkflowsResource {
     pageSize: number,
     pageToken: string | undefined,
     search?: string,
-    type?: AgentType,
+    type?: WorkflowType,
     view?: VariationView,
     includeVariation?: boolean,
-  ): Promise<Page<Agent>> {
+  ): Promise<Page<Workflow>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, this.ops.list, {
         query: workflowsListParams(pageSize, pageToken, search, type, view, includeVariation),
       }),
     )
-    // Envelope key is the server DTO property name (`agents`) — unchanged by
-    // the rename, which only moved paths/opIds/tags to the workflows vocab.
-    return buildAipPage(data, 'agents', parseWorkflow, (token) =>
-      this.listPage(pageSize, token, search, type, view, includeVariation),
+    // Prefer `workflows`; fall back to deprecated `agents` while dual envelopes ship.
+    return buildAipPage(
+      data,
+      resolveListItemsKey(data, 'workflows', 'agents'),
+      parseWorkflow,
+      (token) => this.listPage(pageSize, token, search, type, view, includeVariation),
     )
   }
 
-  async get(workflowId: number | string, options: { view?: VariationView } = {}): Promise<Agent> {
+  async get(workflowId: number | string, options: { view?: VariationView } = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const query = options.view !== undefined ? { view: options.view } : undefined
     const data = await invokeWithRetry(this.config, this.http, this.ops.get, {
@@ -152,7 +160,7 @@ export class ManagementWorkflowsResource {
     return new WorkflowInterfacesResource(this.http, this.config, workflowId)
   }
 
-  async create(options: CreateAgentOptions): Promise<Agent> {
+  async create(options: CreateWorkflowOptions): Promise<Workflow> {
     const body = omitUndefined({
       name: options.name,
       type: options.type,
@@ -168,7 +176,7 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
-  async update(workflowId: number | string, options: UpdateAgentOptions = {}): Promise<Agent> {
+  async update(workflowId: number | string, options: UpdateWorkflowOptions = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const accessConfig = await accessConfigBodyForUpdate(options.guardrails, async () =>
       asRecord(
@@ -195,7 +203,7 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
-  async deploy(workflowId: number | string): Promise<Agent> {
+  async deploy(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, this.ops.deploy, {
@@ -203,10 +211,12 @@ export class ManagementWorkflowsResource {
         jsonBody: {},
       }),
     )
-    return parseWorkflow(data.agent)
+    return parseWorkflow(
+      data.workflow !== undefined ? data.workflow : data.agent,
+    )
   }
 
-  async toggle(workflowId: number | string, options: { active: boolean }): Promise<Agent> {
+  async toggle(workflowId: number | string, options: { active: boolean }): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(this.config, this.http, this.ops.toggle, {
       pathParams: { id: workflowId },
@@ -222,7 +232,7 @@ export class ManagementWorkflowsResource {
     })
   }
 
-  async restore(workflowId: number | string): Promise<Agent> {
+  async restore(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(this.config, this.http, this.ops.restore, {
       pathParams: { id: workflowId },
@@ -234,7 +244,7 @@ export class ManagementWorkflowsResource {
   async requestOwnershipTransfer(
     workflowId: number | string,
     options: { newOwnerUserId: string },
-  ): Promise<Agent> {
+  ): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(
       this.config,
@@ -248,7 +258,7 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
-  async cancelOwnershipTransfer(workflowId: number | string): Promise<Agent> {
+  async cancelOwnershipTransfer(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(
       this.config,
@@ -259,7 +269,7 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
-  async acceptOwnershipTransfer(workflowId: number | string): Promise<Agent> {
+  async acceptOwnershipTransfer(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(
       this.config,

@@ -522,7 +522,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_cancelOwnershipTransfer": {
     method: "DELETE",
@@ -532,7 +532,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_create": {
     method: "POST",
@@ -542,7 +542,7 @@ export const OPERATIONS = {
     pathParams: [],
     queryParams: [],
     requestSchema: "CreateSkillDto",
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_delete": {
     method: "DELETE",
@@ -572,7 +572,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: ["view"],
     requestSchema: null,
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_getVariation": {
     method: "GET",
@@ -582,7 +582,7 @@ export const OPERATIONS = {
     pathParams: ["id","variationUid"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_list": {
     method: "GET",
@@ -612,7 +612,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: "TransferOwnershipDto",
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_restore": {
     method: "POST",
@@ -622,7 +622,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "ScopesController_update": {
     method: "PATCH",
@@ -632,7 +632,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: ["updateMask"],
     requestSchema: "UpdateSkillDto",
-    responseSchema: "SkillDto",
+    responseSchema: "ScopeDto",
   },
   "SuggestionsController_listApproved": {
     method: "GET",
@@ -640,7 +640,7 @@ export const OPERATIONS = {
     service: "modus-api",
     serverUrl: "https://api.getmodus.com",
     pathParams: [],
-    queryParams: ["pageToken","pageSize","skill_id","skill_ids"],
+    queryParams: ["pageToken","pageSize","scope_id","skill_id","scope_ids","skill_ids"],
     requestSchema: null,
     responseSchema: "ListSuggestionQuestionsResponseDto",
   },
@@ -772,7 +772,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_cancelOwnershipTransfer": {
     method: "DELETE",
@@ -782,7 +782,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_create": {
     method: "POST",
@@ -792,7 +792,7 @@ export const OPERATIONS = {
     pathParams: [],
     queryParams: [],
     requestSchema: "CreateAgentDto",
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_delete": {
     method: "DELETE",
@@ -822,7 +822,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: ["view"],
     requestSchema: null,
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_list": {
     method: "GET",
@@ -842,7 +842,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: "TransferOwnershipDto",
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_restore": {
     method: "POST",
@@ -852,7 +852,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_toggle": {
     method: "POST",
@@ -862,7 +862,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: [],
     requestSchema: "ToggleAgentDto",
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
   "WorkflowsController_update": {
     method: "PATCH",
@@ -872,7 +872,7 @@ export const OPERATIONS = {
     pathParams: ["id"],
     queryParams: ["updateMask"],
     requestSchema: "UpdateAgentDto",
-    responseSchema: "AgentDto",
+    responseSchema: "WorkflowDto",
   },
 } as const satisfies Record<string, OperationSpec>
 
