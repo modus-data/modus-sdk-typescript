@@ -1,6 +1,6 @@
 # Changelog
 
-**Current npm release:** [`0.2.2`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.2).
+**Current npm release:** [`0.2.3`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.3).
 
 
 ## [Unreleased]
