@@ -905,7 +905,7 @@ export interface paths {
         };
         /**
          * List approved suggested questions for Home
-         * @description Returns approved, active suggested questions scoped to the caller organization. When `scope_id` is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.
+         * @description Returns approved, active suggested questions scoped to the caller organization. When `scopeId` is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.
          *
          *     **Requires:** `scopes:read`
          */
@@ -2811,8 +2811,6 @@ export interface components {
         ListAgentInterfacesResponseDto: {
             /** @description All interfaces attached to the workflow (in creation order). */
             interfaces: components["schemas"]["AgentInterfaceDto"][];
-            /** @description Token for the next page, or null when there are no more results. */
-            nextPageToken: string | null;
         };
         ListAgentsResponseDto: {
             /** @description Page of workflows the caller can at least `use`. Workflows the caller cannot see are filtered out (not enumerated). */
@@ -3148,16 +3146,16 @@ export interface components {
              * @description First-party Home suggestion interaction.
              * @example clicked
              */
-            event_type: components["schemas"]["SuggestionEventType"];
+            eventType: components["schemas"]["SuggestionEventType"];
             /**
              * @description Product surface that emitted the event.
              * @example home
              */
             source?: components["schemas"]["SuggestionEventSource"];
             /** @description Selected Home scope id when known. */
-            skill_id?: number;
+            skillId?: number;
             /** @description Conversation thread id when the event is tied to a chat. */
-            thread_id?: string;
+            threadId?: string;
             /** @description Event metadata. */
             metadata?: {
                 [key: string]: unknown;
@@ -3436,7 +3434,7 @@ export interface components {
             /** @description Stable suggestion id. */
             id: string;
             /** @description Numeric scope id this suggestion is scoped to. */
-            skill_id?: number | null;
+            skillId?: number | null;
             /** @description Short Home button label. */
             label: string;
             /** @description Prompt sent when the suggestion is selected. */
@@ -4355,70 +4353,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -4525,70 +4466,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -4686,11 +4570,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -4847,11 +4731,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5007,11 +4891,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5032,44 +4916,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5167,11 +5013,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5334,11 +5180,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5504,70 +5350,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -5665,11 +5454,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5825,11 +5614,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5850,44 +5639,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5985,11 +5736,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6155,11 +5906,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6330,11 +6081,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6355,44 +6106,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6491,11 +6204,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6652,11 +6365,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6813,11 +6526,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6974,11 +6687,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7135,11 +6848,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7309,70 +7022,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7469,11 +7125,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7494,44 +7150,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7633,11 +7251,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7803,70 +7421,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7964,11 +7525,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8127,11 +7688,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8152,44 +7713,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8285,11 +7808,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8452,11 +7975,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8616,11 +8139,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8780,11 +8303,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8955,11 +8478,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8980,44 +8503,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9122,11 +8607,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9147,44 +8632,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9288,11 +8735,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9452,11 +8899,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9612,11 +9059,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9637,44 +9084,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9776,11 +9185,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9939,11 +9348,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9964,44 +9373,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10100,11 +9471,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10262,11 +9633,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10287,44 +9658,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10426,11 +9759,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10598,11 +9931,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10623,44 +9956,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10762,11 +10057,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10922,11 +10217,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11089,11 +10384,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11249,11 +10544,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11412,11 +10707,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11437,44 +10732,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11576,11 +10833,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11740,11 +10997,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11904,11 +11161,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12064,11 +11321,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12224,11 +11481,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12386,11 +11643,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12411,44 +11668,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12485,9 +11704,9 @@ export interface operations {
                 /** @description Max approved suggestions per page. Defaults to 5. Must be between 1 and 12. */
                 pageSize?: number;
                 /** @description Return suggestions scoped to this numeric scope id. Omit for org-general suggestions. */
-                scope_id?: number;
+                scopeId?: number;
                 /** @description Comma-separated numeric scope ids. Returns approved suggestions for these scopes plus org-general suggestions. */
-                scope_ids?: string;
+                scopeIds?: string;
             };
             header?: never;
             path?: never;
@@ -12552,70 +11771,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -12714,11 +11876,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12890,70 +12052,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -13050,70 +12155,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -13210,70 +12258,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -13380,70 +12371,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -13541,11 +12475,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -13704,11 +12638,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -13729,44 +12663,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13862,11 +12758,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14029,11 +12925,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14193,11 +13089,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14286,10 +13182,7 @@ export interface operations {
     };
     WorkflowInterfacesController_list: {
         parameters: {
-            query?: {
-                pageSize?: number;
-                pageToken?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description Numeric workflow id. */
@@ -14356,11 +13249,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14381,44 +13274,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -14520,11 +13375,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14678,11 +13533,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14838,11 +13693,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15007,11 +13862,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15167,11 +14022,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15340,11 +14195,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15365,44 +14220,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15504,11 +14321,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15529,44 +14346,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15668,11 +14447,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15832,11 +14611,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15992,11 +14771,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16152,11 +14931,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }

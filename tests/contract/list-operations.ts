@@ -27,7 +27,7 @@ const SAMPLE_CONNECTION = {
 }
 const SAMPLE_SUGGESTION = {
   id: 'predefined:q1',
-  skill_id: 42,
+  skillId: 42,
   label: 'Revenue',
   prompt: 'Show me revenue',
 }

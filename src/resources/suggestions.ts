@@ -4,7 +4,6 @@ import { buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
 import {
-  normalizeRecordSuggestionEvent,
   type RecordSuggestionEventRequest,
   type SuggestionQuestion,
 } from '../types/suggestions.js'
@@ -25,8 +24,8 @@ function suggestionListParams(options: {
   return {
     pageSize: options.pageSize,
     pageToken: options.pageToken,
-    scope_id: options.scopeId,
-    scope_ids: options.scopeIds?.join(','),
+    scopeId: options.scopeId,
+    scopeIds: options.scopeIds?.join(','),
   }
 }
 
@@ -67,7 +66,7 @@ export class SuggestionsResource {
     validateId(id, 'id')
     await invokeWithRetry(this.config, this.http, 'SuggestionsController_recordEvent', {
       pathParams: { id },
-      jsonBody: normalizeRecordSuggestionEvent(event),
+      jsonBody: event,
     })
   }
 }

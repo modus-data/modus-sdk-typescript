@@ -12,7 +12,7 @@ describe('Modus.suggestions', () => {
           suggestions: [
             {
               id: 'predefined:q1',
-              skill_id: 42,
+              skillId: 42,
               label: 'Revenue',
               prompt: 'Show me revenue',
             },
@@ -28,33 +28,10 @@ describe('Modus.suggestions', () => {
     const url = String(fetch.mock.calls[0]?.[0])
     expect(url).toContain('/api/v1/suggestions/questions')
     expect(url).toContain('pageSize=5')
-    expect(url).toContain('scope_ids=7%2C42')
+    expect(url).toContain('scopeIds=7%2C42')
   })
 
-  it('records suggestion events with snake_case body fields', async () => {
-    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
-    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
-    await client.suggestions.recordEvent('predefined:q1', {
-      event_type: 'clicked',
-      source: 'home',
-      skill_id: 42,
-      thread_id: 'thread-1',
-      metadata: { placement: 'home' },
-    })
-    expect(String(fetch.mock.calls[0]?.[0])).toContain(
-      '/api/v1/suggestions/questions/predefined%3Aq1/events',
-    )
-    expect(fetch.mock.calls[0]?.[1]?.method).toBe('POST')
-    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
-      event_type: 'clicked',
-      source: 'home',
-      skill_id: 42,
-      thread_id: 'thread-1',
-      metadata: { placement: 'home' },
-    })
-  })
-
-  it('normalizes camelCase recordEvent fields to snake_case wire keys', async () => {
+  it('records suggestion events with camelCase body fields', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
     const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
     await client.suggestions.recordEvent('predefined:q1', {
@@ -62,12 +39,18 @@ describe('Modus.suggestions', () => {
       source: 'home',
       skillId: 42,
       threadId: 'thread-1',
+      metadata: { placement: 'home' },
     })
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(
+      '/api/v1/suggestions/questions/predefined%3Aq1/events',
+    )
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe('POST')
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
-      event_type: 'clicked',
+      eventType: 'clicked',
       source: 'home',
-      skill_id: 42,
-      thread_id: 'thread-1',
+      skillId: 42,
+      threadId: 'thread-1',
+      metadata: { placement: 'home' },
     })
   })
 })
