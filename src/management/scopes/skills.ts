@@ -5,8 +5,8 @@ import { updateMaskQuery } from '../../_query.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId, validatePageSize } from '../../_validation.js'
-import { ScopeConversationsResource } from '../../resources/skills/conversations.js'
-import type { Skill } from '../../types/skills.js'
+import { ScopeConversationsResource } from '../../resources/scopes/conversations.js'
+import type { Scope } from '../../types/scopes.js'
 import type { VariationView } from '../../types/views.js'
 import {
   accessConfigBodyForCreate,
@@ -66,11 +66,11 @@ function scopesListParams(
   >
 }
 
-function parseScope(raw: unknown): Skill {
-  return raw as Skill
+function parseScope(raw: unknown): Scope {
+  return raw as Scope
 }
 
-export interface CreateSkillOptions {
+export interface CreateScopeOptions {
   name: string
   description?: string
   expectedOutput?: string
@@ -83,7 +83,10 @@ export interface CreateSkillOptions {
   guardrails?: string[]
 }
 
-export interface UpdateSkillOptions {
+/** @deprecated Use `CreateScopeOptions` instead. */
+export type CreateSkillOptions = CreateScopeOptions
+
+export interface UpdateScopeOptions {
   name?: string
   description?: string
   expectedOutput?: string
@@ -99,6 +102,9 @@ export interface UpdateSkillOptions {
   supervisionSubordinateDescriptions?: Record<string, string>
   updateMask?: string
 }
+
+/** @deprecated Use `UpdateScopeOptions` instead. */
+export type UpdateSkillOptions = UpdateScopeOptions
 
 /** Full CRUD and lifecycle for Modus scopes (`/api/v1/scopes`). */
 export class ManagementScopesResource {
@@ -131,7 +137,7 @@ export class ManagementScopesResource {
     search?: string
     view?: VariationView
     managerId?: number
-  } = {}): Promise<Page<Skill>> {
+  } = {}): Promise<Page<Scope>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
     return this.listPage(
@@ -149,20 +155,22 @@ export class ManagementScopesResource {
     search?: string,
     view?: VariationView,
     managerId?: number,
-  ): Promise<Page<Skill>> {
+  ): Promise<Page<Scope>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, this.ops.list, {
         query: scopesListParams(pageSize, pageToken, search, view, managerId),
       }),
     )
-    // Envelope key is the server DTO property name (`skills`) — unchanged by
-    // the rename, which only moved paths/opIds/tags to the scopes vocab.
-    return buildAipPage(data, 'skills', parseScope, (token) =>
-      this.listPage(pageSize, token, search, view, managerId),
+    // List envelope is `scopes` only (Release N+1).
+    return buildAipPage(
+      data,
+      'scopes',
+      parseScope,
+      (token) => this.listPage(pageSize, token, search, view, managerId),
     )
   }
 
-  async get(scopeId: number | string, options: { view?: VariationView } = {}): Promise<Skill> {
+  async get(scopeId: number | string, options: { view?: VariationView } = {}): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const query = options.view !== undefined ? { view: options.view } : undefined
     const data = await invokeWithRetry(this.config, this.http, this.ops.get, {
@@ -172,7 +180,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
-  async create(options: CreateSkillOptions): Promise<Skill> {
+  async create(options: CreateScopeOptions): Promise<Scope> {
     const body = omitUndefined({
       name: options.name,
       description: options.description,
@@ -191,7 +199,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
-  async update(scopeId: number | string, options: UpdateSkillOptions = {}): Promise<Skill> {
+  async update(scopeId: number | string, options: UpdateScopeOptions = {}): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const accessConfig = await accessConfigBodyForUpdate(options.guardrails, async () =>
       asRecord(
@@ -225,7 +233,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
-  async deploy(scopeId: number | string): Promise<Skill> {
+  async deploy(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, this.ops.deploy, {
@@ -233,7 +241,7 @@ export class ManagementScopesResource {
         jsonBody: {},
       }),
     )
-    return parseScope(data.skill)
+    return parseScope(data.scope)
   }
 
   async delete(scopeId: number | string): Promise<void> {
@@ -243,7 +251,7 @@ export class ManagementScopesResource {
     })
   }
 
-  async restore(scopeId: number | string): Promise<Skill> {
+  async restore(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, this.ops.restore, {
       pathParams: { id: scopeId },
@@ -255,7 +263,7 @@ export class ManagementScopesResource {
   async requestOwnershipTransfer(
     scopeId: number | string,
     options: { newOwnerUserId: string },
-  ): Promise<Skill> {
+  ): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(
       this.config,
@@ -269,7 +277,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
-  async cancelOwnershipTransfer(scopeId: number | string): Promise<Skill> {
+  async cancelOwnershipTransfer(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(
       this.config,
@@ -280,7 +288,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
-  async acceptOwnershipTransfer(scopeId: number | string): Promise<Skill> {
+  async acceptOwnershipTransfer(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(
       this.config,
@@ -305,7 +313,7 @@ export class ManagementScopesResource {
   async getVariation(
     scopeId: number | string,
     options: { variationUid: string },
-  ): Promise<Skill> {
+  ): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     validateId(options.variationUid, 'variation_uid')
     const data = await invokeWithRetry(this.config, this.http, this.ops.getVariation, {

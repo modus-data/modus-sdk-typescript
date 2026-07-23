@@ -8,6 +8,7 @@ function mockHttp(config: ReturnType<typeof createModusConfig>): HttpClient {
     config,
     get: vi.fn().mockResolvedValue({}),
     post: vi.fn().mockResolvedValue({}),
+    put: vi.fn().mockResolvedValue({}),
     patch: vi.fn().mockResolvedValue({}),
     delete: vi.fn().mockResolvedValue(null),
   } as unknown as HttpClient
@@ -43,7 +44,7 @@ describe('openapi invoke', () => {
       jsonBody: { name: 'x' },
     })
     expect(http.post).toHaveBeenCalledWith('/api/v1/scopes', { name: 'x' }, {
-      baseUrl: 'https://api.modus.com',
+      baseUrl: 'https://api.getmodus.com',
       headers: undefined,
     })
   })
@@ -59,7 +60,7 @@ describe('openapi invoke', () => {
       '/api/v1/scopes/abc%2Fdef',
       { name: 'y' },
       { updateMask: 'name' },
-      { baseUrl: 'https://api.modus.com', headers: undefined },
+      { baseUrl: 'https://api.getmodus.com', headers: undefined },
     )
   })
 
@@ -73,7 +74,7 @@ describe('openapi invoke', () => {
       '/agent/v1/workflows/123/runs',
       { organizationId: 'org_123' },
       {
-        baseUrl: 'https://agent.modus.com',
+        baseUrl: 'https://agent.getmodus.com',
         headers: undefined,
       },
     )
@@ -95,6 +96,39 @@ describe('openapi invoke', () => {
       { organizationId: 'org_123' },
       {
         baseUrl: 'http://localhost:3130',
+        headers: undefined,
+      },
+    )
+  })
+
+  it('invokeOperation PUT for supervision.set', async () => {
+    const http = mockHttp(createModusConfig({ apiKey: 'modus_org_prefix_secret' }))
+    await invokeOperation(http, 'ScopeSupervisionController_set', {
+      pathParams: { id: 42 },
+      jsonBody: { supervisorAgentId: 7 },
+    })
+    expect(http.put).toHaveBeenCalledWith(
+      '/api/v1/scopes/42/supervision',
+      { supervisorAgentId: 7 },
+      { baseUrl: 'https://api.getmodus.com', headers: undefined },
+    )
+  })
+
+  it('agentHost / MODUS_AGENT_HOST wins over generated agent.modus.com serverUrl', async () => {
+    const http = mockHttp(
+      createModusConfig({
+        apiKey: 'modus_org_prefix_secret',
+        agentHost: 'https://agent.staging.getmodus.com',
+      }),
+    )
+    await invokeOperation(http, 'RunLifecycleController_active', {
+      query: { pageSize: 10 },
+    })
+    expect(http.get).toHaveBeenCalledWith(
+      '/agent/v1/runs/active',
+      { pageSize: 10 },
+      {
+        baseUrl: 'https://agent.staging.getmodus.com',
         headers: undefined,
       },
     )

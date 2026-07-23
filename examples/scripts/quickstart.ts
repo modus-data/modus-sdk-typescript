@@ -10,7 +10,7 @@
  *   export MODUS_API_KEY=modus_xxx
  *   npx tsx examples/scripts/quickstart.ts
  */
-import { Modus } from '@modus/sdk'
+import { Modus } from '@getmodus/sdk'
 
 if (!process.env.MODUS_API_KEY) {
   console.error('Export MODUS_API_KEY before running:\n  export MODUS_API_KEY=modus_xxx')

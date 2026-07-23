@@ -5,7 +5,7 @@ import { OPERATIONS } from '../src/_generated/operations.js'
 
 const TEST_KEY = 'modus_test_key_smoke'
 
-describe('@modus/sdk scaffold', () => {
+describe('@getmodus/sdk scaffold', () => {
   it('exports Modus and ModusManagement', () => {
     const client = new Modus({ apiKey: TEST_KEY })
     expect(client).toBeInstanceOf(Modus)
@@ -32,7 +32,7 @@ describe('@modus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(87)
+    expect(Object.keys(OPERATIONS).length).toBe(86)
     expect(OPERATIONS.SuggestionsController_listApproved?.method).toBe('GET')
     // Canonical scopes/workflows operations resolve through the registry.
     expect(OPERATIONS.ScopesController_list?.method).toBe('GET')

@@ -1,5 +1,5 @@
 {
-  "name": "@modus/sdk",
+  "name": "@getmodus/sdk",
   "version": "0.0.0",
   "description": "Official TypeScript client for Modus — your organization's context layer for AI",
   "type": "module",
@@ -45,16 +45,17 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "assets"
   ],
   "sideEffects": false,
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "test:staging-smoke": "vitest run --config vitest.staging-smoke.config.ts",
     "clean": "rimraf dist tsconfig.tsbuildinfo"
   },
   "devDependencies": {

@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Modus } from '../src/index.js'
-import { conversationSkillId } from '../src/types/conversations.js'
+import { conversationScopeId, conversationSkillId } from '../src/types/conversations.js'
 
 const TEST_KEY = 'modus_test_key_conversations'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
 
 function makeListItem(i = 0) {
   return {
     threadId: `thread-${i}`,
-    skillId: 42,
+    scopeId: 42,
     firstMessage: `Hello from thread ${i}`,
     title: null,
     messageCount: 5,
@@ -38,7 +38,7 @@ describe('scopes.conversations', () => {
       new Response(
         JSON.stringify({
           threadId: 'thread-abc',
-          skillId: 42,
+          scopeId: 42,
           messages: [
             { type: 'human', content: 'Hello' },
             { type: 'ai', content: 'Hi there!', toolCalls: [] },
@@ -60,7 +60,7 @@ describe('scopes.conversations', () => {
       new Response(
         JSON.stringify({
           threadId: 'thread-abc',
-          skillId: 42,
+          scopeId: 42,
           messages: [],
           messageWindow: {
             startIndex: 90,
@@ -91,7 +91,7 @@ describe('scopes.conversations', () => {
       new Response(
         JSON.stringify({
           threadId: 'thread-abc',
-          skillId: 42,
+          scopeId: 42,
           messages: [],
           createdAt: '2026-01-01T00:00:00.000Z',
           updatedAt: '2026-01-01T00:00:00.000Z',
@@ -113,14 +113,19 @@ describe('scopes.conversations', () => {
     ).rejects.toThrow('beforeMessageIndex requires messageLimit')
   })
 
-  it('conversationSkillId treats 0 as direct modus', () => {
-    expect(conversationSkillId({ ...makeListItem(), skillId: 0 } as never)).toBeUndefined()
+  it('conversationScopeId treats 0 as direct modus', () => {
+    expect(conversationScopeId({ ...makeListItem(), scopeId: 0 } as never)).toBeUndefined()
+    expect(conversationScopeId(makeListItem() as never)).toBe(42)
+  })
+
+  it('conversationSkillId preserves legacy 0 sentinel', () => {
+    expect(conversationSkillId({ ...makeListItem(), scopeId: 0 } as never)).toBe(0)
     expect(conversationSkillId(makeListItem() as never)).toBe(42)
   })
 })
 
 describe('modus.conversations', () => {
-  it('list with kind filter', async () => {
+  it('list with kind=modus filter', async () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ conversations: [], nextPageToken: null }), {
         status: 200,
@@ -130,6 +135,19 @@ describe('modus.conversations', () => {
     const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
     await client.modus.conversations.list({ kind: 'modus' })
     expect(String(fetch.mock.calls[0]?.[0])).toContain('kind=modus')
+    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/modus/conversations')
+  })
+
+  it('list with kind=scopes filter', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ conversations: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await client.modus.conversations.list({ kind: 'scopes' })
+    expect(String(fetch.mock.calls[0]?.[0])).toContain('kind=scopes')
     expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/modus/conversations')
   })
 })

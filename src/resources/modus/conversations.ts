@@ -9,7 +9,7 @@ import type {
   ConversationListItem,
 } from '../../types/conversations.js'
 
-const ALLOWED_KINDS = new Set<ConversationKind>(['all', 'modus', 'skills'])
+const ALLOWED_KINDS = new Set<ConversationKind>(['all', 'modus', 'scopes'])
 
 function listParams(
   pageSize: number,

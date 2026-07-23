@@ -27,7 +27,7 @@ const SAMPLE_CONNECTION = {
 }
 const SAMPLE_SUGGESTION = {
   id: 'predefined:q1',
-  skill_id: 42,
+  skillId: 42,
   label: 'Revenue',
   prompt: 'Show me revenue',
 }
@@ -35,7 +35,7 @@ const SAMPLE_VALUE_ENTRY = { value: 123 }
 const SAMPLE_MEMORY = { id: 'mem_01', memory: 'User prefers bullet points.' }
 const SAMPLE_CONVERSATION_LIST_ITEM = {
   threadId: 'thread-0',
-  skillId: 42,
+  scopeId: 42,
   firstMessage: 'Hello',
   title: null,
   messageCount: 5,
@@ -90,7 +90,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
     sampleItem: SAMPLE_SUGGESTION,
     clientKind: 'modus',
     expectedPageSize: 5,
-    invoke: (c) => c.suggestions.list({ pageSize: 5, pageToken: 'tok_abc', skillIds: [7, 42] }),
+    invoke: (c) => c.suggestions.list({ pageSize: 5, pageToken: 'tok_abc', scopeIds: [7, 42] }),
   },
   {
     operationId: 'ContextItemsController_list',
@@ -165,7 +165,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'ScopesController_list',
     mockUrlSuffix: '/api/v1/scopes',
-    itemsKey: 'skills',
+    itemsKey: 'scopes',
     wrongItemsKey: 'workflows',
     sampleItem: SAMPLE_SKILL,
     clientKind: 'modus',
@@ -174,7 +174,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'ScopesController_list',
     mockUrlSuffix: '/api/v1/scopes',
-    itemsKey: 'skills',
+    itemsKey: 'scopes',
     wrongItemsKey: 'workflows',
     sampleItem: SAMPLE_SKILL,
     clientKind: 'management',
@@ -183,7 +183,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'WorkflowsController_list',
     mockUrlSuffix: '/api/v1/workflows',
-    itemsKey: 'agents',
+    itemsKey: 'workflows',
     wrongItemsKey: 'scopes',
     sampleItem: SAMPLE_AGENT,
     clientKind: 'modus',
@@ -192,7 +192,7 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
   {
     operationId: 'WorkflowsController_list',
     mockUrlSuffix: '/api/v1/workflows',
-    itemsKey: 'agents',
+    itemsKey: 'workflows',
     wrongItemsKey: 'scopes',
     sampleItem: SAMPLE_AGENT,
     clientKind: 'management',

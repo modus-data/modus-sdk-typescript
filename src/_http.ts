@@ -126,6 +126,28 @@ async function readBody(response: Response): Promise<string> {
   return response.text()
 }
 
+/** Read at most `maxChars` from the body, then cancel the remainder. */
+async function readBodyPreview(response: Response, maxChars = 200): Promise<string> {
+  if (!response.body) return ''
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let out = ''
+  try {
+    while (out.length < maxChars) {
+      const { done, value } = await reader.read()
+      if (done) break
+      out += decoder.decode(value, { stream: true })
+      if (out.length >= maxChars) {
+        out = out.slice(0, maxChars)
+        break
+      }
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined)
+  }
+  return out
+}
+
 export class HttpClient {
   readonly config: ModusConfig
 
@@ -177,6 +199,10 @@ export class HttpClient {
     return this.request('POST', path, { json, ...options })
   }
 
+  put(path: string, json?: unknown, options: RequestOptions = {}): Promise<unknown> {
+    return this.request('PUT', path, { json, ...options })
+  }
+
   patch(
     path: string,
     json?: unknown,
@@ -200,7 +226,13 @@ export class HttpClient {
     try {
       const response = await this.config.fetch(url, {
         method,
-        headers: { ...this.defaultHeaders(), ...options.headers },
+        // Agent-service negotiates SSE vs JSON polling on Accept; JSON-only
+        // Accept returns {"runId","status":"pending"} instead of token SSE.
+        headers: {
+          ...this.defaultHeaders(),
+          ...options.headers,
+          Accept: 'text/event-stream',
+        },
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })
@@ -208,6 +240,16 @@ export class HttpClient {
         const body = await readBody(response)
         raiseForStatus(response, body)
         return
+      }
+      const contentType = response.headers.get('content-type') ?? ''
+      if (!contentType.toLowerCase().includes('text/event-stream')) {
+        const preview = await readBodyPreview(response)
+        throw new ModusError(
+          `Unexpected stream response: expected Content-Type text/event-stream, ` +
+            `got ${JSON.stringify(contentType) || '(missing)'}. ` +
+            `Body preview: ${preview}`,
+          { statusCode: response.status, body: preview },
+        )
       }
       if (!response.body) return
       const reader = response.body.getReader()

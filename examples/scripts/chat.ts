@@ -9,8 +9,8 @@
  *   export MODUS_API_KEY=modus_xxx
  *   npx tsx examples/scripts/chat.ts
  */
-import type { Skill } from '@modus/sdk'
-import { Modus } from '@modus/sdk'
+import type { Skill } from '@getmodus/sdk'
+import { Modus } from '@getmodus/sdk'
 
 const MODEL = 'claude-sonnet-5'
 const FIRST_MESSAGE =

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
 import { HttpClient } from '../src/_http.js'
-import { WorkflowsResource } from '../src/resources/agents.js'
+import { WorkflowsResource } from '../src/resources/workflows.js'
 
 const TEST_KEY = 'modus_test_key_agent_service'
 
@@ -35,7 +35,7 @@ describe('agent-service resources', () => {
       sseResponse(['data: {"type":"done","runId":"run-123","threadId":"thread-1"}\n\n']),
     )
     const workflows = resource(fetch)
-    const run = await workflows.runs.create(
+    const run = workflows.runs.create(
       123,
       {
         message: 'hello',
@@ -64,6 +64,40 @@ describe('agent-service resources', () => {
         streamProtocolVersion: 2,
       }),
     })
+  })
+
+  it('createModus return is directly async-iterable', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      sseResponse(['data: {"type":"done","runId":"modus-1","threadId":"t1"}\n\n']),
+    )
+    const workflows = resource(fetch)
+    const run = workflows.runs.createModus({
+      message: 'hi',
+      sessionId: 'session-1',
+      organizationId: 'org_123',
+    })
+    expect(typeof run[Symbol.asyncIterator]).toBe('function')
+    const events: unknown[] = []
+    for await (const event of run) events.push(event)
+    expect(events.at(-1)).toMatchObject({ type: 'done', runId: 'modus-1' })
+  })
+
+  it('createModus mints sessionId when omitted', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      sseResponse(['data: {"type":"done","runId":"modus-2","threadId":"t2"}\n\n']),
+    )
+    const workflows = resource(fetch)
+    const run = workflows.runs.createModus({
+      message: 'hi',
+      organizationId: 'org_123',
+    } as Parameters<typeof workflows.runs.createModus>[0])
+    for await (const _ of run) {
+      // drain
+    }
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)) as { sessionId?: string }
+    expect(typeof body.sessionId).toBe('string')
+    expect(body.sessionId!.length).toBeGreaterThan(0)
+    expect(fetch.mock.calls[0]?.[1]?.headers?.Accept).toBe('text/event-stream')
   })
 
   it('falls back to body runId when idempotency key is blank', async () => {

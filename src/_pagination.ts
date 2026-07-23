@@ -75,6 +75,17 @@ export function requireItemsList(data: Record<string, unknown>, itemsKey: string
   return value
 }
 
+/** Prefer canonical envelope key; fall back to deprecated alias while both are emitted. */
+export function resolveListItemsKey(
+  data: Record<string, unknown>,
+  preferred: string,
+  fallback: string,
+): string {
+  if (Array.isArray(data[preferred])) return preferred
+  if (Array.isArray(data[fallback])) return fallback
+  return preferred
+}
+
 export function buildAipPage<T>(
   data: Record<string, unknown>,
   itemsKey: string,

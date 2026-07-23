@@ -1,4 +1,5 @@
 import type { ModusConfig } from '../../_config.js'
+import { ValidationError } from '../../_exceptions.js'
 import type { HttpClient } from '../../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
@@ -47,6 +48,8 @@ export type UpdateCustomContextItemInput = Omit<
 
 export interface CreatedCustomContextItem {
   contextItemId: string
+  /** Same value as ``contextItemId`` — prefer this in new code (list/get parity). */
+  uid: string
   contextType: string
   dataPath: string[]
   title: string | null
@@ -62,7 +65,18 @@ function parseContextItem(raw: unknown): ContextItem {
 }
 
 function parseCreatedCustomContextItem(raw: unknown): CreatedCustomContextItem {
-  return raw as CreatedCustomContextItem
+  const data = asRecord(raw)
+  const contextItemId = data.contextItemId
+  if (typeof contextItemId !== 'string' || !contextItemId) {
+    throw new ValidationError(
+      'Custom context create response missing non-empty string contextItemId',
+    )
+  }
+  return {
+    ...(data as Omit<CreatedCustomContextItem, 'uid' | 'contextItemId'>),
+    contextItemId,
+    uid: contextItemId,
+  }
 }
 
 function parseDeletion(raw: unknown): CustomContextItemDeletion {

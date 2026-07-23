@@ -3,16 +3,16 @@ import type { HttpClient } from '../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
-import type { Agent, AgentType } from '../types/agents.js'
+import type { Workflow, WorkflowType } from '../types/workflows.js'
 import type { VariationView } from '../types/views.js'
-import { WorkflowRunsResource } from './agents/runs.js'
-import { AgentWorkflowActionsResource } from './agents/workflow-actions.js'
+import { WorkflowRunsResource } from './workflows/runs.js'
+import { AgentWorkflowActionsResource } from './workflows/workflow-actions.js'
 
 function workflowsListParams(
   pageSize: number,
   pageToken: string | undefined,
   search?: string,
-  type?: AgentType,
+  type?: WorkflowType,
   view?: VariationView,
   includeVariation?: boolean,
 ): Record<string, string | number | boolean | undefined | null> {
@@ -27,8 +27,8 @@ function workflowsListParams(
   >
 }
 
-function parseWorkflow(raw: unknown): Agent {
-  return raw as Agent
+function parseWorkflow(raw: unknown): Workflow {
+  return raw as Workflow
 }
 
 /** Read / invoke access to Modus workflows (`/api/v1/workflows`). */
@@ -48,10 +48,10 @@ export class WorkflowsResource {
     pageSize?: number
     pageToken?: string
     search?: string
-    type?: AgentType
+    type?: WorkflowType
     view?: VariationView
     includeVariation?: boolean
-  } = {}): Promise<Page<Agent>> {
+  } = {}): Promise<Page<Workflow>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
     return this.listPage(
@@ -68,10 +68,10 @@ export class WorkflowsResource {
     pageSize: number,
     pageToken: string | undefined,
     search?: string,
-    type?: AgentType,
+    type?: WorkflowType,
     view?: VariationView,
     includeVariation?: boolean,
-  ): Promise<Page<Agent>> {
+  ): Promise<Page<Workflow>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'WorkflowsController_list', {
         query: workflowsListParams(
@@ -84,17 +84,19 @@ export class WorkflowsResource {
         ),
       }),
     )
-    // Envelope key is the server DTO property name — unchanged by the rename
-    // (only paths/opIds/tags moved to the workflows vocab).
-    return buildAipPage(data, 'agents', parseWorkflow, (token) =>
-      this.listPage(pageSize, token, search, type, view, includeVariation),
+    // List responses require the canonical `workflows` key (dual `agents` envelope removed).
+    return buildAipPage(
+      data,
+      'workflows',
+      parseWorkflow,
+      (token) => this.listPage(pageSize, token, search, type, view, includeVariation),
     )
   }
 
   async get(
     workflowId: number | string,
     options: { view?: VariationView; includeVariation?: boolean } = {},
-  ): Promise<Agent> {
+  ): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const query: Record<string, string | boolean> = {}
     if (options.view !== undefined) query.view = options.view

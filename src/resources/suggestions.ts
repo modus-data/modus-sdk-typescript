@@ -3,7 +3,10 @@ import type { HttpClient } from '../_http.js'
 import { buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
 import { validateId, validatePageSize } from '../_validation.js'
-import type { RecordSuggestionEventRequest, SuggestionQuestion } from '../types/suggestions.js'
+import {
+  type RecordSuggestionEventRequest,
+  type SuggestionQuestion,
+} from '../types/suggestions.js'
 
 const DEFAULT_SUGGESTIONS_PAGE_SIZE = 5
 const MAX_SUGGESTIONS_PAGE_SIZE = 12
@@ -15,14 +18,14 @@ function parseSuggestion(raw: unknown): SuggestionQuestion {
 function suggestionListParams(options: {
   pageSize: number
   pageToken?: string
-  skillId?: number
-  skillIds?: readonly number[]
+  scopeId?: number
+  scopeIds?: readonly number[]
 }): Record<string, string | number | undefined> {
   return {
     pageSize: options.pageSize,
     pageToken: options.pageToken,
-    skill_id: options.skillId,
-    skill_ids: options.skillIds?.join(','),
+    scopeId: options.scopeId,
+    scopeIds: options.scopeIds?.join(','),
   }
 }
 
@@ -35,27 +38,27 @@ export class SuggestionsResource {
   list(options: {
     pageSize?: number
     pageToken?: string
-    skillId?: number
-    skillIds?: readonly number[]
+    scopeId?: number
+    scopeIds?: readonly number[]
   } = {}): Promise<Page<SuggestionQuestion>> {
     const pageSize = options.pageSize ?? DEFAULT_SUGGESTIONS_PAGE_SIZE
     validatePageSize(pageSize, MAX_SUGGESTIONS_PAGE_SIZE)
-    return this.listPage(pageSize, options.pageToken, options.skillId, options.skillIds)
+    return this.listPage(pageSize, options.pageToken, options.scopeId, options.scopeIds)
   }
 
   private async listPage(
     pageSize: number,
     pageToken: string | undefined,
-    skillId: number | undefined,
-    skillIds: readonly number[] | undefined,
+    scopeId: number | undefined,
+    scopeIds: readonly number[] | undefined,
   ): Promise<Page<SuggestionQuestion>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'SuggestionsController_listApproved', {
-        query: suggestionListParams({ pageSize, pageToken, skillId, skillIds }),
+        query: suggestionListParams({ pageSize, pageToken, scopeId, scopeIds }),
       }),
     )
     return buildAipPage(data, 'suggestions', parseSuggestion, (token) =>
-      this.listPage(pageSize, token, skillId, skillIds),
+      this.listPage(pageSize, token, scopeId, scopeIds),
     )
   }
 

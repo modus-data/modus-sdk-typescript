@@ -1,5 +1,5 @@
 /**
- * @modus/sdk — official TypeScript client for Modus.
+ * @getmodus/sdk — official TypeScript client for Modus.
  */
 
 export type { components, paths, operations } from './_generated/v1.js'
@@ -34,8 +34,9 @@ export type {
 } from './types/runs.js'
 export type { ChatModel, ChatRequest, ChatResult } from './types/chat.js'
 export type { ModusOptions } from './_config.js'
-export type { Skill, SkillStatus, SkillVariation } from './types/skills.js'
-export type { Agent, AgentType } from './types/agents.js'
+export type { Scope, ScopeStatus, ScopeVariation, Skill, SkillStatus, SkillVariation } from './types/scopes.js'
+export type { Workflow, Agent } from './types/workflows.js'
+export { AgentType, WorkflowType } from './types/workflows.js'
 export type {
   AgentRun,
   AgentRunCreateRequest,
@@ -52,14 +53,14 @@ export type {
   SkillRunCreateRequest,
   WorkflowActionRequest,
 } from './types/agent-runs.js'
-export type { AgentRunStream } from './resources/agents/runs.js'
+export type { AgentRunStream } from './resources/workflows/runs.js'
 export type {
   Conversation,
   ConversationKind,
   ConversationListItem,
   Message,
 } from './types/conversations.js'
-export { conversationSkillId } from './types/conversations.js'
+export { conversationScopeId, conversationSkillId } from './types/conversations.js'
 export type { Connection } from './types/connections.js'
 export type { VariationView } from './types/views.js'
 export type {
@@ -82,11 +83,11 @@ export type {
 } from './types/suggestions.js'
 
 import { ModusClientBase } from './_client-base.js'
-import { WorkflowsResource } from './resources/agents.js'
+import { WorkflowsResource } from './resources/workflows.js'
 import { ConnectionsResource } from './resources/connections.js'
 import { ContextResource } from './resources/context/context.js'
 import { ModusResource } from './resources/modus/modus.js'
-import { ScopesResource } from './resources/skills.js'
+import { ScopesResource } from './resources/scopes.js'
 import { SuggestionsResource } from './resources/suggestions.js'
 
 /** Read / invoke client for Modus scopes, workflows, connections, and more. */

@@ -9,8 +9,8 @@
  *   npx tsx examples/scripts/manage_skill.ts --write
  *   npx tsx examples/scripts/manage_skill.ts --write --delete
  */
-import { Modus } from '@modus/sdk'
-import { ModusManagement } from '@modus/sdk/management'
+import { Modus } from '@getmodus/sdk'
+import { ModusManagement } from '@getmodus/sdk/management'
 
 const EXAMPLE_PREFIX = '[SDK Example]'
 

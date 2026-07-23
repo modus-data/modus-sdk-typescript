@@ -33,6 +33,6 @@ export class ModusResource {
   }
 
   chatStream(message: string, options: { model: ChatModel; threadId?: string }): ChatStream {
-    return modusChatStreamSession(this.http, message, options)
+    return modusChatStreamSession(this.http, this.config, message, options)
   }
 }

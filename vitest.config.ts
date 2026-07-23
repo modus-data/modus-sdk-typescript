@@ -6,6 +6,7 @@ export default defineConfig({
   },
   test: {
     include: ['tests/**/*.test.ts'],
+    exclude: ['tests/integration/**'],
     setupFiles: ['./tests/vitest.setup.ts'],
   },
 })

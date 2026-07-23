@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ModusManagement } from '../src/management/index.js'
 
 const TEST_KEY = 'modus_test_key_mgmt'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
 
 describe('ModusManagement.workflows', () => {
   it('create posts workflow body', async () => {
@@ -27,7 +27,7 @@ describe('ModusManagement.workflows', () => {
   it('deploy unwraps workflow from response', async () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify({ agent: { id: 3, name: 'X', type: 'workflow', status: 'active' } }),
+        JSON.stringify({ workflow: { id: 3, name: 'X', type: 'workflow', status: 'active' } }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       ),
     )
@@ -41,13 +41,14 @@ describe('ModusManagement.workflows', () => {
 describe('ModusManagement.context', () => {
   it('createNote posts note body', async () => {
     const fetch = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ uid: 'note-1', contextType: 'note' }), {
+      new Response(JSON.stringify({ contextItemId: 'note-1', kind: 'note' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }),
     )
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
     const created = await mgmt.context.createNote('Title', 'Body')
+    expect(created.contextItemId).toBe('note-1')
     expect(created.uid).toBe('note-1')
     expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/context/notes')
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
@@ -87,15 +88,5 @@ describe('ModusManagement.usage', () => {
     const url = String(fetch.mock.calls[0]?.[0])
     expect(url).toContain('since=2026-01-01T00%3A00%3A00Z')
     expect(url).toContain('rollup=day')
-  })
-})
-
-describe('ModusManagement.organization', () => {
-  it('delete calls DELETE organization', async () => {
-    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
-    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
-    await mgmt.organization.delete()
-    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/users/organization')
-    expect(fetch.mock.calls[0]?.[1]?.method).toBe('DELETE')
   })
 })

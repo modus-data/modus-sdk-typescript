@@ -4,7 +4,8 @@ import { ModusError } from '../src/_exceptions.js'
 import { InternalServerError } from '../src/_exceptions.js'
 
 const TEST_KEY = 'modus_test_key_chat'
-const BASE = 'https://api.modus.com'
+const BASE = 'https://api.getmodus.com'
+const AGENT = 'https://agent.getmodus.com'
 const MODEL = 'claude-sonnet-5' as const
 
 describe('scopes.chat', () => {
@@ -65,14 +66,19 @@ describe('scopes.chat', () => {
 })
 
 describe('scopes.chatStream', () => {
-  it('streams tokens and builds final result', async () => {
+  it('streams tokens and builds final result via agent-host runs path', async () => {
     async function* fakeStream() {
       yield 'data: {"type":"token","content":"Hi"}'
       yield 'data: {"type":"token","content":" there"}'
       yield 'data: {"type":"done","runId":"run-s1","threadId":"thread-s1"}'
     }
-    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0 })
-    vi.spyOn(client['http'], 'streamPost').mockImplementation(() => fakeStream())
+    const client = new Modus({
+      apiKey: TEST_KEY,
+      baseUrl: BASE,
+      agentHost: AGENT,
+      maxRetries: 0,
+    })
+    const streamPost = vi.spyOn(client['http'], 'streamPost').mockImplementation(() => fakeStream())
 
     const stream = client.scopes.chatStream(42, 'Stream me', { model: MODEL })
     const chunks: string[] = []
@@ -83,6 +89,55 @@ describe('scopes.chatStream', () => {
     expect(final.content).toBe('Hi there')
     expect(final.threadId).toBe('thread-s1')
     expect(final.runId).toBe('run-s1')
+    expect(streamPost.mock.calls[0]?.[0]).toBe('/agent/v1/scopes/42/runs')
+    expect(streamPost.mock.calls[0]?.[1]).toMatchObject({
+      message: 'Stream me',
+      config: { model: MODEL },
+    })
+    expect(typeof (streamPost.mock.calls[0]?.[1] as { sessionId: string }).sessionId).toBe(
+      'string',
+    )
+    expect(streamPost.mock.calls[0]?.[2]).toMatchObject({ baseUrl: AGENT })
+  })
+
+  it('reuses threadId as sessionId', async () => {
+    async function* fakeStream() {
+      yield 'data: {"type":"done","runId":"run-s1","threadId":"thread-abc"}'
+    }
+    const client = new Modus({
+      apiKey: TEST_KEY,
+      baseUrl: BASE,
+      agentHost: AGENT,
+      maxRetries: 0,
+    })
+    const streamPost = vi.spyOn(client['http'], 'streamPost').mockImplementation(() => fakeStream())
+    const stream = client.scopes.chatStream(42, 'Hi', {
+      model: MODEL,
+      threadId: 'thread-abc',
+    })
+    for await (const _ of stream.textStream()) {
+      // consume
+    }
+    expect(streamPost.mock.calls[0]?.[1]).toMatchObject({ sessionId: 'thread-abc' })
+  })
+
+  it('modus.chatStream posts to /agent/v1/modus/runs', async () => {
+    async function* fakeStream() {
+      yield 'data: {"type":"done","runId":"r1","threadId":"t1"}'
+    }
+    const client = new Modus({
+      apiKey: TEST_KEY,
+      baseUrl: BASE,
+      agentHost: AGENT,
+      maxRetries: 0,
+    })
+    const streamPost = vi.spyOn(client['http'], 'streamPost').mockImplementation(() => fakeStream())
+    const stream = client.modus.chatStream('Hello', { model: MODEL })
+    for await (const _ of stream.textStream()) {
+      // consume
+    }
+    expect(streamPost.mock.calls[0]?.[0]).toBe('/agent/v1/modus/runs')
+    expect(streamPost.mock.calls[0]?.[2]).toMatchObject({ baseUrl: AGENT })
   })
 
   it('opts event streams into reset support and replaces failed content', async () => {
@@ -149,13 +204,20 @@ describe('scopes.chatStream', () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ message: 'Upstream unavailable' }), { status: 502 }),
     )
-    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const client = new Modus({
+      apiKey: TEST_KEY,
+      baseUrl: BASE,
+      agentHost: AGENT,
+      maxRetries: 0,
+      fetch,
+    })
     const stream = client.scopes.chatStream(42, 'Hi', { model: MODEL })
     await expect(async () => {
       for await (const _chunk of stream.textStream()) {
         // consume
       }
     }).rejects.toBeInstanceOf(InternalServerError)
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(`${AGENT}/agent/v1/scopes/42/runs`)
   })
 })
 

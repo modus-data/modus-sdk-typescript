@@ -33,7 +33,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ScopesController_update: ["name", "description", "expectedOutput", "instructions", "toolset", "model", "connectionSet", "contextSelections", "interfaces", "accessConfig", "managerId", "evaluations", "supervisionSubordinateDescriptions"],
   ScopeSupervisionController_set: ["subordinateAgentIds"],
   ScopeSupervisionController_setActive: ["subordinateAgentIds"],
-  SuggestionsController_recordEvent: ["event_type", "source", "skill_id", "thread_id", "metadata"],
+  SuggestionsController_recordEvent: ["eventType", "source", "skillId", "threadId", "metadata"],
   WorkflowActionsController_cancel: [],
   WorkflowActionsController_execute: ["organizationId", "sessionId", "fileThreadId", "workflowAction", "previousOutputs", "userTimezone", "runId", "automationId", "source"],
   WorkflowInterfacesController_add: ["type", "name", "config"],

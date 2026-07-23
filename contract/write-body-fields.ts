@@ -14,7 +14,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ],
   ModusChatController_chat: ['message', 'model'],
   ModusContextController_compose: ['message', 'limit'],
-  SuggestionsController_recordEvent: ['event_type', 'source', 'skill_id', 'thread_id', 'metadata'],
+  SuggestionsController_recordEvent: ['eventType', 'source', 'skillId', 'threadId', 'metadata'],
   ContextItemsController_lookup: ['contextType', 'dataPath', 'contentProjection'],
   ContextCreatorsController_createNote: ['title', 'content'],
   ContextCreatorsController_createSavedQuery: [

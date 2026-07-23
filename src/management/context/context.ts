@@ -3,6 +3,7 @@ import type { ModusConfig } from '../../_config.js'
 import type { HttpClient } from '../../_http.js'
 import { invokeWithRetry, omitUndefined } from '../../_request.js'
 import type { ContextItem, CreatedContextItem } from '../../types/context.js'
+import { withCreatedUid } from '../../types/context.js'
 import { CustomContextItemsResource } from '../../resources/context/custom-items.js'
 import {
   resolveAndUpdateLink,
@@ -28,7 +29,7 @@ export class ManagementContextResource {
     const data = await invokeWithRetry(this.config, this.http, operationId, {
       jsonBody: payload,
     })
-    return data as CreatedContextItem
+    return withCreatedUid(data as Parameters<typeof withCreatedUid>[0])
   }
 
   createNote(title: string, content: string): Promise<CreatedContextItem> {

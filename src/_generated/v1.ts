@@ -329,7 +329,7 @@ export interface paths {
         };
         /**
          * List Modus conversations
-         * @description Returns a page of your conversations across Modus and scopes. Use `kind=modus` for direct Modus chats only, or `kind=skills` to exclude them. Pass `nextPageToken` as `pageToken` for the next page.
+         * @description Returns a page of your conversations across Modus and scopes. Use `kind=modus` for direct Modus chats only, or `kind=scopes` to exclude them. Pass `nextPageToken` as `pageToken` for the next page.
          *
          *     **Requires:** `scopes:read`
          */
@@ -673,7 +673,7 @@ export interface paths {
         head?: never;
         /**
          * Update scope MCP config
-         * @description Writes coreTools, mcpToolExposure, and other MCP-tab fields to the active variation immediately so MCP clients see the change without a full scope deploy. Mirrors the same config onto a forked draft when present. Requires manage permission; unpublished scopes return 404.
+         * @description Writes coreTools and mcpToolExposure to the scope draft variation. Changes take effect for MCP clients on the next scope deploy — the active (published) variation is not mutated live. Requires manage permission; unpublished scopes return 404.
          *
          *     **Requires:** `scopes:write`
          */
@@ -905,9 +905,9 @@ export interface paths {
         };
         /**
          * List approved suggested questions for Home
-         * @description Returns approved, active suggested questions scoped to the caller organization. When `skill_id` is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.
+         * @description Returns approved, active suggested questions scoped to the caller organization. When `scopeId` is provided, the caller must be able to use that active scope. When omitted, only org-general suggestions are returned.
          *
-         *     **Requires:** `skills:read`
+         *     **Requires:** `scopes:read`
          */
         get: operations["SuggestionsController_listApproved"];
         put?: never;
@@ -931,7 +931,7 @@ export interface paths {
          * Record a first-party suggested-question usage event
          * @description Records Home suggestion interactions without relying on external analytics. Unknown suggestion ids return not found.
          *
-         *     **Requires:** `skills:read`
+         *     **Requires:** `scopes:read`
          */
         post: operations["SuggestionsController_recordEvent"];
         delete?: never;
@@ -1001,28 +1001,6 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/organization": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete organization data
-         * @description Permanently deletes all of your organization’s Modus data — workflows, scopes, context, and integrations. This cannot be undone. Restricted to organization owners and admins.
-         *
-         *     **Requires:** `users:write`
-         */
-        delete: operations["OrganizationController_deleteOrganization"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1712,106 +1690,12 @@ export interface components {
         };
         AgentDeployResponseDto: {
             /** @description The workflow after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
-            agent: components["schemas"]["AgentDto"];
+            workflow: components["schemas"]["WorkflowDto"];
             /**
              * @description Server-side timestamp at which the deploy completed.
              * @example 2026-05-11T10:00:00.000Z
              */
             deployedAt: string;
-        };
-        AgentDto: {
-            /**
-             * @description Numeric workflow id (stable per-org; not reused after delete).
-             * @example 42
-             */
-            id: number;
-            /**
-             * @description URL-safe slug used in human-readable links. Unique per org.
-             * @example customer-churn-agent-a3f
-             */
-            slug: string;
-            /**
-             * @description Display name of the workflow. Shown in the builder and in run logs.
-             * @example Customer Churn Analyzer
-             */
-            name: string;
-            /**
-             * @description Optional one-paragraph description of what this workflow does.
-             * @example Predicts churn risk for a customer given a 90-day usage window.
-             */
-            description?: string | null;
-            /**
-             * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
-             * @example active
-             */
-            status: components["schemas"]["ResourceLifecycleStatus"];
-            /**
-             * @description Type of workflow. `task` = single-step scope orchestration; `workflow` = multi-step graph.
-             * @example task
-             */
-            type: components["schemas"]["AgentType"];
-            /**
-             * @description Org UUID this workflow belongs to. Matches the caller’s principal.
-             * @example 00000000-0000-0000-0000-000000000001
-             */
-            orgUuid: string;
-            /**
-             * @description Active (deployed) variation id. Null until the workflow is first deployed.
-             * @example 00000000-0000-4000-a000-000000000100
-             */
-            activeVariationId?: string | null;
-            /**
-             * @description Most recent draft variation id. Null when there is no draft pending.
-             * @example 00000000-0000-4000-a000-000000000101
-             */
-            draftVariationId?: string | null;
-            /**
-             * @description True when the draft variation differs from the active variation (deploy would publish changes).
-             * @example false
-             */
-            hasUnpublishedChanges: boolean;
-            /**
-             * @description Whether the workflow’s schedule is currently active. Toggle via POST /api/v1/workflows/{id}/toggle.
-             * @example true
-             */
-            isEnabled: boolean;
-            /** @description Access configuration — who in the org can use / manage this workflow. */
-            accessConfig: components["schemas"]["AgentAccessConfigDto"];
-            /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
-            pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
-            /** @description Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/agents/:id`; absent on list rows. */
-            variation?: components["schemas"]["AgentVariationDto"];
-            /**
-             * @description Creation timestamp.
-             * @example 2026-05-01T10:00:00.000Z
-             */
-            createdAt: string;
-            /**
-             * @description Most recent update timestamp.
-             * @example 2026-05-11T10:00:00.000Z
-             */
-            updatedAt: string;
-            /**
-             * @description Soft-delete timestamp. Null for active workflows.
-             * @example null
-             */
-            deletedAt?: string | null;
-            /**
-             * @description Whether the requesting principal can manage (edit/delete/deploy/toggle) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.
-             * @example true
-             */
-            canManage: boolean;
-            /**
-             * @description Whether the requesting principal can use (run, view history of) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.
-             * @example true
-             */
-            canUse: boolean;
-            /**
-             * @description Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true. Derived server-side from the principal + accessConfig.
-             * @example needs_group_manage
-             * @enum {string|null}
-             */
-            manageDenial: "not_owner" | "needs_group_manage" | null;
         };
         AgentGroupPermissionDto: {
             /**
@@ -2193,7 +2077,7 @@ export interface components {
              * @description Numeric scope id returned by the list/detail adapter. This is not conversation ownership.
              * @example 42
              */
-            skillId: number;
+            scopeId: number;
             /** @description Conversation turns, in chronological order. */
             messages: components["schemas"]["ConversationMessageDto"][];
             /** @description Present only when a bounded message window was requested and honored. */
@@ -2219,7 +2103,7 @@ export interface components {
              * @description Numeric scope id returned by the list adapter. This is not conversation ownership.
              * @example 42
              */
-            skillId: number;
+            scopeId: number;
             /**
              * @description Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet.
              * @example Run the churn analysis for last 30 days.
@@ -2333,16 +2217,8 @@ export interface components {
             trigger?: components["schemas"]["TriggerDto"];
             /** @description Workflow selection (for task workflows): ordered scopes plus per-scope instructions. */
             agentSelection?: components["schemas"]["AgentSelectionDto"];
-            /**
-             * @description Workflow graph (nodes + edges) when `type` is `workflow`. Free-form JSONB.
-             * @example {
-             *       "nodes": [],
-             *       "edges": []
-             *     }
-             */
-            workflowStructure?: {
-                [key: string]: unknown;
-            };
+            /** @description Workflow graph (nodes + edges) when `type` is `workflow`. Unknown node/edge keys and out-of-enum node types are rejected with a 422. */
+            workflowStructure?: components["schemas"]["WorkflowStructureDto"];
             /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
         };
@@ -2654,7 +2530,7 @@ export interface components {
         };
         DeployResponseDto: {
             /** @description The scope after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
-            skill: components["schemas"]["SkillDto"];
+            scope: components["schemas"]["ScopeDto"];
             /**
              * @description Server-side timestamp at which the deploy completed.
              * @example 2026-05-11T10:00:00.000Z
@@ -2935,16 +2811,11 @@ export interface components {
         ListAgentInterfacesResponseDto: {
             /** @description All interfaces attached to the workflow (in creation order). */
             interfaces: components["schemas"]["AgentInterfaceDto"][];
-            /** @description Token for the next page, or null when there are no more results. */
-            nextPageToken: string | null;
         };
         ListAgentsResponseDto: {
             /** @description Page of workflows the caller can at least `use`. Workflows the caller cannot see are filtered out (not enumerated). */
-            agents: components["schemas"]["AgentDto"][];
-            /**
-             * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
-             * @example eyJsYXN0SWQiOjQyfQ
-             */
+            workflows: components["schemas"]["WorkflowDto"][];
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
             nextPageToken: string | null;
         };
         ListAutomationRunsResponseDto: {
@@ -2969,10 +2840,7 @@ export interface components {
         ListConnectionsResponseDto: {
             /** @description Page of integration connections the caller can `use`. Connections the caller cannot access are filtered out (not enumerated). */
             connections: components["schemas"]["ConnectionDto"][];
-            /**
-             * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
-             * @example eyJjcmVhdGVkQXQiOiIyMDI2
-             */
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
             nextPageToken: string | null;
         };
         ListContextItemValuesResponseDto: {
@@ -3029,8 +2897,8 @@ export interface components {
         };
         ListEvaluationRunsResponseDto: {
             runs: components["schemas"]["EvaluationRunDto"][];
-            /** @description Token for next page */
-            nextPageToken?: string;
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
+            nextPageToken: string | null;
         };
         ListMemberGroupsResponseDto: {
             groups: components["schemas"]["MemberGroupDto"][];
@@ -3051,11 +2919,8 @@ export interface components {
         };
         ListSkillsResponseDto: {
             /** @description Page of scopes the caller can at least `use`. Scopes the caller cannot see are filtered out (not enumerated). */
-            skills: components["schemas"]["SkillDto"][];
-            /**
-             * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
-             * @example eyJsYXN0SWQiOjQyfQ
-             */
+            scopes: components["schemas"]["ScopeDto"][];
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
             nextPageToken: string | null;
         };
         ListSuggestionQuestionsResponseDto: {
@@ -3281,16 +3146,16 @@ export interface components {
              * @description First-party Home suggestion interaction.
              * @example clicked
              */
-            event_type: components["schemas"]["SuggestionEventType"];
+            eventType: components["schemas"]["SuggestionEventType"];
             /**
              * @description Product surface that emitted the event.
              * @example home
              */
             source?: components["schemas"]["SuggestionEventSource"];
             /** @description Selected Home scope id when known. */
-            skill_id?: number;
+            skillId?: number;
             /** @description Conversation thread id when the event is tied to a chat. */
-            thread_id?: string;
+            threadId?: string;
             /** @description Event metadata. */
             metadata?: {
                 [key: string]: unknown;
@@ -3301,6 +3166,90 @@ export interface components {
          * @enum {string}
          */
         ResourceLifecycleStatus: "draft" | "active" | "deleted";
+        ScopeDto: {
+            /**
+             * @description Numeric scope id (stable per-org; not reused after delete).
+             * @example 42
+             */
+            id: number;
+            /**
+             * @description URL-safe slug used in human-readable links. Unique per org.
+             * @example customer-churn-analyzer-a3f
+             */
+            slug: string;
+            /**
+             * @description Display name of the scope. Shown in the builder and in run logs.
+             * @example Customer Churn Analyzer
+             */
+            name: string;
+            /**
+             * @description Optional one-paragraph description of what this scope does.
+             * @example Predicts churn risk for a customer given a 90-day usage window.
+             */
+            description?: string | null;
+            /**
+             * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
+             * @example active
+             */
+            status: components["schemas"]["ResourceLifecycleStatus"];
+            /**
+             * @description Org UUID this scope belongs to. Matches the caller’s principal.
+             * @example 00000000-0000-0000-0000-000000000001
+             */
+            orgUuid: string;
+            /**
+             * @description Active (deployed) variation id. Null until the scope is first deployed.
+             * @example 00000000-0000-4000-a000-000000000100
+             */
+            activeVariationId?: string | null;
+            /**
+             * @description Most recent draft variation id. Null when there is no draft pending.
+             * @example 00000000-0000-4000-a000-000000000101
+             */
+            draftVariationId?: string | null;
+            /**
+             * @description True when the draft variation differs from the active variation (deploy would publish changes).
+             * @example false
+             */
+            hasUnpublishedChanges: boolean;
+            /** @description Access configuration — who in the org can use / manage this scope. */
+            accessConfig: components["schemas"]["AccessConfigDto"];
+            /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
+            pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
+            /** @description Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/scopes/:id`; absent on list rows. */
+            variation?: components["schemas"]["SkillVariationDto"];
+            /**
+             * @description Creation timestamp.
+             * @example 2026-05-01T10:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * @description Most recent update timestamp.
+             * @example 2026-05-11T10:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * @description Soft-delete timestamp. Null for active scopes.
+             * @example null
+             */
+            deletedAt?: string | null;
+            /**
+             * @description Whether the requesting principal can manage (edit/delete/deploy) this scope. Derived server-side from the principal + accessConfig. Present on every Scope response.
+             * @example true
+             */
+            canManage: boolean;
+            /**
+             * @description Whether the requesting principal can use (run, view history of) this scope. Derived server-side from the principal + accessConfig.
+             * @example true
+             */
+            canUse: boolean;
+            /**
+             * @description Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true.
+             * @example needs_group_manage
+             * @enum {string|null}
+             */
+            manageDenial: "not_owner" | "needs_group_manage" | null;
+        };
         SearchMemoriesRequestDto: {
             /**
              * @description Search query string (semantic search over the scope's memories).
@@ -3390,90 +3339,6 @@ export interface components {
              * @example 550e8400-e29b-41d4-a716-446655440001
              */
             runId: string;
-        };
-        SkillDto: {
-            /**
-             * @description Numeric scope id (stable per-org; not reused after delete).
-             * @example 42
-             */
-            id: number;
-            /**
-             * @description URL-safe slug used in human-readable links. Unique per org.
-             * @example customer-churn-analyzer-a3f
-             */
-            slug: string;
-            /**
-             * @description Display name of the scope. Shown in the builder and in run logs.
-             * @example Customer Churn Analyzer
-             */
-            name: string;
-            /**
-             * @description Optional one-paragraph description of what this scope does.
-             * @example Predicts churn risk for a customer given a 90-day usage window.
-             */
-            description?: string | null;
-            /**
-             * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
-             * @example active
-             */
-            status: components["schemas"]["ResourceLifecycleStatus"];
-            /**
-             * @description Org UUID this scope belongs to. Matches the caller’s principal.
-             * @example 00000000-0000-0000-0000-000000000001
-             */
-            orgUuid: string;
-            /**
-             * @description Active (deployed) variation id. Null until the scope is first deployed.
-             * @example 00000000-0000-4000-a000-000000000100
-             */
-            activeVariationId?: string | null;
-            /**
-             * @description Most recent draft variation id. Null when there is no draft pending.
-             * @example 00000000-0000-4000-a000-000000000101
-             */
-            draftVariationId?: string | null;
-            /**
-             * @description True when the draft variation differs from the active variation (deploy would publish changes).
-             * @example false
-             */
-            hasUnpublishedChanges: boolean;
-            /** @description Access configuration — who in the org can use / manage this scope. */
-            accessConfig: components["schemas"]["AccessConfigDto"];
-            /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
-            pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
-            /** @description Variation-detail payload (`toolset`, `instructions`, `model`, etc.) for the requested view. Populated by `GET /api/v1/skills/:id`; absent on list rows. */
-            variation?: components["schemas"]["SkillVariationDto"];
-            /**
-             * @description Creation timestamp.
-             * @example 2026-05-01T10:00:00.000Z
-             */
-            createdAt: string;
-            /**
-             * @description Most recent update timestamp.
-             * @example 2026-05-11T10:00:00.000Z
-             */
-            updatedAt: string;
-            /**
-             * @description Soft-delete timestamp. Null for active scopes.
-             * @example null
-             */
-            deletedAt?: string | null;
-            /**
-             * @description Whether the requesting principal can manage (edit/delete/deploy) this scope. Derived server-side from the principal + accessConfig. Present on every Scope response.
-             * @example true
-             */
-            canManage: boolean;
-            /**
-             * @description Whether the requesting principal can use (run, view history of) this scope. Derived server-side from the principal + accessConfig.
-             * @example true
-             */
-            canUse: boolean;
-            /**
-             * @description Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true.
-             * @example needs_group_manage
-             * @enum {string|null}
-             */
-            manageDenial: "not_owner" | "needs_group_manage" | null;
         };
         SkillMcpInterfaceConfigDto: {
             /** @description Built-in MCP tools (chat, get_context) exposed by this scope. */
@@ -3569,7 +3434,7 @@ export interface components {
             /** @description Stable suggestion id. */
             id: string;
             /** @description Numeric scope id this suggestion is scoped to. */
-            skill_id?: number | null;
+            skillId?: number | null;
             /** @description Short Home button label. */
             label: string;
             /** @description Prompt sent when the suggestion is selected. */
@@ -3724,16 +3589,8 @@ export interface components {
             trigger?: components["schemas"]["TriggerDto"];
             /** @description Updated workflow selection. */
             agentSelection?: components["schemas"]["AgentSelectionDto"];
-            /**
-             * @description Updated workflow graph (nodes + edges).
-             * @example {
-             *       "nodes": [],
-             *       "edges": []
-             *     }
-             */
-            workflowStructure?: {
-                [key: string]: unknown;
-            };
+            /** @description Updated workflow graph (nodes + edges). Unknown node/edge keys and out-of-enum node types are rejected with a 422. */
+            workflowStructure?: components["schemas"]["WorkflowStructureDto"];
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
         };
@@ -3961,6 +3818,160 @@ export interface components {
             output_tokens: number;
             /** @description Total credits consumed across all buckets in the window. */
             credits: number;
+        };
+        WorkflowDto: {
+            /**
+             * @description Numeric workflow id (stable per-org; not reused after delete).
+             * @example 42
+             */
+            id: number;
+            /**
+             * @description URL-safe slug used in human-readable links. Unique per org.
+             * @example customer-churn-agent-a3f
+             */
+            slug: string;
+            /**
+             * @description Display name of the workflow. Shown in the builder and in run logs.
+             * @example Customer Churn Analyzer
+             */
+            name: string;
+            /**
+             * @description Optional one-paragraph description of what this workflow does.
+             * @example Predicts churn risk for a customer given a 90-day usage window.
+             */
+            description?: string | null;
+            /**
+             * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
+             * @example active
+             */
+            status: components["schemas"]["ResourceLifecycleStatus"];
+            /**
+             * @description Type of workflow. `task` = single-step scope orchestration; `workflow` = multi-step graph.
+             * @example task
+             */
+            type: components["schemas"]["AgentType"];
+            /**
+             * @description Org UUID this workflow belongs to. Matches the caller’s principal.
+             * @example 00000000-0000-0000-0000-000000000001
+             */
+            orgUuid: string;
+            /**
+             * @description Active (deployed) variation id. Null until the workflow is first deployed.
+             * @example 00000000-0000-4000-a000-000000000100
+             */
+            activeVariationId?: string | null;
+            /**
+             * @description Most recent draft variation id. Null when there is no draft pending.
+             * @example 00000000-0000-4000-a000-000000000101
+             */
+            draftVariationId?: string | null;
+            /**
+             * @description True when the draft variation differs from the active variation (deploy would publish changes).
+             * @example false
+             */
+            hasUnpublishedChanges: boolean;
+            /**
+             * @description Whether the workflow’s schedule is currently active. Toggle via POST /api/v1/workflows/{id}/toggle.
+             * @example true
+             */
+            isEnabled: boolean;
+            /** @description Access configuration — who in the org can use / manage this workflow. */
+            accessConfig: components["schemas"]["AgentAccessConfigDto"];
+            /** @description Pending ownership transfer awaiting recipient acceptance. Absent when no request is in flight. */
+            pendingOwnershipTransfer?: components["schemas"]["PendingOwnershipTransferDto"] | null;
+            /** @description Variation-detail payload (`trigger`, `workflowStructure`, `agentSelection`) for the requested view. Populated by `GET /api/v1/workflows/:id`; absent on list rows. */
+            variation?: components["schemas"]["AgentVariationDto"];
+            /**
+             * @description Creation timestamp.
+             * @example 2026-05-01T10:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * @description Most recent update timestamp.
+             * @example 2026-05-11T10:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * @description Soft-delete timestamp. Null for active workflows.
+             * @example null
+             */
+            deletedAt?: string | null;
+            /**
+             * @description Whether the requesting principal can manage (edit/delete/deploy/toggle) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.
+             * @example true
+             */
+            canManage: boolean;
+            /**
+             * @description Whether the requesting principal can use (run, view history of) this workflow. Derived server-side from the principal + accessConfig. Always present on every Workflow response.
+             * @example true
+             */
+            canUse: boolean;
+            /**
+             * @description Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true. Derived server-side from the principal + accessConfig.
+             * @example needs_group_manage
+             * @enum {string|null}
+             */
+            manageDenial: "not_owner" | "needs_group_manage" | null;
+        };
+        WorkflowEdgeDto: {
+            /**
+             * @description Stable edge id, unique within the graph.
+             * @example e1
+             */
+            id: string;
+            /**
+             * @description Source node id.
+             * @example 1
+             */
+            source: string;
+            /**
+             * @description Target node id.
+             * @example 2
+             */
+            target: string;
+            /**
+             * @description Source port handle (e.g. a condition branch). Omit for a single-output node.
+             * @example branch_0
+             */
+            sourceHandle?: string;
+        };
+        WorkflowNodeDto: {
+            /**
+             * @description Stable node id, unique within the graph.
+             * @example 1
+             */
+            id: string;
+            /**
+             * @description Node kind. Determines how the runtime interprets `data`.
+             * @example start
+             */
+            type: components["schemas"]["WorkflowNodeType"];
+            /** @description Canvas position. Optional — preserved for builder layout when present. */
+            position?: components["schemas"]["WorkflowNodePositionDto"];
+            /**
+             * @description Node-type-specific payload (intentionally open — shape varies by `type`). Defaults to `{}`.
+             * @example {}
+             */
+            data?: {
+                [key: string]: unknown;
+            };
+        };
+        WorkflowNodePositionDto: {
+            /** @example 0 */
+            x: number;
+            /** @example 50 */
+            y: number;
+        };
+        /**
+         * @description Node kind. Determines how the runtime interprets `data`.
+         * @enum {string}
+         */
+        WorkflowNodeType: "start" | "action" | "condition" | "agent" | "humanApproval";
+        WorkflowStructureDto: {
+            /** @description Workflow nodes. Defaults to `[]`. */
+            nodes?: components["schemas"]["WorkflowNodeDto"][];
+            /** @description Directed edges connecting the nodes. Defaults to `[]`. */
+            edges?: components["schemas"]["WorkflowEdgeDto"][];
         };
         ActiveConversationRunDto: {
             /** @description Run identifier. */
@@ -4342,89 +4353,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -4531,89 +4466,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -4711,11 +4570,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -4774,25 +4633,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -4891,11 +4731,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -4954,25 +4794,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5070,11 +4891,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5095,63 +4916,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5249,11 +5013,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5312,25 +5076,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5435,11 +5180,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5498,25 +5243,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5624,89 +5350,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -5804,11 +5454,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -5867,25 +5517,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -5983,11 +5614,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6008,63 +5639,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6162,11 +5736,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6225,25 +5799,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6351,11 +5906,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6414,25 +5969,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6545,11 +6081,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6570,63 +6106,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6725,11 +6204,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6788,25 +6267,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6905,11 +6365,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -6968,25 +6428,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7085,11 +6526,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7148,25 +6589,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7265,11 +6687,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7328,25 +6750,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7445,11 +6848,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7515,25 +6918,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -7572,8 +6956,8 @@ export interface operations {
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
                 includeTools?: boolean;
-                /** @description Filter conversations by type. `all` (default) returns every conversation; `modus` returns direct Modus chats only; `skills` excludes direct Modus chats. */
-                kind?: "all" | "modus" | "skills";
+                /** @description Filter conversations by type. `all` (default) returns every conversation; `modus` returns direct Modus chats only; `scopes` excludes direct Modus chats. */
+                kind?: "all" | "modus" | "scopes";
             };
             header?: never;
             path?: never;
@@ -7638,89 +7022,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7817,11 +7125,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -7842,63 +7150,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8000,11 +7251,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8063,25 +7314,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8189,89 +7421,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -8317,7 +7473,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -8369,11 +7525,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8432,25 +7588,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8499,7 +7636,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -8551,11 +7688,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8576,63 +7713,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8728,11 +7808,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8791,25 +7871,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8862,7 +7923,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -8914,11 +7975,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -8977,25 +8038,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9097,11 +8139,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9160,25 +8202,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9280,11 +8303,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9343,25 +8366,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9474,11 +8478,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9499,63 +8503,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9660,11 +8607,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9685,63 +8632,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9777,6 +8667,7 @@ export interface operations {
             path: {
                 /** @description Numeric scope id. */
                 id: unknown;
+                /** @description Thread id from a prior chat response. */
                 threadId: string;
             };
             cookie?: never;
@@ -9844,11 +8735,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -9907,25 +8798,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10027,11 +8899,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10090,25 +8962,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10206,11 +9059,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10231,63 +9084,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10389,11 +9185,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10452,25 +9248,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10571,11 +9348,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10596,63 +9373,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10693,7 +9413,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Evaluation run accepted and queued. The run executes asynchronously; poll `GET /scopes/{id}/evaluations/runs/{runId}` for status. */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10750,11 +9471,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10813,25 +9534,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10931,11 +9633,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -10956,63 +9658,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11114,11 +9759,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11177,25 +9822,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11305,11 +9931,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11330,63 +9956,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11488,11 +10057,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11551,25 +10120,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11667,11 +10217,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11730,25 +10280,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11853,11 +10384,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -11923,25 +10454,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -11980,7 +10492,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -12032,11 +10544,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12095,25 +10607,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12214,11 +10707,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12239,63 +10732,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12397,11 +10833,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12460,25 +10896,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12580,11 +10997,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12643,25 +11060,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12711,7 +11109,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -12763,11 +11161,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -12826,25 +11224,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12890,7 +11269,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -12942,11 +11321,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -13005,25 +11384,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13069,7 +11429,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -13121,11 +11481,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -13184,25 +11544,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13250,7 +11591,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillDto"];
+                    "application/json": components["schemas"]["ScopeDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -13302,11 +11643,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -13327,63 +11668,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13420,9 +11704,9 @@ export interface operations {
                 /** @description Max approved suggestions per page. Defaults to 5. Must be between 1 and 12. */
                 pageSize?: number;
                 /** @description Return suggestions scoped to this numeric scope id. Omit for org-general suggestions. */
-                skill_id?: number;
+                scopeId?: number;
                 /** @description Comma-separated numeric scope ids. Returns approved suggestions for these scopes plus org-general suggestions. */
-                skill_ids?: string;
+                scopeIds?: string;
             };
             header?: never;
             path?: never;
@@ -13487,89 +11771,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -13668,11 +11876,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -13731,25 +11939,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13863,89 +12052,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -14042,89 +12155,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -14221,264 +12258,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "INTERNAL_ERROR",
-                     *         "status": "INTERNAL",
-                     *         "message": "An unexpected error occurred.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    OrganizationController_deleteOrganization: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Organization deleted (or was already absent). */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "BAD_REQUEST",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Invalid value for query parameter `pageSize`.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "UNAUTHORIZED",
-                     *         "status": "UNAUTHENTICATED",
-                     *         "message": "Missing or invalid access token.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "FORBIDDEN",
-                     *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "agents:write"
-                     *           ]
-                     *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -14585,89 +12371,13 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -14713,7 +12423,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -14765,11 +12475,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14828,25 +12538,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -14895,7 +12586,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -14947,11 +12638,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -14972,63 +12663,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15124,11 +12758,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15187,25 +12821,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15258,7 +12873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -15310,11 +12925,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15373,25 +12988,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15493,11 +13089,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15563,25 +13159,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -15605,10 +13182,7 @@ export interface operations {
     };
     WorkflowInterfacesController_list: {
         parameters: {
-            query?: {
-                pageSize?: number;
-                pageToken?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description Numeric workflow id. */
@@ -15675,11 +13249,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15700,63 +13274,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15858,11 +13375,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -15921,25 +13438,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16035,11 +13533,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16098,25 +13596,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16214,11 +13693,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16277,25 +13756,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16402,11 +13862,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16472,25 +13932,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -16529,7 +13970,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -16581,11 +14022,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16644,25 +14085,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16773,11 +14195,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16798,63 +14220,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16956,11 +14321,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -16981,63 +14346,6 @@ export interface operations {
                      *         "code": "NOT_FOUND",
                      *         "status": "NOT_FOUND",
                      *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17087,7 +14395,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17139,11 +14447,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -17202,25 +14510,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17270,7 +14559,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17322,11 +14611,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -17385,25 +14674,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17449,7 +14719,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17501,11 +14771,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -17564,25 +14834,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17628,7 +14879,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentDto"];
+                    "application/json": components["schemas"]["WorkflowDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -17680,11 +14931,11 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s): agents:write.",
+                     *         "message": "Missing required scope(s) for this operation.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
                      *         "info": {
                      *           "missing": [
-                     *             "agents:write"
+                     *             "<required-scope>"
                      *           ]
                      *         }
                      *       }
@@ -17743,25 +14994,6 @@ export interface operations {
                      *         "code": "VALIDATION",
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Rate limit exceeded (`code: RATE_LIMITED`). Retry after the period in the `Retry-After` header. */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Rate limit exceeded. Retry later.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
