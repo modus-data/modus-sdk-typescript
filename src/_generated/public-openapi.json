@@ -10034,24 +10034,7 @@
       "get": {
         "description": "Returns the tenant member-group rows plus the synthetic \"Everyone\" group (populated with every organization member).\n\n**Requires:** `users:read`",
         "operationId": "MemberGroupsController_list",
-        "parameters": [
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "pageToken",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -10165,24 +10148,7 @@
       "get": {
         "description": "Returns the membership roster for the principal’s active organization.\n\n**Requires:** `users:read`",
         "operationId": "OrgMembersController_list",
-        "parameters": [
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "pageToken",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -16806,15 +16772,10 @@
             "items": {
               "$ref": "#/components/schemas/MemberGroupDto"
             }
-          },
-          "nextPageToken": {
-            "type": "string",
-            "nullable": true
           }
         },
         "required": [
-          "groups",
-          "nextPageToken"
+          "groups"
         ]
       },
       "ListMemoriesResponseDto": {
@@ -16847,15 +16808,10 @@
             "items": {
               "$ref": "#/components/schemas/OrgMemberDto"
             }
-          },
-          "nextPageToken": {
-            "type": "string",
-            "nullable": true
           }
         },
         "required": [
-          "members",
-          "nextPageToken"
+          "members"
         ]
       },
       "ListSkillsResponseDto": {

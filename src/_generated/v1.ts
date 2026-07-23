@@ -2902,7 +2902,6 @@ export interface components {
         };
         ListMemberGroupsResponseDto: {
             groups: components["schemas"]["MemberGroupDto"][];
-            nextPageToken: string | null;
         };
         ListMemoriesResponseDto: {
             /** @description Memories belonging to the scope. */
@@ -2915,7 +2914,6 @@ export interface components {
         };
         ListOrgMembersResponseDto: {
             members: components["schemas"]["OrgMemberDto"][];
-            nextPageToken: string | null;
         };
         ListSkillsResponseDto: {
             /** @description Page of scopes the caller can at least `use`. Scopes the caller cannot see are filtered out (not enumerated). */
@@ -12107,10 +12105,7 @@ export interface operations {
     };
     MemberGroupsController_list: {
         parameters: {
-            query?: {
-                pageSize?: number;
-                pageToken?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -12210,10 +12205,7 @@ export interface operations {
     };
     OrgMembersController_list: {
         parameters: {
-            query?: {
-                pageSize?: number;
-                pageToken?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
