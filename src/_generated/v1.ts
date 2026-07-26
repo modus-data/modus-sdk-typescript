@@ -4147,7 +4147,14 @@ export interface components {
             images?: components["schemas"]["ImageAttachmentDto"][];
             documents?: components["schemas"]["DocumentAttachmentDto"][];
         };
-        CancelRunDto: Record<string, never>;
+        CancelRunDto: {
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
+            /** @description Human-readable reason for the cancel, logged server-side only. */
+            reason?: string;
+            /** @description Redis Stream id of the last SSE frame the client rendered, so the persisted partial message matches what the client saw. Falls back to the server-side accumulator when absent. */
+            lastSeenEventId?: string;
+        };
         DocumentAttachmentDto: {
             /** @description Original file name. */
             fileName: string;
@@ -4160,7 +4167,12 @@ export interface components {
             sizeBytes?: number;
             summary?: string | null;
         };
-        EditQueuedRunDto: Record<string, never>;
+        EditQueuedRunDto: {
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
+            /** @description New payload replacing the queued run. */
+            nextRun: components["schemas"]["FollowUpRunDto"];
+        };
         ErrorEnvelopeDto1: {
             /** @description Modus-specific machine code. */
             code: components["schemas"]["ApiErrorCode"];
@@ -4183,6 +4195,38 @@ export interface components {
         ErrorResponseDto1: {
             error: components["schemas"]["ErrorEnvelopeDto1"];
         };
+        FollowUpRunDto: {
+            /** @description The user message to send. */
+            message: string;
+            /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
+            sessionId: string;
+            /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
+            organizationId?: string;
+            /**
+             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @enum {string}
+             */
+            version?: "published" | "draft";
+            /** @description Document-scoped conversation thread id. */
+            fileThreadId?: string;
+            config?: components["schemas"]["RunConfigDto"];
+            attachments?: components["schemas"]["AttachmentsDto"];
+            userContext?: components["schemas"]["UserContextDto"];
+            supplementalContext?: components["schemas"]["SupplementalContextDto"];
+            /** @description Origin of the run. */
+            source?: components["schemas"]["RunSource"];
+            /** @description Client-supplied run id (Idempotency-Key header wins). */
+            runId?: string;
+            /**
+             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @enum {number}
+             */
+            streamProtocolVersion?: 2;
+            experimentalFeatures?: boolean;
+            debug?: boolean;
+            /** @description Saved scope ids to subordinate under this Modus run. */
+            subordinateSkillIds?: number[];
+        };
         ImageAttachmentDto: {
             data?: string;
             mimeType?: string;
@@ -4190,7 +4234,14 @@ export interface components {
             s3Key?: string;
             uploadId?: string;
         };
-        InterruptRunDto: Record<string, never>;
+        InterruptRunDto: {
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
+            /** @description Redis Stream id of the last SSE frame the client rendered (see CancelRunDto). */
+            lastSeenEventId?: string;
+            /** @description Follow-up message that supersedes the current turn. */
+            nextRun: components["schemas"]["FollowUpRunDto"];
+        };
         ModusRunDto: {
             /** @description The user message to send. */
             message: string;
@@ -4346,8 +4397,8 @@ export interface components {
             userId?: string;
         };
         WorkflowActionDto: {
-            /** @description Organization ID the run belongs to. Must match the authenticated principal's org. */
-            organizationId: string;
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
             /** @description Client-generated session identifier. */
             sessionId: string;
             /** @description File thread ID for document-scoped execution. */

@@ -19354,7 +19354,20 @@
       },
       "CancelRunDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Human-readable reason for the cancel, logged server-side only."
+          },
+          "lastSeenEventId": {
+            "type": "string",
+            "description": "Redis Stream id of the last SSE frame the client rendered, so the persisted partial message matches what the client saw. Falls back to the server-side accumulator when absent."
+          }
+        }
       },
       "DocumentAttachmentDto": {
         "type": "object",
@@ -19395,7 +19408,23 @@
       },
       "EditQueuedRunDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
+          },
+          "nextRun": {
+            "description": "New payload replacing the queued run.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FollowUpRunDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "nextRun"
+        ]
       },
       "ErrorEnvelopeDto1": {
         "type": "object",
@@ -19451,6 +19480,83 @@
           "error"
         ]
       },
+      "FollowUpRunDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The user message to send."
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together."
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization id. Ignored for authenticated callers — the server uses the principal's org."
+          },
+          "version": {
+            "type": "string",
+            "enum": [
+              "published",
+              "draft"
+            ],
+            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+          },
+          "fileThreadId": {
+            "type": "string",
+            "description": "Document-scoped conversation thread id."
+          },
+          "config": {
+            "$ref": "#/components/schemas/RunConfigDto"
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/AttachmentsDto"
+          },
+          "userContext": {
+            "$ref": "#/components/schemas/UserContextDto"
+          },
+          "supplementalContext": {
+            "$ref": "#/components/schemas/SupplementalContextDto"
+          },
+          "source": {
+            "description": "Origin of the run.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunSource"
+              }
+            ]
+          },
+          "runId": {
+            "type": "string",
+            "description": "Client-supplied run id (Idempotency-Key header wins)."
+          },
+          "streamProtocolVersion": {
+            "type": "number",
+            "enum": [
+              2
+            ],
+            "description": "Streaming protocol version. Version 2 supports assistant-content replacement events."
+          },
+          "experimentalFeatures": {
+            "type": "boolean"
+          },
+          "debug": {
+            "type": "boolean"
+          },
+          "subordinateSkillIds": {
+            "description": "Saved scope ids to subordinate under this Modus run.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "message",
+          "sessionId"
+        ]
+      },
       "ImageAttachmentDto": {
         "type": "object",
         "properties": {
@@ -19473,7 +19579,27 @@
       },
       "InterruptRunDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
+          },
+          "lastSeenEventId": {
+            "type": "string",
+            "description": "Redis Stream id of the last SSE frame the client rendered (see CancelRunDto)."
+          },
+          "nextRun": {
+            "description": "Follow-up message that supersedes the current turn.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FollowUpRunDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "nextRun"
+        ]
       },
       "ModusRunDto": {
         "type": "object",
@@ -19882,7 +20008,7 @@
         "properties": {
           "organizationId": {
             "type": "string",
-            "description": "Organization ID the run belongs to. Must match the authenticated principal's org."
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
           },
           "sessionId": {
             "type": "string",
@@ -19927,7 +20053,6 @@
           }
         },
         "required": [
-          "organizationId",
           "sessionId",
           "workflowAction"
         ]
