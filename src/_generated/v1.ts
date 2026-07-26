@@ -3526,13 +3526,18 @@ export interface components {
         };
         ToolCatalogActionDto: {
             /**
-             * @description Stable action name.
-             * @example run_query
+             * @description Stable action id — the exact string to put in `toolset.<id>.actions`.
+             * @example list_dags
              */
             name: string;
             /**
+             * @description Human-readable label for display.
+             * @example List DAGs
+             */
+            displayName: string;
+            /**
              * @description What this action does.
-             * @example Runs a read-only SQL query against the connected database.
+             * @example List the selected DAGs with their schedule, owners, tags, and paused state.
              */
             description: string;
         };
