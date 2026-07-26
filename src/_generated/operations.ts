@@ -654,6 +654,16 @@ export const OPERATIONS = {
     requestSchema: "RecordSuggestionEventDto",
     responseSchema: null,
   },
+  "ToolsController_list": {
+    method: "GET",
+    path: "/api/v1/tools",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: [],
+    queryParams: ["pageToken","pageSize"],
+    requestSchema: null,
+    responseSchema: "ListToolsResponseDto",
+  },
   "UsageController_list": {
     method: "GET",
     path: "/api/v1/usage",

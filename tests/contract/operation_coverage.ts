@@ -100,6 +100,8 @@ export const OPERATIONS: Record<string, string> = {
   // --- Usage ---
   UsageController_list: 'mgmt.usage.list()',
   UsageController_listUsers: 'mgmt.usage.listUsers()',
+  // --- Tools ---
+  ToolsController_list: 'mgmt.tools.list()',
   // --- Users ---
   MemberGroupsController_list: 'mgmt.users.listMemberGroups()',
   OrgMembersController_list: 'mgmt.users.listOrgMembers()',

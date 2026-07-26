@@ -940,6 +940,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List available tools
+         * @description Returns a page of known tool/integration surfaces a scope can select in its toolset, with the fixed actions for built-in tools.
+         *
+         *     **Requires:** `scopes:read`
+         */
+        get: operations["ToolsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/usage": {
         parameters: {
             query?: never;
@@ -2951,6 +2973,15 @@ export interface components {
              */
             nextPageToken: string | null;
         };
+        ListToolsResponseDto: {
+            /** @description Known tool/integration surfaces a scope can select in its toolset. */
+            tools: components["schemas"]["ToolCatalogEntryDto"][];
+            /**
+             * @description Opaque token for the next page; null when this was the last page. Pass as `pageToken` on the next request.
+             * @example null
+             */
+            nextPageToken: string | null;
+        };
         ListUsageResponseDto: {
             /** @description Organization id (`org_xxx`) the result is scoped to. */
             org_id: string;
@@ -3492,6 +3523,42 @@ export interface components {
              * @example true
              */
             active: boolean;
+        };
+        ToolCatalogActionDto: {
+            /**
+             * @description Stable action name.
+             * @example run_query
+             */
+            name: string;
+            /**
+             * @description What this action does.
+             * @example Runs a read-only SQL query against the connected database.
+             */
+            description: string;
+        };
+        ToolCatalogEntryDto: {
+            /**
+             * @description Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.
+             * @example sql_runner
+             */
+            id: string;
+            /**
+             * @description Human-readable name for display.
+             * @example SQL Runner
+             */
+            displayName: string;
+            /**
+             * @description Grouping category, e.g. "data", "messaging", "general".
+             * @example data
+             */
+            category?: string;
+            /**
+             * @description True if this tool requires a connected integration/account before it can be used.
+             * @example false
+             */
+            requiresConnection: boolean;
+            /** @description Fixed set of actions this tool exposes. Present only when the action list does not depend on a live connection (built-in tools). Connected integrations expose connection-specific actions not listed here. */
+            actions?: components["schemas"]["ToolCatalogActionDto"][];
         };
         ToolsetDto: {
             /**
@@ -11990,6 +12057,111 @@ export interface operations {
                      *         "status": "INVALID_ARGUMENT",
                      *         "message": "Updates that would revoke your own access are not allowed.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ToolsController_list: {
+        parameters: {
+            query?: {
+                /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
+                pageToken?: string;
+                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListToolsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
                      *       }
                      *     }
                      */

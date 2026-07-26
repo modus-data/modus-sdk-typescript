@@ -64,6 +64,10 @@
       "description": "Read connected integrations."
     },
     {
+      "name": "Tools",
+      "description": "Catalog of tools/integrations a scope can select in its toolset."
+    },
+    {
       "name": "Suggestions",
       "description": "Approved suggested questions and first-party suggestion usage events."
     },
@@ -9786,6 +9790,142 @@
         ]
       }
     },
+    "/api/v1/tools": {
+      "get": {
+        "description": "Returns a page of known tool/integration surfaces a scope can select in its toolset, with the fixed actions for built-in tools.\n\n**Requires:** `scopes:read`",
+        "operationId": "ToolsController_list",
+        "parameters": [
+          {
+            "name": "pageToken",
+            "required": false,
+            "in": "query",
+            "description": "Opaque page token from a previous response's `nextPageToken`. Omit for the first page.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListToolsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List available tools",
+        "tags": [
+          "Tools"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/usage": {
       "get": {
         "description": "Returns time-bucketed LLM call counts and input/output tokens by model over the `[since, until)` window. `rollup` selects hour or day buckets. Scoped to your organization.\n\n**Requires:** `usage:read`",
@@ -17006,6 +17146,28 @@
           "nextPageToken"
         ]
       },
+      "ListToolsResponseDto": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "description": "Known tool/integration surfaces a scope can select in its toolset.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolCatalogEntryDto"
+            }
+          },
+          "nextPageToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Opaque token for the next page; null when this was the last page. Pass as `pageToken` on the next request.",
+            "example": null
+          }
+        },
+        "required": [
+          "tools",
+          "nextPageToken"
+        ]
+      },
       "ListUsageResponseDto": {
         "type": "object",
         "properties": {
@@ -18063,6 +18225,62 @@
         },
         "required": [
           "active"
+        ]
+      },
+      "ToolCatalogActionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Stable action name.",
+            "example": "run_query"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this action does.",
+            "example": "Runs a read-only SQL query against the connected database."
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ]
+      },
+      "ToolCatalogEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.",
+            "example": "sql_runner"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable name for display.",
+            "example": "SQL Runner"
+          },
+          "category": {
+            "type": "string",
+            "description": "Grouping category, e.g. \"data\", \"messaging\", \"general\".",
+            "example": "data"
+          },
+          "requiresConnection": {
+            "type": "boolean",
+            "description": "True if this tool requires a connected integration/account before it can be used.",
+            "example": false
+          },
+          "actions": {
+            "description": "Fixed set of actions this tool exposes. Present only when the action list does not depend on a live connection (built-in tools). Connected integrations expose connection-specific actions not listed here.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolCatalogActionDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "requiresConnection"
         ]
       },
       "ToolsetDto": {
