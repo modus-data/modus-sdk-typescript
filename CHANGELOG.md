@@ -1,13 +1,12 @@
 # Changelog
 
-**Current npm release:** [`0.2.3`](https://www.npmjs.com/package/@getmodus/sdk/v/0.2.3).
+**Current npm release:** [`0.3.0`](https://www.npmjs.com/package/@getmodus/sdk/v/0.3.0).
 
 
 
-## [Unreleased]
+## [0.3.0] — 2026-07-26
 
-> **Breaking removals below ship in the next major SDK release** (not a `0.2.x`
-> patch). See `distribution/docs/COMPATIBILITY.md`.
+> Breaking surface vs `0.2.x` (pre-1.0 minor bump). See `distribution/docs/COMPATIBILITY.md`.
 
 ### Added
 
@@ -38,6 +37,8 @@
   Management MCP surface — `mgmt.users.listMemberGroups()` / `listOrgMembers()` never
   exposed either). Both endpoints return the full org-bounded roster; pagination was never
   honored server-side.
+
+## [Unreleased]
 
 ## [0.2.3] — 2026-07-20
 
