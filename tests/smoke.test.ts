@@ -32,7 +32,7 @@ describe('@getmodus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(86)
+    expect(Object.keys(OPERATIONS).length).toBe(87)
     expect(OPERATIONS.SuggestionsController_listApproved?.method).toBe('GET')
     // Canonical scopes/workflows operations resolve through the registry.
     expect(OPERATIONS.ScopesController_list?.method).toBe('GET')

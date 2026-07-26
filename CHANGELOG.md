@@ -9,6 +9,11 @@
 > **Breaking removals below ship in the next major SDK release** (not a `0.2.x`
 > patch). See `distribution/docs/COMPATIBILITY.md`.
 
+### Added
+
+- `mgmt.usage.list()` gains an optional `userEmail` filter (repeated `user_email` query param).
+- `mgmt.usage.listUsers({ since, until })` — distinct acting-user emails observed in the window.
+
 ### Deprecated
 
 - **`Skill` / `Agent` type names** — use `Scope` / `Workflow` (OpenAPI `ScopeDto` / `WorkflowDto`).

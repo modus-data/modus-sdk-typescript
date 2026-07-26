@@ -962,6 +962,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/usage/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List usage users
+         * @description Returns the distinct acting-user emails that appear in your organization's LLM usage over the `[since, until)` window. Feeds the usage page's user filter (includes non-Modus Slack/Teams users). Scoped to your organization.
+         *
+         *     **Requires:** `usage:read`
+         */
+        get: operations["UsageController_listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/member-groups": {
         parameters: {
             query?: never;
@@ -2944,6 +2966,10 @@ export interface components {
             buckets: components["schemas"]["UsageBucketDto"][];
             totals: components["schemas"]["UsageTotalsDto"];
         };
+        ListUsageUsersResponseDto: {
+            /** @description Distinct acting-user emails in the window. */
+            users: components["schemas"]["UsageUserDto"][];
+        };
         LookupContextItemDto: {
             /**
              * @description Context type of the row to fetch (e.g. `slack_channel_metadata`).
@@ -3817,6 +3843,13 @@ export interface components {
             /** @description Total credits consumed across all buckets in the window. */
             credits: number;
         };
+        UsageUserDto: {
+            /**
+             * @description Acting-user email present in usage over the window.
+             * @example jane@acme.com
+             */
+            email: string;
+        };
         WorkflowDto: {
             /**
              * @description Numeric workflow id (stable per-org; not reused after delete).
@@ -4231,7 +4264,7 @@ export interface components {
          */
         SupplementalContextSource: "slack" | "teams";
         UserContextDto: {
-            /** @description End-user email for personalization. */
+            /** @description End-user email for personalization; also used for usage attribution. */
             email?: string;
             /** @description End-user display name. */
             name?: string;
@@ -12005,6 +12038,8 @@ export interface operations {
                 user_id?: string[];
                 /** @description Filter by one or more interface names (repeat the query param). */
                 interface?: string[];
+                /** @description Filter by one or more acting-user emails (repeat the query param). Matched together with user_id: a row matches if its user_email OR its user_id is in the given sets. */
+                user_email?: string[];
             };
             header?: never;
             path?: never;
@@ -12018,6 +12053,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListUsageResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UsageController_listUsers: {
+        parameters: {
+            query: {
+                /** @description ISO8601 start of the query window (inclusive). */
+                since: string;
+                /** @description ISO8601 end of the query window (exclusive). */
+                until: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListUsageUsersResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
