@@ -90,7 +90,13 @@ import { ModusResource } from './resources/modus/modus.js'
 import { ScopesResource } from './resources/scopes.js'
 import { SuggestionsResource } from './resources/suggestions.js'
 
-/** Read / invoke client for Modus scopes, workflows, connections, and more. */
+/**
+ * Read / invoke client for Modus scopes, workflows, connections, and more.
+ *
+ * Call path: `const client = new Modus(...)` then `client.scopes`, `client.context`, …
+ *
+ * @param options - Client configuration (`apiKey`, `baseUrl`, `timeoutMs`, `maxRetries`).
+ */
 export class Modus extends ModusClientBase {
   readonly scopes: ScopesResource
   readonly modus: ModusResource

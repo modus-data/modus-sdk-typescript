@@ -7,7 +7,13 @@ import { ManagementUsageResource } from './usage.js'
 import { ManagementToolsResource } from './tools.js'
 import { ManagementUsersResource } from './users.js'
 
-/** Configure scopes, workflows, context, usage, tools, and users. */
+/**
+ * Configure scopes, workflows, context, usage, tools, and users.
+ *
+ * Call path: `const mgmt = new ModusManagement(...)` then `mgmt.scopes`, `mgmt.context`, …
+ *
+ * @param options - Client configuration (`apiKey`, `baseUrl`, `timeoutMs`, `maxRetries`).
+ */
 export class ModusManagement extends ModusClientBase {
   readonly scopes: ManagementScopesResource
   readonly workflows: ManagementWorkflowsResource

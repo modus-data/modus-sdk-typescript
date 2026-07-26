@@ -31,11 +31,17 @@ function parseWorkflow(raw: unknown): Workflow {
   return raw as Workflow
 }
 
-/** Read / invoke access to Modus workflows (`/api/v1/workflows`). */
+/**
+ * Read and run access to Modus workflows.
+ *
+ * - {@link WorkflowRunsResource runs} — start, monitor, and control workflow runs.
+ * - {@link AgentWorkflowActionsResource workflowActions} — execute workflow actions.
+ */
 export class WorkflowsResource {
   readonly runs: WorkflowRunsResource
   readonly workflowActions: AgentWorkflowActionsResource
 
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
@@ -44,6 +50,17 @@ export class WorkflowsResource {
     this.workflowActions = new AgentWorkflowActionsResource(http, config)
   }
 
+  /**
+   * List workflows.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.search - Free-text search filter.
+   * @param options.type - Workflow kind: `"task"` or `"workflow"`.
+   * @param options.view - Which saved version to return (`active` or `draft`).
+   * @param options.includeVariation - Include variation metadata when supported.
+   * @returns A page of workflows.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -93,6 +110,15 @@ export class WorkflowsResource {
     )
   }
 
+  /**
+   * Retrieve a workflow by ID or slug.
+   *
+   * @param workflowId - Numeric id or slug.
+   * @param options.view - Which saved version to return (`active` or `draft`).
+   * @param options.includeVariation - Include variation metadata when supported.
+   * @returns The workflow.
+   * @throws {NotFoundError} When no workflow matches the id or slug.
+   */
   async get(
     workflowId: number | string,
     options: { view?: VariationView; includeVariation?: boolean } = {},

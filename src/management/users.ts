@@ -12,6 +12,7 @@ export class ManagementUsersResource {
     private readonly config: ModusConfig,
   ) {}
 
+  /** List member groups in the organization. */
   async listMemberGroups(): Promise<MemberGroup[]> {
     const data = (await invokeWithRetry(
       this.config, this.http, 'MemberGroupsController_list',
@@ -19,6 +20,7 @@ export class ManagementUsersResource {
     return data.groups
   }
 
+  /** List organization members. */
   async listOrgMembers(): Promise<OrgMember[]> {
     const data = (await invokeWithRetry(
       this.config, this.http, 'OrgMembersController_list',

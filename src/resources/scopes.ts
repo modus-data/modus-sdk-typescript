@@ -31,17 +31,38 @@ function parseScope(raw: unknown): Scope {
   return raw as Scope
 }
 
-/** Read / invoke access to Modus scopes (`/api/v1/scopes`). */
+/**
+ * Read / chat with scopes.
+ *
+ * Call path: `client.scopes` after `new Modus(...)`.
+ */
 export class ScopesResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * Return the conversations sub-resource scoped to `scopeId`.
+   *
+   * @param scopeId - Scope numeric id or slug.
+   * @returns Conversations resource for the scope.
+   */
   conversations(scopeId: number | string): ScopeConversationsResource {
     return new ScopeConversationsResource(this.http, this.config, scopeId)
   }
 
+  /**
+   * List scopes in the organisation.
+   *
+   * @param options.pageSize - Items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.search - Case-insensitive substring filter on the scope name.
+   * @param options.view - `"active"` (deployed) or `"draft"`.
+   * @param options.managerId - Only scopes supervised by this manager scope id.
+   * @returns Page of scopes.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -81,6 +102,14 @@ export class ScopesResource {
     )
   }
 
+  /**
+   * Retrieve a scope by ID or slug.
+   *
+   * @param scopeId - Scope numeric id or slug.
+   * @param options.view - `"active"` (deployed) or `"draft"`.
+   * @throws {NotFoundError} When no scope matches the id or slug.
+   * @returns Scope.
+   */
   async get(
     scopeId: number | string,
     options: { view?: VariationView } = {},
@@ -94,6 +123,14 @@ export class ScopesResource {
     return parseScope(data)
   }
 
+  /**
+   * Return composed context Modus would use for a scope query, without running chat.
+   *
+   * @param scopeId - Scope numeric id or slug.
+   * @param message - User intent or question to compose context for.
+   * @param options.limit - Optional cap on structured fallback items.
+   * @returns Composed scope context.
+   */
   async getContext(
     scopeId: number | string,
     message: string,
@@ -107,6 +144,21 @@ export class ScopesResource {
     return data as SkillContextComposition
   }
 
+  /**
+   * Send a message to a scope and get the complete reply.
+   *
+   * @param scopeId - Scope numeric id or slug.
+   * @param message - Message to send.
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
+   * @param options.threadId - Continue an existing conversation.
+   * @returns Chat result with content and threadId.
+   *
+   * @example
+   * ```ts
+   * const result = await client.scopes.chat(scopeId, 'Hello', { model: 'claude-sonnet-5' })
+   * console.log(result.content, result.threadId)
+   * ```
+   */
   chat(
     scopeId: number | string,
     message: string,
@@ -115,6 +167,16 @@ export class ScopesResource {
     return chatBuffered(this.http, 'scopes', scopeId, message, options)
   }
 
+  /**
+   * Stream a scope reply token by token.
+   *
+   * @param scopeId - Scope numeric id or slug.
+   * @param message - Message to send.
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
+   * @param options.threadId - Continue an existing conversation.
+   * @param options.version - `"published"` or `"draft"`.
+   * @returns Chat stream.
+   */
   chatStream(
     scopeId: number | string,
     message: string,

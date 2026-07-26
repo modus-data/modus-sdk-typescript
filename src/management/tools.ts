@@ -15,6 +15,13 @@ export class ManagementToolsResource {
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List tool and integration surfaces a scope can select in its toolset.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Token from a previous page's `nextPageToken`; omit for the first page.
+   * @returns A page of tool catalog entries.
+   */
   list(options: { pageSize?: number; pageToken?: string } = {}): Promise<Page<ToolCatalogEntry>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)

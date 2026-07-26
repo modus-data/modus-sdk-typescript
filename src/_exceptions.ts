@@ -1,3 +1,9 @@
+/**
+ * Base class for all Modus SDK errors.
+ *
+ * HTTP failures map to subclasses by status code. Streaming run failures map
+ * from event types (`error`, `cancelled`, `stream_timeout`).
+ */
 export class ModusError extends Error {
   readonly statusCode?: number
   readonly requestId?: string
@@ -26,6 +32,10 @@ export class ModusError extends Error {
   }
 }
 
+/**
+ * Network-level failure (connection error, read timeout, etc.) after all
+ * automatic retries are exhausted.
+ */
 export class APIConnectionError extends ModusError {
   constructor(message: string) {
     super(message)
@@ -33,6 +43,12 @@ export class APIConnectionError extends ModusError {
   }
 }
 
+/**
+ * The API key is missing, invalid, or expired (HTTP 401).
+ *
+ * Check that `MODUS_API_KEY` is set correctly, or pass `apiKey` explicitly.
+ * Create a token at app.getmodus.com → Settings → API Tokens.
+ */
 export class AuthenticationError extends ModusError {
   constructor(message: string, options: ConstructorParameters<typeof ModusError>[1] = {}) {
     super(message, { ...options, statusCode: 401 })
@@ -40,6 +56,9 @@ export class AuthenticationError extends ModusError {
   }
 }
 
+/**
+ * The API key does not have permission for the requested operation (HTTP 403).
+ */
 export class PermissionDeniedError extends ModusError {
   constructor(message: string, options: ConstructorParameters<typeof ModusError>[1] = {}) {
     super(message, { ...options, statusCode: 403 })
@@ -47,6 +66,7 @@ export class PermissionDeniedError extends ModusError {
   }
 }
 
+/** The requested resource does not exist (HTTP 404). */
 export class NotFoundError extends ModusError {
   constructor(message: string, options: ConstructorParameters<typeof ModusError>[1] = {}) {
     super(message, { ...options, statusCode: 404 })
@@ -54,6 +74,10 @@ export class NotFoundError extends ModusError {
   }
 }
 
+/**
+ * Idempotency conflict — a run with this ID already exists with a different
+ * body (HTTP 409). Use a new idempotency key or omit it to auto-generate.
+ */
 export class ConflictError extends ModusError {
   constructor(message: string, options: ConstructorParameters<typeof ModusError>[1] = {}) {
     super(message, { ...options, statusCode: 409 })
@@ -61,6 +85,11 @@ export class ConflictError extends ModusError {
   }
 }
 
+/**
+ * Request validation failed (HTTP 422).
+ *
+ * Inspect `errors` when present for field-level details.
+ */
 export class UnprocessableError extends ModusError {
   readonly errors?: unknown
 
@@ -74,6 +103,11 @@ export class UnprocessableError extends ModusError {
   }
 }
 
+/**
+ * Too many requests (HTTP 429).
+ *
+ * When present, `retryAfter` is the suggested wait in seconds.
+ */
 export class RateLimitError extends ModusError {
   readonly retryAfter?: number
 
@@ -87,6 +121,7 @@ export class RateLimitError extends ModusError {
   }
 }
 
+/** Unexpected server failure (HTTP 5xx). */
 export class InternalServerError extends ModusError {
   constructor(message: string, statusCode: number, options: ConstructorParameters<typeof ModusError>[1] = {}) {
     super(message, { ...options, statusCode })
@@ -94,6 +129,7 @@ export class InternalServerError extends ModusError {
   }
 }
 
+/** The run was cancelled before it finished. */
 export class RunCancelledError extends ModusError {
   constructor(message = 'Run was cancelled.') {
     super(message)
@@ -101,6 +137,7 @@ export class RunCancelledError extends ModusError {
   }
 }
 
+/** The streaming connection timed out before a final result arrived. */
 export class StreamTimeoutError extends ModusError {
   constructor(message = 'Stream timed out.') {
     super(message)
@@ -108,6 +145,10 @@ export class StreamTimeoutError extends ModusError {
   }
 }
 
+/**
+ * Client-side argument validation failed before a request was sent
+ * (for example an unsupported chat model id).
+ */
 export class ValidationError extends ModusError {
   constructor(message: string) {
     super(message)

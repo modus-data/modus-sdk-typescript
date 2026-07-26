@@ -106,31 +106,70 @@ export interface UpdateScopeOptions {
 /** @deprecated Use `UpdateScopeOptions` instead. */
 export type UpdateSkillOptions = UpdateScopeOptions
 
-/** Full CRUD and lifecycle for Modus scopes (`/api/v1/scopes`). */
+/**
+ * Full CRUD and lifecycle for Modus scopes.
+ *
+ * Call path: `mgmt.scopes` after `new ModusManagement(...)`.
+ */
 export class ManagementScopesResource {
   protected readonly ops: ManagementScopesOperations = MANAGEMENT_SCOPE_OPERATIONS
 
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * Conversations for a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns A conversations resource scoped to the scope.
+   */
   conversations(scopeId: number | string): ScopeConversationsResource {
     return new ScopeConversationsResource(this.http, this.config, scopeId)
   }
 
+  /**
+   * Long-term memories for a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns A memories resource scoped to the scope.
+   */
   memories(scopeId: number | string): ScopeMemoriesResource {
     return new ScopeMemoriesResource(this.http, this.config, scopeId)
   }
 
+  /**
+   * Evaluations for a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns An evaluations resource scoped to the scope.
+   */
   evaluations(scopeId: number | string): ScopeEvaluationsResource {
     return new ScopeEvaluationsResource(this.http, this.config, scopeId)
   }
 
+  /**
+   * Supervision (subordinate scopes) for a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns A supervision resource scoped to the scope.
+   */
   supervision(scopeId: number | string): ScopeSupervisionResource {
     return new ScopeSupervisionResource(this.http, this.config, scopeId)
   }
 
+  /**
+   * List scopes in the organization.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Token from a previous page's `nextPageToken`; omit for the first page.
+   * @param options.search - Case-insensitive substring filter on the scope name.
+   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
+   * @param options.managerId - Return only scopes supervised by this manager scope id.
+   * @returns A page of scopes.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -170,6 +209,13 @@ export class ManagementScopesResource {
     )
   }
 
+  /**
+   * Retrieve a scope with full configuration.
+   *
+   * @param scopeId - Scope id.
+   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
+   * @returns The scope.
+   */
   async get(scopeId: number | string, options: { view?: VariationView } = {}): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const query = options.view !== undefined ? { view: options.view } : undefined
@@ -180,6 +226,21 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /**
+   * Create a new scope in the organization.
+   *
+   * @param options.name - Display name for the scope.
+   * @param options.description - Optional description.
+   * @param options.instructions - Optional system instructions.
+   * @param options.model - Optional model id.
+   * @param options.toolset - Optional tool selection for the scope.
+   * @param options.guardrails - Runtime guardrail labels (for example `"no-pii"`). Omit to create with no guardrails.
+   * @returns The created scope (draft).
+   * @example
+   * ```ts
+   * const scope = await mgmt.scopes.create({ name: 'Support assistant', model: 'claude-sonnet-5' })
+   * ```
+   */
   async create(options: CreateScopeOptions): Promise<Scope> {
     const body = omitUndefined({
       name: options.name,
@@ -199,6 +260,17 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /**
+   * Update a scope's configuration.
+   *
+   * Only the fields you pass are changed. To clear a field, name it in
+   * `updateMask` (comma-separated field names) and leave its argument unset.
+   *
+   * @param scopeId - Scope id.
+   * @param options.guardrails - Guardrail labels to set. Fetches the current scope first to merge. Pass `[]` to clear all.
+   * @param options.updateMask - Comma-separated field names to update or clear.
+   * @returns The updated scope.
+   */
   async update(scopeId: number | string, options: UpdateScopeOptions = {}): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const accessConfig = await accessConfigBodyForUpdate(options.guardrails, async () =>
@@ -233,6 +305,17 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /**
+   * Publish the current draft of a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns The published scope.
+   * @example
+   * ```ts
+   * await mgmt.scopes.update(scopeId, { instructions: ['Be concise.'] })
+   * const published = await mgmt.scopes.deploy(scopeId)
+   * ```
+   */
   async deploy(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = asRecord(
@@ -244,6 +327,12 @@ export class ManagementScopesResource {
     return parseScope(data.scope)
   }
 
+  /**
+   * Delete a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns Resolves when the scope is deleted.
+   */
   async delete(scopeId: number | string): Promise<void> {
     validateId(scopeId, 'scope_id')
     await invokeWithRetry(this.config, this.http, this.ops.delete, {
@@ -251,6 +340,12 @@ export class ManagementScopesResource {
     })
   }
 
+  /**
+   * Restore a previously deleted scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns The restored scope.
+   */
   async restore(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, this.ops.restore, {
@@ -260,6 +355,13 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /**
+   * Start transferring ownership of a scope to another organization member.
+   *
+   * @param scopeId - Scope id.
+   * @param options.newOwnerUserId - User id of the proposed new owner.
+   * @returns The scope with a pending ownership transfer.
+   */
   async requestOwnershipTransfer(
     scopeId: number | string,
     options: { newOwnerUserId: string },
@@ -277,6 +379,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /** Cancel a pending scope ownership transfer. */
   async cancelOwnershipTransfer(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(
@@ -288,6 +391,7 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /** Accept a pending scope ownership transfer. */
   async acceptOwnershipTransfer(scopeId: number | string): Promise<Scope> {
     validateId(scopeId, 'scope_id')
     const data = await invokeWithRetry(
@@ -299,6 +403,12 @@ export class ManagementScopesResource {
     return parseScope(data)
   }
 
+  /**
+   * Update MCP server configuration for a scope.
+   *
+   * @param scopeId - Scope id.
+   * @param options.mcpConfig - MCP configuration object.
+   */
   async patchMcpConfig(
     scopeId: number | string,
     options: { mcpConfig: Record<string, unknown> },
@@ -310,6 +420,13 @@ export class ManagementScopesResource {
     })
   }
 
+  /**
+   * Retrieve a specific scope variation by uid.
+   *
+   * @param scopeId - Scope id.
+   * @param options.variationUid - Variation uid.
+   * @returns The scope variation.
+   */
   async getVariation(
     scopeId: number | string,
     options: { variationUid: string },

@@ -54,6 +54,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "docs:typedoc": "typedoc --options typedoc.json",
     "test": "vitest run",
     "test:staging-smoke": "vitest run --config vitest.staging-smoke.config.ts",
     "clean": "rimraf dist tsconfig.tsbuildinfo"
@@ -62,6 +63,7 @@
     "openapi-typescript": "^7.13.0",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.1",
+    "typedoc": "^0.28.5",
     "typescript": "^6.0.2",
     "vitest": "^3.2.6"
   }

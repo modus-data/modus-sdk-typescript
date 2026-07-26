@@ -18,11 +18,19 @@ function randomRunId(): string {
 }
 
 export class AgentWorkflowActionsResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * Execute a workflow action and stream run events.
+   *
+   * @param body - Action body (`organizationId`, `sessionId`, `workflowAction`, optional `previousOutputs`).
+   * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
+   * @returns A stream of run events for the action execution.
+   */
   execute(
     body: WorkflowActionRequest,
     options: { idempotencyKey?: string } = {},
@@ -37,6 +45,11 @@ export class AgentWorkflowActionsResource {
     return makeAgentRunStream(runId, this.parseEvents(lines))
   }
 
+  /**
+   * Cancel a workflow action run.
+   *
+   * @param runId - Action run id to cancel.
+   */
   async cancel(runId: string): Promise<void> {
     validateId(runId, 'run_id')
     await invokeWithRetry(this.config, this.http, 'WorkflowActionsController_cancel', {

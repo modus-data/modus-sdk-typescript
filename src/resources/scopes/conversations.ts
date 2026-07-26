@@ -13,7 +13,7 @@ function parseConversation(raw: unknown): Conversation {
   return raw as Conversation
 }
 
-/** Read access to a scope's conversation threads (`/api/v1/scopes/:id/conversations`). */
+/** Conversation threads for a single scope. */
 export class ScopeConversationsResource {
   constructor(
     private readonly http: HttpClient,
@@ -21,6 +21,13 @@ export class ScopeConversationsResource {
     private readonly scopeId: number | string,
   ) {}
 
+  /**
+   * List conversation threads for this scope, newest first.
+   *
+   * @param options.pageSize - Items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @returns Page of conversation list items.
+   */
   list(options: { pageSize?: number; pageToken?: string } = {}): Promise<Page<ConversationListItem>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
@@ -46,6 +53,14 @@ export class ScopeConversationsResource {
     )
   }
 
+  /**
+   * Retrieve a thread with full message history.
+   *
+   * @param threadId - Conversation thread id.
+   * @param options.messageLimit - Maximum messages to return (1–100).
+   * @param options.beforeMessageIndex - Return messages before this index (requires messageLimit).
+   * @returns Conversation with messages.
+   */
   async get(
     threadId: string,
     options: { messageLimit?: number; beforeMessageIndex?: number } = {},

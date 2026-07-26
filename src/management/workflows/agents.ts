@@ -104,6 +104,17 @@ export class ManagementWorkflowsResource {
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List workflows in the organization.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Token from a previous page's `nextPageToken`; omit for the first page.
+   * @param options.search - Case-insensitive substring filter on the workflow name.
+   * @param options.type - Filter by workflow type: `"task"` or `"workflow"`.
+   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
+   * @param options.includeVariation - Include variation payload on each list row.
+   * @returns A page of workflows.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -146,6 +157,13 @@ export class ManagementWorkflowsResource {
     )
   }
 
+  /**
+   * Retrieve a workflow with full configuration.
+   *
+   * @param workflowId - Workflow id.
+   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
+   * @returns The workflow.
+   */
   async get(workflowId: number | string, options: { view?: VariationView } = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const query = options.view !== undefined ? { view: options.view } : undefined
@@ -156,10 +174,29 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /**
+   * Interfaces attached to a workflow.
+   *
+   * @param workflowId - Workflow id.
+   * @returns An interfaces resource scoped to the workflow.
+   */
   interfaces(workflowId: number | string): WorkflowInterfacesResource {
     return new WorkflowInterfacesResource(this.http, this.config, workflowId)
   }
 
+  /**
+   * Create a new workflow in the organization.
+   *
+   * @param options.name - Display name for the workflow.
+   * @param options.type - `"task"` for single-step orchestration, or `"workflow"` for a multi-step graph.
+   * @param options.trigger - Optional trigger configuration.
+   * @param options.guardrails - Runtime guardrail labels (for example `"no-pii"`). Omit to create with no guardrails.
+   * @returns The created workflow (draft).
+   * @example
+   * ```ts
+   * const wf = await mgmt.workflows.create({ name: 'Daily report', type: WorkflowType.Task })
+   * ```
+   */
   async create(options: CreateWorkflowOptions): Promise<Workflow> {
     const body = omitUndefined({
       name: options.name,
@@ -176,6 +213,17 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /**
+   * Update a workflow's configuration.
+   *
+   * Only the fields you pass are changed. To clear a field, name it in
+   * `updateMask` and leave its argument unset.
+   *
+   * @param workflowId - Workflow id.
+   * @param options.guardrails - Guardrail labels to set. Fetches the current workflow first to merge. Pass `[]` to clear all.
+   * @param options.updateMask - Comma-separated field names to update or clear.
+   * @returns The updated workflow.
+   */
   async update(workflowId: number | string, options: UpdateWorkflowOptions = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const accessConfig = await accessConfigBodyForUpdate(options.guardrails, async () =>
@@ -203,6 +251,17 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /**
+   * Publish the current draft of a workflow.
+   *
+   * @param workflowId - Workflow id.
+   * @returns The published workflow.
+   * @example
+   * ```ts
+   * await mgmt.workflows.update(workflowId, { description: 'Runs every morning' })
+   * const published = await mgmt.workflows.deploy(workflowId)
+   * ```
+   */
   async deploy(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = asRecord(
@@ -214,6 +273,13 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data.workflow)
   }
 
+  /**
+   * Enable or disable a workflow without deleting it.
+   *
+   * @param workflowId - Workflow id.
+   * @param options.active - `true` to activate, `false` to deactivate.
+   * @returns The updated workflow.
+   */
   async toggle(workflowId: number | string, options: { active: boolean }): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(this.config, this.http, this.ops.toggle, {
@@ -223,6 +289,12 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /**
+   * Delete a workflow.
+   *
+   * @param workflowId - Workflow id.
+   * @returns Resolves when the workflow is deleted.
+   */
   async delete(workflowId: number | string): Promise<void> {
     validateId(workflowId, 'workflow_id')
     await invokeWithRetry(this.config, this.http, this.ops.delete, {
@@ -230,6 +302,12 @@ export class ManagementWorkflowsResource {
     })
   }
 
+  /**
+   * Restore a previously deleted workflow.
+   *
+   * @param workflowId - Workflow id.
+   * @returns The restored workflow.
+   */
   async restore(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(this.config, this.http, this.ops.restore, {
@@ -239,6 +317,13 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /**
+   * Start transferring ownership of a workflow to another organization member.
+   *
+   * @param workflowId - Workflow id.
+   * @param options.newOwnerUserId - User id of the proposed new owner.
+   * @returns The workflow with a pending ownership transfer.
+   */
   async requestOwnershipTransfer(
     workflowId: number | string,
     options: { newOwnerUserId: string },
@@ -256,6 +341,7 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /** Cancel a pending workflow ownership transfer. */
   async cancelOwnershipTransfer(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(
@@ -267,6 +353,7 @@ export class ManagementWorkflowsResource {
     return parseWorkflow(data)
   }
 
+  /** Accept a pending workflow ownership transfer. */
   async acceptOwnershipTransfer(workflowId: number | string): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
     const data = await invokeWithRetry(

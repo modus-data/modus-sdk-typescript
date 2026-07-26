@@ -16,6 +16,7 @@ export class WorkflowInterfacesResource {
     private readonly workflowId: number | string,
   ) {}
 
+  /** List interfaces attached to this workflow. */
   async list(): Promise<AgentInterface[]> {
     validateId(this.workflowId, 'workflow_id')
     const data = await invokeWithRetry(this.config, this.http, 'WorkflowInterfacesController_list', {
@@ -24,6 +25,12 @@ export class WorkflowInterfacesResource {
     return data.interfaces
   }
 
+  /**
+   * Add an interface to this workflow.
+   *
+   * @param options - Interface configuration to attach.
+   * @returns The created interface.
+   */
   async create(options: AddAgentInterface): Promise<AgentInterface> {
     validateId(this.workflowId, 'workflow_id')
     return await invokeWithRetry(this.config, this.http, 'WorkflowInterfacesController_add', {
@@ -32,6 +39,14 @@ export class WorkflowInterfacesResource {
     }) as AgentInterface
   }
 
+  /**
+   * Update an interface attached to this workflow.
+   *
+   * @param interfaceId - Interface id.
+   * @param options - Updated interface values.
+   * @param updateMask - Optional comma-separated field names to update.
+   * @returns The updated interface.
+   */
   async update(interfaceId: string, options: UpdateAgentInterface, updateMask?: string): Promise<AgentInterface> {
     validateId(this.workflowId, 'workflow_id')
     validateId(interfaceId, 'interface_id')
@@ -42,6 +57,11 @@ export class WorkflowInterfacesResource {
     }) as AgentInterface
   }
 
+  /**
+   * Delete an interface from this workflow.
+   *
+   * @param interfaceId - Interface id.
+   */
   async delete(interfaceId: string): Promise<void> {
     validateId(this.workflowId, 'workflow_id')
     validateId(interfaceId, 'interface_id')
@@ -50,6 +70,7 @@ export class WorkflowInterfacesResource {
     })
   }
 
+  /** Delete every interface from this workflow. */
   async deleteAll(): Promise<void> {
     validateId(this.workflowId, 'workflow_id')
     await invokeWithRetry(this.config, this.http, 'WorkflowInterfacesController_deleteAll', {

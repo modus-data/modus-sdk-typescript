@@ -35,12 +35,24 @@ function parseLookupResponse(raw: Record<string, unknown>): ContextItemLookupRow
   return item as ContextItemLookupRow
 }
 
+/**
+ * Read access to Modus knowledge-base items.
+ */
 export class ContextItemsResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List knowledge-base items.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.contextType - Filter to a single context type.
+   * @returns A page of context items.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -66,6 +78,13 @@ export class ContextItemsResource {
     )
   }
 
+  /**
+   * Retrieve a knowledge-base item by uid.
+   *
+   * @param uid - Item uid.
+   * @returns The context item.
+   * @throws {NotFoundError} When no item matches the uid.
+   */
   async get(uid: string): Promise<ContextItem> {
     const data = await invokeWithRetry(this.config, this.http, 'ContextItemsController_get', {
       pathParams: { uid },
@@ -73,6 +92,14 @@ export class ContextItemsResource {
     return parseContextItem(data)
   }
 
+  /**
+   * Look up a knowledge-base item by type and data path.
+   *
+   * @param options.contextType - Context type to match.
+   * @param options.dataPath - Hierarchical path segments that identify the item.
+   * @param options.contentProjection - Optional fields to include from item content.
+   * @returns The matching row, or `undefined` when no item is found (404).
+   */
   async lookup(options: {
     contextType: string
     dataPath: string[]
@@ -96,6 +123,16 @@ export class ContextItemsResource {
     }
   }
 
+  /**
+   * List values stored under a content key on a context item.
+   *
+   * @param uid - Item uid.
+   * @param contextType - Context type of the item.
+   * @param contentKeyPath - Dot path to the value field inside item content.
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @returns A page of value rows.
+   */
   listValues(
     uid: string,
     contextType: string,
@@ -107,6 +144,15 @@ export class ContextItemsResource {
     return this.listValuesPage(uid, contextType, contentKeyPath, pageSize, options.pageToken)
   }
 
+  /**
+   * List values for a context item already loaded via {@link ContextItemsResource.list} or {@link ContextItemsResource.get}.
+   *
+   * @param item - Context item (uses `item.uid` and `item.contextType`).
+   * @param contentKeyPath - Dot path to the value field inside item content.
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @returns A page of value rows.
+   */
   listValuesFor(
     item: ContextItem,
     contentKeyPath: string,

@@ -13,10 +13,16 @@ import {
 } from './_content-merge.js'
 import { ManagementContextItemsResource } from './items.js'
 
+/**
+ * Create and update context items (notes, links, saved queries).
+ *
+ * Call path: `mgmt.context` after `new ModusManagement(...)`.
+ */
 export class ManagementContextResource {
   readonly items: ManagementContextItemsResource
   readonly customItems: CustomContextItemsResource
 
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
@@ -25,17 +31,33 @@ export class ManagementContextResource {
     this.customItems = new CustomContextItemsResource(http, config)
   }
 
-  private async create(operationId: OperationId, payload: Record<string, unknown>): Promise<CreatedContextItem> {
-    const data = await invokeWithRetry(this.config, this.http, operationId, {
-      jsonBody: payload,
-    })
-    return withCreatedUid(data as Parameters<typeof withCreatedUid>[0])
-  }
-
+  /**
+   * Add a free-form text note to the knowledge base.
+   *
+   * @param title - Note title.
+   * @param content - Note body (markdown).
+   * @returns The created context item.
+   * @example
+   * ```ts
+   * const note = await mgmt.context.createNote('Runbook', '# Steps\n1. Check logs')
+   * ```
+   */
   createNote(title: string, content: string): Promise<CreatedContextItem> {
     return this.create('ContextCreatorsController_createNote', omitUndefined({ title, content }))
   }
 
+  /**
+   * Update a note's title and markdown body.
+   *
+   * Preserves server-owned fields on the existing content blob. Pass `existing`
+   * to skip a fetch when you already have the item from a list call.
+   *
+   * @param uid - Context item uid.
+   * @param options.title - New title.
+   * @param options.body - New markdown body.
+   * @param options.existing - Optional cached item to avoid a GET.
+   * @returns The updated context item.
+   */
   updateNote(
     uid: string,
     options: {
@@ -50,6 +72,15 @@ export class ManagementContextResource {
     return resolveAndUpdateNote(this.items, uid, options)
   }
 
+  /**
+   * Save a SQL query to the knowledge base.
+   *
+   * @param name - Display name for the query.
+   * @param options.connectionId - Connection the query runs against.
+   * @param options.query - SQL text.
+   * @param options.path - Optional hierarchy path segments.
+   * @returns The created context item.
+   */
   createSavedQuery(
     name: string,
     options: {
@@ -71,6 +102,15 @@ export class ManagementContextResource {
     )
   }
 
+  /**
+   * Update a saved query's name, SQL, and optional connection metadata.
+   *
+   * @param uid - Context item uid.
+   * @param options.name - New display name.
+   * @param options.query - New SQL text.
+   * @param options.existing - Optional cached item to avoid a GET.
+   * @returns The updated context item.
+   */
   updateSavedQuery(
     uid: string,
     options: {
@@ -87,6 +127,15 @@ export class ManagementContextResource {
     return resolveAndUpdateSavedQuery(this.items, uid, options)
   }
 
+  /**
+   * Add a URL to the knowledge base.
+   *
+   * @param url - Link URL.
+   * @param options.title - Optional display title.
+   * @param options.isCrawl - When true, crawl linked pages into context.
+   * @param options.pageLimit - Maximum pages to crawl when `isCrawl` is true.
+   * @returns The created context item.
+   */
   createLink(
     url: string,
     options: { title?: string; isCrawl?: boolean; pageLimit?: number } = {},
@@ -102,6 +151,17 @@ export class ManagementContextResource {
     )
   }
 
+  /**
+   * Update link metadata on an existing item.
+   *
+   * Merges `title` and/or `url` into the stored content blob. Does not re-fetch or re-crawl the URL.
+   *
+   * @param uid - Context item uid.
+   * @param options.title - New display title.
+   * @param options.url - New URL.
+   * @param options.existing - Optional cached item to avoid a GET.
+   * @returns The updated context item.
+   */
   updateLink(
     uid: string,
     options: {
@@ -114,6 +174,14 @@ export class ManagementContextResource {
     },
   ): Promise<ContextItem> {
     return resolveAndUpdateLink(this.items, uid, options)
+  }
+
+  /** @internal */
+  private async create(operationId: OperationId, payload: Record<string, unknown>): Promise<CreatedContextItem> {
+    const data = await invokeWithRetry(this.config, this.http, operationId, {
+      jsonBody: payload,
+    })
+    return withCreatedUid(data as Parameters<typeof withCreatedUid>[0])
   }
 }
 

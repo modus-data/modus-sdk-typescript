@@ -15,6 +15,12 @@ export class ScopeSupervisionResource {
     private readonly scopeId: number | string,
   ) {}
 
+  /**
+   * Get this scope's supervision configuration.
+   *
+   * @param options.view - Optional scope variation to inspect.
+   * @returns The supervision configuration.
+   */
   async get(options: { view?: VariationView } = {}): Promise<Supervision> {
     validateId(this.scopeId, 'scope_id')
     return await invokeWithRetry(this.config, this.http, 'ScopeSupervisionController_get', {
@@ -23,10 +29,22 @@ export class ScopeSupervisionResource {
     }) as Supervision
   }
 
+  /**
+   * Replace this scope's subordinate scopes.
+   *
+   * @param request - Replacement supervision configuration.
+   * @returns The updated supervision configuration.
+   */
   async set(request: SetSupervisionRequest): Promise<Supervision> {
     return this.write('ScopeSupervisionController_set', request)
   }
 
+  /**
+   * Replace subordinate scopes on the active (deployed) scope version.
+   *
+   * @param request - Replacement supervision configuration.
+   * @returns The updated supervision configuration.
+   */
   async setActive(request: SetSupervisionRequest): Promise<Supervision> {
     return this.write('ScopeSupervisionController_setActive', request)
   }
