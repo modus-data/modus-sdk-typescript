@@ -1123,7 +1123,7 @@ export interface paths {
         put?: never;
         /**
          * Deploy a workflow
-         * @description Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp.
+         * @description Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp. Returns `422` when an action node is unconfigured; `info.invalidNodes` names each node and field.
          *
          *     **Requires:** `workflows:write`
          */
