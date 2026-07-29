@@ -29,6 +29,30 @@ describe('config', () => {
     expect(cfg.baseUrls['agent-service']).toBe('https://agent.getmodus.com')
   })
 
+  it('derives staging agentHost from api.<env>.getmodus.com baseUrl', () => {
+    const cfg = createModusConfig({
+      apiKey: TEST_KEY,
+      baseUrl: 'https://api.staging.getmodus.com',
+    })
+    expect(cfg.agentHost).toBe('https://agent.staging.getmodus.com')
+  })
+
+  it('does not derive agentHost from non-api baseUrl (keeps prod default)', () => {
+    const cfg = createModusConfig({
+      apiKey: TEST_KEY,
+      baseUrl: 'http://localhost:3040',
+    })
+    expect(cfg.agentHost).toBe('https://agent.getmodus.com')
+  })
+
+  it('does not derive agentHost from custom api.* hosts', () => {
+    const cfg = createModusConfig({
+      apiKey: TEST_KEY,
+      baseUrl: 'https://api.attacker.example',
+    })
+    expect(cfg.agentHost).toBe('https://agent.getmodus.com')
+  })
+
   it('normalizes service base URL overrides', () => {
     const cfg = createModusConfig({
       apiKey: TEST_KEY,

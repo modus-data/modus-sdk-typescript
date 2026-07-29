@@ -33,6 +33,29 @@ export function resolveAgentHost(agentHost?: string): string | undefined {
   return agentHost ?? process.env[ENV_AGENT_HOST] ?? undefined
 }
 
+/** Modus-owned API hosts only: `api.getmodus.com` or `api.<env>.getmodus.com`. */
+function isModusApiHostname(hostname: string): boolean {
+  return (
+    hostname === 'api.getmodus.com' || /^api\.[a-z0-9-]+\.getmodus\.com$/i.test(hostname)
+  )
+}
+
+/**
+ * Map `https://api.<env>.getmodus.com` → `https://agent.<env>.getmodus.com`
+ * (and prod `api.getmodus.com` → `agent.getmodus.com`). Returns undefined for
+ * localhost / custom / non-Modus origins so callers set agent host explicitly.
+ */
+export function deriveAgentHostFromBaseUrl(baseUrl: string): string | undefined {
+  try {
+    const url = new URL(baseUrl)
+    if (!isModusApiHostname(url.hostname)) return undefined
+    url.hostname = `agent.${url.hostname.slice('api.'.length)}`
+    return url.origin
+  } catch {
+    return undefined
+  }
+}
+
 export function resolveOrganizationId(organizationId?: string): string | undefined {
   const raw = organizationId ?? process.env[ENV_ORGANIZATION_ID]
   if (raw === undefined) return undefined

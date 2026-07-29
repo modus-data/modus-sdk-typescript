@@ -1,4 +1,5 @@
 import {
+  deriveAgentHostFromBaseUrl,
   resolveAgentHost,
   resolveApiKey,
   resolveBaseUrl,
@@ -75,9 +76,12 @@ export function createModusConfig(options: ModusOptions = {}): ModusConfig {
   const baseUrl = normalizeBaseUrl(resolveBaseUrl(options.baseUrl) ?? DEFAULT_BASE_URL)
   const baseUrlOverrides = normalizeBaseUrls(options.baseUrls)
   // baseUrls['agent-service'] must drive streaming too (same origin as invoke).
+  // When unset, derive agent.<rest> from api.<rest> baseUrl so staging chat
+  // works with only the API origin env override (no separate agent-host override).
   const agentHost = normalizeBaseUrl(
     baseUrlOverrides['agent-service'] ??
       resolveAgentHost(options.agentHost) ??
+      deriveAgentHostFromBaseUrl(baseUrl) ??
       DEFAULT_AGENT_HOST,
   )
   const organizationId = resolveOrganizationId(options.organizationId)
