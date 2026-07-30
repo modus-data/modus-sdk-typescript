@@ -83,6 +83,10 @@ function raiseForEvent(event: RunEvent): RunEvent {
   return event
 }
 
+/**
+ * Streaming chat session. Iterate {@link ChatStream.textStream} or
+ * {@link ChatStream.eventStream}, then call {@link ChatStream.getFinalResult}.
+ */
 export class ChatStream {
   private final?: ChatResult
   private readonly textParts: string[] = []
@@ -94,12 +98,28 @@ export class ChatStream {
     private readonly baseUrl?: string,
   ) {}
 
+  /**
+   * Async iterable of assistant text token chunks as they arrive.
+   *
+   * @returns An async generator yielding partial text strings.
+   * @throws {ModusError} When the stream emits an error event.
+   * @throws {RunCancelledError} When the run is cancelled.
+   * @throws {StreamTimeoutError} When the stream times out.
+   */
   async *textStream(): AsyncGenerator<string> {
     for await (const event of this.events(false)) {
       if (event.type === 'token') yield event.content
     }
   }
 
+  /**
+   * Async iterable of structured run events (tokens, tool calls, done, and so on).
+   *
+   * @returns An async generator yielding {@link RunEvent} objects.
+   * @throws {ModusError} When the stream emits an error event.
+   * @throws {RunCancelledError} When the run is cancelled.
+   * @throws {StreamTimeoutError} When the stream times out.
+   */
   async *eventStream(): AsyncGenerator<RunEvent> {
     yield* this.events(true)
   }
@@ -132,6 +152,15 @@ export class ChatStream {
     }
   }
 
+  /**
+   * Final chat result after the stream completes.
+   *
+   * Call only after fully consuming {@link ChatStream.textStream} or
+   * {@link ChatStream.eventStream}.
+   *
+   * @returns The assembled assistant reply, thread id, and run id.
+   * @throws {ModusError} When called before the stream finishes with a done event.
+   */
   getFinalResult(): ChatResult {
     if (this.final === undefined) {
       throw new ModusError(

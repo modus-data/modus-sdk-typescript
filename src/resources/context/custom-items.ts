@@ -83,12 +83,25 @@ function parseDeletion(raw: unknown): CustomContextItemDeletion {
   return raw as CustomContextItemDeletion
 }
 
+/**
+ * Create, update, and delete custom context items.
+ */
 export class CustomContextItemsResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List custom context items.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.searchQuery - Free-text search filter.
+   * @param options.topics - Filter to items tagged with any of these topics.
+   * @returns A page of custom context items.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -118,6 +131,13 @@ export class CustomContextItemsResource {
     )
   }
 
+  /**
+   * Retrieve a custom context item by uid.
+   *
+   * @param uid - Item uid.
+   * @returns The custom context item.
+   * @throws {NotFoundError} When no item matches the uid.
+   */
   async get(uid: string): Promise<ContextItem> {
     return parseContextItem(
       await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_get', {
@@ -126,6 +146,26 @@ export class CustomContextItemsResource {
     )
   }
 
+  /**
+   * Create a custom context item.
+   *
+   * @param input.kind - Item kind (`source`, `collection`, `entity`, `field`, or `entity_samples`).
+   * @param input.sourceId - Source identifier for the item hierarchy.
+   * @param input.name - Display name when applicable.
+   * @param input.content - Item payload.
+   * @param input.idempotencyKey - Optional idempotency key for safe retries.
+   * @returns Created item ids and hierarchy metadata.
+   *
+   * @example
+   * ```ts
+   * const created = await client.context.customItems.create({
+   *   kind: 'entity',
+   *   sourceId: 'my-source',
+   *   name: 'Q3 churn notes',
+   *   content: { summary: 'Key findings…' },
+   * })
+   * ```
+   */
   async create(input: CreateCustomContextItemInput): Promise<CreatedCustomContextItem> {
     return parseCreatedCustomContextItem(
       await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_create', {
@@ -134,6 +174,20 @@ export class CustomContextItemsResource {
     )
   }
 
+  /**
+   * Create multiple custom context items in one request.
+   *
+   * @param inputs - Items to create (same fields as {@link CustomContextItemsResource.create}).
+   * @returns Created item metadata for each input.
+   *
+   * @example
+   * ```ts
+   * const created = await client.context.customItems.batchCreate([
+   *   { kind: 'field', sourceId: 'src', fieldName: 'region', dataType: 'string' },
+   *   { kind: 'field', sourceId: 'src', fieldName: 'amount', dataType: 'number' },
+   * ])
+   * ```
+   */
   async batchCreate(inputs: CreateCustomContextItemInput[]): Promise<CreatedCustomContextItem[]> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_batchCreate', {
@@ -146,6 +200,13 @@ export class CustomContextItemsResource {
     return Array.isArray(items) ? items.map(parseCreatedCustomContextItem) : []
   }
 
+  /**
+   * Update a custom context item.
+   *
+   * @param uid - Item uid.
+   * @param input - Fields to change (kind and hierarchy ids cannot be changed).
+   * @returns The updated item uid.
+   */
   async update(uid: string, input: UpdateCustomContextItemInput): Promise<{ uid: string }> {
     return asRecord(
       await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_update', {
@@ -155,6 +216,12 @@ export class CustomContextItemsResource {
     ) as { uid: string }
   }
 
+  /**
+   * Delete a custom context item.
+   *
+   * @param uid - Item uid.
+   * @returns Deletion confirmation with uid and context type.
+   */
   async delete(uid: string): Promise<CustomContextItemDeletion> {
     return parseDeletion(
       await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_delete', {

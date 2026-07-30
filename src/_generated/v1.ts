@@ -940,6 +940,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List available tools
+         * @description Returns a page of known tool/integration surfaces a scope can select in its toolset, with the fixed actions for built-in tools.
+         *
+         *     **Requires:** `scopes:read`
+         */
+        get: operations["ToolsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/usage": {
         parameters: {
             query?: never;
@@ -954,6 +976,28 @@ export interface paths {
          *     **Requires:** `usage:read`
          */
         get: operations["UsageController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usage/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List usage users
+         * @description Returns the distinct acting-user emails that appear in your organization's LLM usage over the `[since, until)` window. Feeds the usage page's user filter (includes non-Modus Slack/Teams users). Scoped to your organization.
+         *
+         *     **Requires:** `usage:read`
+         */
+        get: operations["UsageController_listUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1079,7 +1123,7 @@ export interface paths {
         put?: never;
         /**
          * Deploy a workflow
-         * @description Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp.
+         * @description Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp. Returns `422` when an action node is unconfigured; `info.invalidNodes` names each node and field.
          *
          *     **Requires:** `workflows:write`
          */
@@ -2902,7 +2946,6 @@ export interface components {
         };
         ListMemberGroupsResponseDto: {
             groups: components["schemas"]["MemberGroupDto"][];
-            nextPageToken: string | null;
         };
         ListMemoriesResponseDto: {
             /** @description Memories belonging to the scope. */
@@ -2915,7 +2958,6 @@ export interface components {
         };
         ListOrgMembersResponseDto: {
             members: components["schemas"]["OrgMemberDto"][];
-            nextPageToken: string | null;
         };
         ListSkillsResponseDto: {
             /** @description Page of scopes the caller can at least `use`. Scopes the caller cannot see are filtered out (not enumerated). */
@@ -2928,6 +2970,15 @@ export interface components {
             /**
              * @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request.
              * @example eyJvZmZzZXQiOjUsInBhZ2VTaXplIjo1fQ
+             */
+            nextPageToken: string | null;
+        };
+        ListToolsResponseDto: {
+            /** @description Known tool/integration surfaces a scope can select in its toolset. */
+            tools: components["schemas"]["ToolCatalogEntryDto"][];
+            /**
+             * @description Opaque token for the next page; null when this was the last page. Pass as `pageToken` on the next request.
+             * @example null
              */
             nextPageToken: string | null;
         };
@@ -2945,6 +2996,10 @@ export interface components {
             group_by: "all" | "skill" | "agent" | "interface" | "model" | "attribution";
             buckets: components["schemas"]["UsageBucketDto"][];
             totals: components["schemas"]["UsageTotalsDto"];
+        };
+        ListUsageUsersResponseDto: {
+            /** @description Distinct acting-user emails in the window. */
+            users: components["schemas"]["UsageUserDto"][];
         };
         LookupContextItemDto: {
             /**
@@ -3469,6 +3524,47 @@ export interface components {
              */
             active: boolean;
         };
+        ToolCatalogActionDto: {
+            /**
+             * @description Stable action id — the exact string to put in `toolset.<id>.actions`.
+             * @example list_dags
+             */
+            name: string;
+            /**
+             * @description Human-readable label for display.
+             * @example List DAGs
+             */
+            displayName: string;
+            /**
+             * @description What this action does.
+             * @example List the selected DAGs with their schedule, owners, tags, and paused state.
+             */
+            description: string;
+        };
+        ToolCatalogEntryDto: {
+            /**
+             * @description Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.
+             * @example sql_runner
+             */
+            id: string;
+            /**
+             * @description Human-readable name for display.
+             * @example SQL Runner
+             */
+            displayName: string;
+            /**
+             * @description Grouping category, e.g. "data", "messaging", "general".
+             * @example data
+             */
+            category?: string;
+            /**
+             * @description True if this tool requires a connected integration/account before it can be used.
+             * @example false
+             */
+            requiresConnection: boolean;
+            /** @description Fixed set of actions this tool exposes. Present only when the action list does not depend on a live connection (built-in tools). Connected integrations expose connection-specific actions not listed here. */
+            actions?: components["schemas"]["ToolCatalogActionDto"][];
+        };
         ToolsetDto: {
             /**
              * @description List of tools the scope may invoke.
@@ -3819,6 +3915,13 @@ export interface components {
             /** @description Total credits consumed across all buckets in the window. */
             credits: number;
         };
+        UsageUserDto: {
+            /**
+             * @description Acting-user email present in usage over the window.
+             * @example jane@acme.com
+             */
+            email: string;
+        };
         WorkflowDto: {
             /**
              * @description Numeric workflow id (stable per-org; not reused after delete).
@@ -4044,7 +4147,14 @@ export interface components {
             images?: components["schemas"]["ImageAttachmentDto"][];
             documents?: components["schemas"]["DocumentAttachmentDto"][];
         };
-        CancelRunDto: Record<string, never>;
+        CancelRunDto: {
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
+            /** @description Human-readable reason for the cancel, logged server-side only. */
+            reason?: string;
+            /** @description Redis Stream id of the last SSE frame the client rendered, so the persisted partial message matches what the client saw. Falls back to the server-side accumulator when absent. */
+            lastSeenEventId?: string;
+        };
         DocumentAttachmentDto: {
             /** @description Original file name. */
             fileName: string;
@@ -4057,7 +4167,12 @@ export interface components {
             sizeBytes?: number;
             summary?: string | null;
         };
-        EditQueuedRunDto: Record<string, never>;
+        EditQueuedRunDto: {
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
+            /** @description New payload replacing the queued run. */
+            nextRun: components["schemas"]["FollowUpRunDto"];
+        };
         ErrorEnvelopeDto1: {
             /** @description Modus-specific machine code. */
             code: components["schemas"]["ApiErrorCode"];
@@ -4080,6 +4195,38 @@ export interface components {
         ErrorResponseDto1: {
             error: components["schemas"]["ErrorEnvelopeDto1"];
         };
+        FollowUpRunDto: {
+            /** @description The user message to send. */
+            message: string;
+            /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
+            sessionId: string;
+            /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
+            organizationId?: string;
+            /**
+             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @enum {string}
+             */
+            version?: "published" | "draft";
+            /** @description Document-scoped conversation thread id. */
+            fileThreadId?: string;
+            config?: components["schemas"]["RunConfigDto"];
+            attachments?: components["schemas"]["AttachmentsDto"];
+            userContext?: components["schemas"]["UserContextDto"];
+            supplementalContext?: components["schemas"]["SupplementalContextDto"];
+            /** @description Origin of the run. */
+            source?: components["schemas"]["RunSource"];
+            /** @description Client-supplied run id (Idempotency-Key header wins). */
+            runId?: string;
+            /**
+             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @enum {number}
+             */
+            streamProtocolVersion?: 2;
+            experimentalFeatures?: boolean;
+            debug?: boolean;
+            /** @description Saved scope ids to subordinate under this Modus run. */
+            subordinateSkillIds?: number[];
+        };
         ImageAttachmentDto: {
             data?: string;
             mimeType?: string;
@@ -4087,7 +4234,14 @@ export interface components {
             s3Key?: string;
             uploadId?: string;
         };
-        InterruptRunDto: Record<string, never>;
+        InterruptRunDto: {
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
+            /** @description Redis Stream id of the last SSE frame the client rendered (see CancelRunDto). */
+            lastSeenEventId?: string;
+            /** @description Follow-up message that supersedes the current turn. */
+            nextRun: components["schemas"]["FollowUpRunDto"];
+        };
         ModusRunDto: {
             /** @description The user message to send. */
             message: string;
@@ -4233,7 +4387,7 @@ export interface components {
          */
         SupplementalContextSource: "slack" | "teams";
         UserContextDto: {
-            /** @description End-user email for personalization. */
+            /** @description End-user email for personalization; also used for usage attribution. */
             email?: string;
             /** @description End-user display name. */
             name?: string;
@@ -4243,8 +4397,8 @@ export interface components {
             userId?: string;
         };
         WorkflowActionDto: {
-            /** @description Organization ID the run belongs to. Must match the authenticated principal's org. */
-            organizationId: string;
+            /** @description Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org. */
+            organizationId?: string;
             /** @description Client-generated session identifier. */
             sessionId: string;
             /** @description File thread ID for document-scoped execution. */
@@ -11784,6 +11938,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
             500: {
                 headers: {
@@ -11967,6 +12140,111 @@ export interface operations {
             };
         };
     };
+    ToolsController_list: {
+        parameters: {
+            query?: {
+                /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
+                pageToken?: string;
+                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListToolsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     UsageController_list: {
         parameters: {
             query: {
@@ -11988,6 +12266,8 @@ export interface operations {
                 user_id?: string[];
                 /** @description Filter by one or more interface names (repeat the query param). */
                 interface?: string[];
+                /** @description Filter by one or more acting-user emails (repeat the query param). Matched together with user_id: a row matches if its user_email OR its user_id is in the given sets. */
+                user_email?: string[];
             };
             header?: never;
             path?: never;
@@ -12086,12 +12366,114 @@ export interface operations {
             };
         };
     };
+    UsageController_listUsers: {
+        parameters: {
+            query: {
+                /** @description ISO8601 start of the query window (inclusive). */
+                since: string;
+                /** @description ISO8601 end of the query window (exclusive). */
+                until: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListUsageUsersResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     MemberGroupsController_list: {
         parameters: {
-            query?: {
-                pageSize?: number;
-                pageToken?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -12191,10 +12573,7 @@ export interface operations {
     };
     OrgMembersController_list: {
         parameters: {
-            query?: {
-                pageSize?: number;
-                pageToken?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;

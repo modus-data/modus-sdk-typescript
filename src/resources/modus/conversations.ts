@@ -37,12 +37,21 @@ function parseConversation(raw: unknown): Conversation {
   return raw as Conversation
 }
 
+/** List and retrieve Modus / scope conversations. */
 export class ModusConversationsResource {
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List conversations.
+   *
+   * @param options.pageSize - Items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.kind - `"modus"`, `"scopes"`, or `"all"`.
+   * @returns Page of conversation list items.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -68,6 +77,12 @@ export class ModusConversationsResource {
     )
   }
 
+  /**
+   * Retrieve a conversation thread with full message history.
+   *
+   * @param threadId - Conversation thread id.
+   * @returns Conversation with messages.
+   */
   async get(threadId: string): Promise<Conversation> {
     validateId(threadId, 'thread_id')
     const data = await invokeWithRetry(this.config, this.http, 'ModusConversationsController_get', {

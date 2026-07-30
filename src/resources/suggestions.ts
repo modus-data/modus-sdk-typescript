@@ -29,12 +29,25 @@ function suggestionListParams(options: {
   }
 }
 
+/**
+ * List suggested questions and record suggestion events.
+ */
 export class SuggestionsResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List approved suggested questions.
+   *
+   * @param options.pageSize - Maximum items per page (default 5, max 12).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.scopeId - Filter to a single scope.
+   * @param options.scopeIds - Filter to one or more scopes.
+   * @returns A page of suggested questions.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -62,6 +75,12 @@ export class SuggestionsResource {
     )
   }
 
+  /**
+   * Record that a suggested question was shown, clicked, dismissed, or submitted.
+   *
+   * @param id - Suggestion id.
+   * @param event - Event details, including `eventType` (`shown`, `clicked`, `dismissed`, or `submitted`).
+   */
   async recordEvent(id: string, event: RecordSuggestionEventRequest): Promise<void> {
     validateId(id, 'id')
     await invokeWithRetry(this.config, this.http, 'SuggestionsController_recordEvent', {

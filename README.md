@@ -224,3 +224,7 @@ npx tsx examples/scripts/quickstart.ts
 ```
 
 See [CHANGELOG.md](./CHANGELOG.md) for release history.
+
+## Docs
+
+Full guides: [docs.getmodus.com/guides/sdk](https://docs.getmodus.com/guides/sdk) (TypeScript page: [sdk-typescript](https://docs.getmodus.com/guides/sdk-typescript)).

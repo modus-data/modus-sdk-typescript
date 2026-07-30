@@ -90,3 +90,36 @@ describe('ModusManagement.usage', () => {
     expect(url).toContain('rollup=day')
   })
 })
+
+describe('ModusManagement.tools', () => {
+  it('list returns a Page of tool catalog entries', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          tools: [{ id: 'web_search', displayName: 'Web Search', requiresConnection: false }],
+          nextPageToken: null,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const page = await mgmt.tools.list()
+    expect(page.items).toEqual([{ id: 'web_search', displayName: 'Web Search', requiresConnection: false }])
+    expect(page.hasNextPage()).toBe(false)
+    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/tools')
+  })
+
+  it('list passes pageSize/pageToken query params', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ tools: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await mgmt.tools.list({ pageSize: 10, pageToken: 'tok' })
+    const url = String(fetch.mock.calls[0]?.[0])
+    expect(url).toContain('pageSize=10')
+    expect(url).toContain('pageToken=tok')
+  })
+})

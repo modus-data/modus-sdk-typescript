@@ -1,7 +1,17 @@
 import { ModusError } from './_exceptions.js'
 
+/**
+ * A single page of results from a paginated list call.
+ *
+ * Each response includes an `items` array and an optional `nextPageToken`.
+ * Pass that token back on the next list request to fetch the following page.
+ * Iterating a `Page` directly yields only the current page's items; use
+ * {@link Page.autoPagingIter} to walk every page automatically.
+ */
 export class Page<T> {
+  /** Items returned for this page. */
   readonly items: T[]
+  /** Opaque token for the next page, or `undefined` when there are no more results. */
   readonly nextPageToken?: string
   private readonly fetchPage: (token: string) => Page<T> | Promise<Page<T>>
 
@@ -15,10 +25,21 @@ export class Page<T> {
     this.fetchPage = fetchPage
   }
 
+  /**
+   * Whether another page of results is available.
+   *
+   * @returns `true` when {@link Page.nextPageToken} is set.
+   */
   hasNextPage(): boolean {
     return this.nextPageToken !== undefined
   }
 
+  /**
+   * Fetch the next page using {@link Page.nextPageToken}.
+   *
+   * @returns The following page of results.
+   * @throws {Error} When there is no next page. Check {@link Page.hasNextPage} first.
+   */
   async getNextPage(): Promise<Page<T>> {
     if (this.nextPageToken === undefined) {
       throw new Error(
@@ -28,6 +49,12 @@ export class Page<T> {
     return this.fetchPage(this.nextPageToken)
   }
 
+  /**
+   * Async-iterate over all items across every page, fetching additional pages as needed.
+   *
+   * @returns An async generator yielding every item in the result set.
+   * @throws {ModusError} When a follow-up page request fails.
+   */
   async *autoPagingIter(): AsyncGenerator<T> {
     for (const item of this.items) yield item
     let nextPageToken = this.nextPageToken
@@ -38,6 +65,7 @@ export class Page<T> {
     }
   }
 
+  /** Iterate over the current page's items only. */
   [Symbol.iterator](): Iterator<T> {
     return this.items[Symbol.iterator]()
   }

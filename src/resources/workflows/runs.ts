@@ -116,11 +116,24 @@ export function makeAgentRunStream(runId: string, events: AsyncIterable<RunEvent
 }
 
 export class WorkflowRunsResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List runs for a workflow.
+   *
+   * @param workflowId - Workflow id or slug.
+   * @param options.pageSize - Maximum items per page (default 25, max 100).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.status - Filter by run status.
+   * @param options.timeframe - Filter by recency (`last_hour`, `last_day`, or `last_week`).
+   * @param options.approvalScope - Filter approval-related runs (`mine` or `all`).
+   * @param options.search - Free-text search filter.
+   * @returns A page of run summaries.
+   */
   list(
     workflowId: number | string,
     options: {
@@ -177,6 +190,15 @@ export class WorkflowRunsResource {
     )
   }
 
+  /**
+   * Retrieve a workflow run by id.
+   *
+   * @param workflowId - Workflow id or slug the run belongs to.
+   * @param runId - Run id.
+   * @param options.temporalRunId - Optional internal execution id when disambiguating retries.
+   * @returns Run details including status and output.
+   * @throws {NotFoundError} When the run does not exist.
+   */
   async get(
     workflowId: number | string,
     runId: string,
@@ -195,6 +217,26 @@ export class WorkflowRunsResource {
     return parseRun(data)
   }
 
+  /**
+   * Start a workflow run and stream run events.
+   *
+   * @param workflowId - Workflow id or slug to run.
+   * @param body - Run body (`message`, optional `sessionId`, optional `version` as `published` or `draft`).
+   * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
+   * @returns A stream of run events (tokens, completion, errors, and related signals).
+   *
+   * @example
+   * ```ts
+   * const stream = client.workflows.runs.create(workflowId, {
+   *   message: 'Summarize yesterday\'s sales',
+   *   sessionId: 'conv-abc',
+   * })
+   * for await (const event of stream) {
+   *   if (event.type === 'token') process.stdout.write(event.content)
+   *   if (event.type === 'done') break
+   * }
+   * ```
+   */
   create(
     workflowId: number | string,
     body: CreateAgentRunRequest,
@@ -204,6 +246,14 @@ export class WorkflowRunsResource {
     return this.createRun('WorkflowRunsController_create', body, { id: workflowId }, options)
   }
 
+  /**
+   * Start a scope run and stream run events.
+   *
+   * @param scopeId - Scope id to run.
+   * @param body - Run body (`message`, optional `sessionId`, optional `version` as `published` or `draft`).
+   * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
+   * @returns A stream of run events.
+   */
   createScope(
     scopeId: number | string,
     body: SkillRunCreateRequest,
@@ -213,6 +263,13 @@ export class WorkflowRunsResource {
     return this.createRun('ScopeRunsController_create', body, { id: scopeId }, options)
   }
 
+  /**
+   * Start a Modus assistant run and stream run events.
+   *
+   * @param body - Run body (`message`, optional `sessionId`, optional `subordinateSkillIds` to narrow context).
+   * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
+   * @returns A stream of run events.
+   */
   createModus(
     body: ModusRunCreateRequest,
     options: { idempotencyKey?: string } = {},
@@ -220,6 +277,14 @@ export class WorkflowRunsResource {
     return this.createRun('ModusRunsController_create', body, {}, options)
   }
 
+  /**
+   * Resume an interrupted run and stream run events.
+   *
+   * @param runId - Run id to resume.
+   * @param body - Resume body (`message`, `sessionId`, and `decision`: `approve` / `deny` / `connected` / `cancelled`).
+   * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
+   * @returns A stream of run events.
+   */
   resume(
     runId: string,
     body: ResumeRunRequest,
@@ -229,6 +294,11 @@ export class WorkflowRunsResource {
     return this.createRun('ResumeRunsController_create', body, { runId }, options)
   }
 
+  /**
+   * Cancel a run that is still in progress.
+   *
+   * @param runId - Run id to cancel.
+   */
   async cancel(runId: string): Promise<void> {
     validateId(runId, 'run_id')
     await invokeWithRetry(this.config, this.http, 'RunLifecycleController_cancel', {
@@ -237,6 +307,12 @@ export class WorkflowRunsResource {
     })
   }
 
+  /**
+   * Fetch stored run events for a run.
+   *
+   * @param runId - Run id.
+   * @returns Run event history for replay or inspection.
+   */
   async events(runId: string): Promise<unknown> {
     validateId(runId, 'run_id')
     return invokeWithRetry(this.config, this.http, 'RunLifecycleController_events', {
@@ -244,6 +320,11 @@ export class WorkflowRunsResource {
     })
   }
 
+  /**
+   * Request a graceful stop for a running execution.
+   *
+   * @param runId - Run id to interrupt.
+   */
   async interrupt(runId: string): Promise<void> {
     validateId(runId, 'run_id')
     await invokeWithRetry(this.config, this.http, 'RunLifecycleController_interrupt', {
@@ -252,6 +333,11 @@ export class WorkflowRunsResource {
     })
   }
 
+  /**
+   * Move a queued run back into an editable state before it starts.
+   *
+   * @param runId - Queued run id.
+   */
   async editQueued(runId: string): Promise<void> {
     validateId(runId, 'run_id')
     await invokeWithRetry(this.config, this.http, 'RunLifecycleController_editQueued', {
@@ -260,6 +346,13 @@ export class WorkflowRunsResource {
     })
   }
 
+  /**
+   * List active conversation runs across the organization.
+   *
+   * @param options.pageSize - Maximum items per page (default 50, max 100).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @returns A page of active runs with session and status metadata.
+   */
   active(options: {
     pageSize?: number
     pageToken?: string
@@ -281,6 +374,13 @@ export class WorkflowRunsResource {
     )
   }
 
+  /**
+   * Look up active runs for specific conversation sessions.
+   *
+   * @param sessionIds - Up to 100 session ids.
+   * @returns Active runs matching any of the given sessions.
+   * @throws {Error} When more than 100 session ids are provided.
+   */
   async activeBySession(sessionIds: readonly string[]): Promise<ActiveConversationRun[]> {
     const uniqueSessionIds = [...new Set(sessionIds.map((id) => id.trim()).filter(Boolean))]
     if (uniqueSessionIds.length > 100) {
@@ -293,6 +393,21 @@ export class WorkflowRunsResource {
     )
   }
 
+  /**
+   * Reconnect to an in-progress run and stream run events.
+   *
+   * @param runId - Run id to follow.
+   * @param options.lastEventId - Resume after this event id when catching up.
+   * @returns A stream of run events from the current execution point.
+   *
+   * @example
+   * ```ts
+   * const stream = client.workflows.runs.stream(runId, { lastEventId: checkpoint })
+   * for await (const event of stream) {
+   *   if (event.type === 'token') process.stdout.write(event.content)
+   * }
+   * ```
+   */
   stream(runId: string, options: { lastEventId?: string } = {}): AgentRunStream {
     validateId(runId, 'run_id')
     const op = getOperation('RunLifecycleController_stream')

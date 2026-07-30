@@ -22,12 +22,24 @@ function parseConnection(raw: unknown): Connection {
   return raw as Connection
 }
 
+/**
+ * Read access to integration connections.
+ */
 export class ConnectionsResource {
+  /** @internal */
   constructor(
     private readonly http: HttpClient,
     private readonly config: ModusConfig,
   ) {}
 
+  /**
+   * List integration connections.
+   *
+   * @param options.pageSize - Maximum items per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page.
+   * @param options.type - Integration category; exact match filter.
+   * @returns A page of connections.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -53,6 +65,16 @@ export class ConnectionsResource {
     )
   }
 
+  /**
+   * Find the first connection whose name matches (case-insensitive).
+   *
+   * Pages through {@link ConnectionsResource.list} until a match is found.
+   *
+   * @param options.name - Connection name to search for.
+   * @param options.type - Optional integration category filter.
+   * @param options.pageSize - Page size when scanning (default 25).
+   * @returns The matching connection, or `undefined` if none is found.
+   */
   async find(options: {
     name: string
     type?: string

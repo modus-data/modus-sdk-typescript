@@ -19,7 +19,7 @@ function parseRun(raw: unknown): EvaluationRun {
   return raw as EvaluationRun
 }
 
-/** Scheduled and manual scope evaluations (`/api/v1/scopes/{id}/evaluations`). */
+/** Scheduled and manual scope evaluations. */
 export class ScopeEvaluationsResource {
   constructor(
     private readonly http: HttpClient,
@@ -27,6 +27,7 @@ export class ScopeEvaluationsResource {
     private readonly scopeId: number | string,
   ) {}
 
+  /** Get the evaluation configuration for this scope. */
   async getConfig(): Promise<EvaluationConfig> {
     validateId(this.scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, 'EvaluationsController_getConfig', {
@@ -35,6 +36,12 @@ export class ScopeEvaluationsResource {
     return parseConfig(data)
   }
 
+  /**
+   * Update the evaluation configuration for this scope.
+   *
+   * @param update - Configuration fields to change.
+   * @returns The updated evaluation configuration.
+   */
   async updateConfig(update: UpdateEvaluationConfig): Promise<EvaluationConfig> {
     validateId(this.scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, 'EvaluationsController_updateConfig', {
@@ -44,6 +51,11 @@ export class ScopeEvaluationsResource {
     return parseConfig(data)
   }
 
+  /**
+   * Trigger a manual evaluation run for this scope.
+   *
+   * @returns The triggered run id and status.
+   */
   async triggerRun(): Promise<TriggerEvaluationRunResponse> {
     validateId(this.scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, 'EvaluationsController_triggerRun', {
@@ -52,6 +64,13 @@ export class ScopeEvaluationsResource {
     return data as TriggerEvaluationRunResponse
   }
 
+  /**
+   * List evaluation runs for this scope.
+   *
+   * @param options.pageSize - Items per page (default 25).
+   * @param options.pageToken - Token from a previous page's `nextPageToken`.
+   * @returns A page of evaluation runs.
+   */
   listRuns(options: { pageSize?: number; pageToken?: string } = {}): Promise<Page<EvaluationRun>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
@@ -75,6 +94,12 @@ export class ScopeEvaluationsResource {
     return buildAipPage(data, 'runs', parseRun, (token) => this.listRunsPage(pageSize, token))
   }
 
+  /**
+   * Retrieve one evaluation run with full results.
+   *
+   * @param runId - Evaluation run id.
+   * @returns The run and its result details.
+   */
   async getRun(runId: string): Promise<EvaluationRunWithResults> {
     validateId(this.scopeId, 'scope_id')
     validateId(runId, 'run_id')

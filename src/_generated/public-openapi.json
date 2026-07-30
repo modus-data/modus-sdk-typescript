@@ -64,6 +64,10 @@
       "description": "Read connected integrations."
     },
     {
+      "name": "Tools",
+      "description": "Catalog of tools/integrations a scope can select in its toolset."
+    },
+    {
       "name": "Suggestions",
       "description": "Approved suggested questions and first-party suggestion usage events."
     },
@@ -9538,6 +9542,24 @@
               }
             }
           },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -9768,6 +9790,142 @@
         ]
       }
     },
+    "/api/v1/tools": {
+      "get": {
+        "description": "Returns a page of known tool/integration surfaces a scope can select in its toolset, with the fixed actions for built-in tools.\n\n**Requires:** `scopes:read`",
+        "operationId": "ToolsController_list",
+        "parameters": [
+          {
+            "name": "pageToken",
+            "required": false,
+            "in": "query",
+            "description": "Opaque page token from a previous response's `nextPageToken`. Omit for the first page.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListToolsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List available tools",
+        "tags": [
+          "Tools"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/usage": {
       "get": {
         "description": "Returns time-bucketed LLM call counts and input/output tokens by model over the `[since, until)` window. `rollup` selects hour or day buckets. Scoped to your organization.\n\n**Requires:** `usage:read`",
@@ -9901,6 +10059,21 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "user_email",
+            "required": false,
+            "in": "query",
+            "description": "Filter by one or more acting-user emails (repeat the query param). Matched together with user_id: a row matches if its user_email OR its user_id is in the given sets.",
+            "schema": {
+              "example": [
+                "jane@acme.com"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -10012,28 +10185,146 @@
         ]
       }
     },
-    "/api/v1/users/member-groups": {
+    "/api/v1/usage/users": {
       "get": {
-        "description": "Returns the tenant member-group rows plus the synthetic \"Everyone\" group (populated with every organization member).\n\n**Requires:** `users:read`",
-        "operationId": "MemberGroupsController_list",
+        "description": "Returns the distinct acting-user emails that appear in your organization's LLM usage over the `[since, until)` window. Feeds the usage page's user filter (includes non-Modus Slack/Teams users). Scoped to your organization.\n\n**Requires:** `usage:read`",
+        "operationId": "UsageController_listUsers",
         "parameters": [
           {
-            "name": "pageSize",
-            "required": false,
+            "name": "since",
+            "required": true,
             "in": "query",
+            "description": "ISO8601 start of the query window (inclusive).",
             "schema": {
-              "type": "number"
+              "example": "2026-05-01T00:00:00.000Z",
+              "type": "string"
             }
           },
           {
-            "name": "pageToken",
-            "required": false,
+            "name": "until",
+            "required": true,
             "in": "query",
+            "description": "ISO8601 end of the query window (exclusive).",
             "schema": {
+              "example": "2026-05-08T00:00:00.000Z",
               "type": "string"
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListUsageUsersResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List usage users",
+        "tags": [
+          "Usage"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "usage:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/users/member-groups": {
+      "get": {
+        "description": "Returns the tenant member-group rows plus the synthetic \"Everyone\" group (populated with every organization member).\n\n**Requires:** `users:read`",
+        "operationId": "MemberGroupsController_list",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -10147,24 +10438,7 @@
       "get": {
         "description": "Returns the membership roster for the principal’s active organization.\n\n**Requires:** `users:read`",
         "operationId": "OrgMembersController_list",
-        "parameters": [
-          {
-            "name": "pageSize",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "pageToken",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -11199,7 +11473,7 @@
     },
     "/api/v1/workflows/{id}/deploy": {
       "post": {
-        "description": "Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp.\n\n**Requires:** `workflows:write`",
+        "description": "Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp. Returns `422` when an action node is unconfigured; `info.invalidNodes` names each node and field.\n\n**Requires:** `workflows:write`",
         "operationId": "WorkflowsController_deploy",
         "parameters": [
           {
@@ -16788,15 +17062,10 @@
             "items": {
               "$ref": "#/components/schemas/MemberGroupDto"
             }
-          },
-          "nextPageToken": {
-            "type": "string",
-            "nullable": true
           }
         },
         "required": [
-          "groups",
-          "nextPageToken"
+          "groups"
         ]
       },
       "ListMemoriesResponseDto": {
@@ -16829,15 +17098,10 @@
             "items": {
               "$ref": "#/components/schemas/OrgMemberDto"
             }
-          },
-          "nextPageToken": {
-            "type": "string",
-            "nullable": true
           }
         },
         "required": [
-          "members",
-          "nextPageToken"
+          "members"
         ]
       },
       "ListSkillsResponseDto": {
@@ -16879,6 +17143,28 @@
         },
         "required": [
           "suggestions",
+          "nextPageToken"
+        ]
+      },
+      "ListToolsResponseDto": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "description": "Known tool/integration surfaces a scope can select in its toolset.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolCatalogEntryDto"
+            }
+          },
+          "nextPageToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Opaque token for the next page; null when this was the last page. Pass as `pageToken` on the next request.",
+            "example": null
+          }
+        },
+        "required": [
+          "tools",
           "nextPageToken"
         ]
       },
@@ -16932,6 +17218,21 @@
           "group_by",
           "buckets",
           "totals"
+        ]
+      },
+      "ListUsageUsersResponseDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "description": "Distinct acting-user emails in the window.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageUserDto"
+            }
+          }
+        },
+        "required": [
+          "users"
         ]
       },
       "LookupContextItemDto": {
@@ -17926,6 +18227,68 @@
           "active"
         ]
       },
+      "ToolCatalogActionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Stable action id — the exact string to put in `toolset.<id>.actions`.",
+            "example": "list_dags"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable label for display.",
+            "example": "List DAGs"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this action does.",
+            "example": "List the selected DAGs with their schedule, owners, tags, and paused state."
+          }
+        },
+        "required": [
+          "name",
+          "displayName",
+          "description"
+        ]
+      },
+      "ToolCatalogEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.",
+            "example": "sql_runner"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable name for display.",
+            "example": "SQL Runner"
+          },
+          "category": {
+            "type": "string",
+            "description": "Grouping category, e.g. \"data\", \"messaging\", \"general\".",
+            "example": "data"
+          },
+          "requiresConnection": {
+            "type": "boolean",
+            "description": "True if this tool requires a connected integration/account before it can be used.",
+            "example": false
+          },
+          "actions": {
+            "description": "Fixed set of actions this tool exposes. Present only when the action list does not depend on a live connection (built-in tools). Connected integrations expose connection-specific actions not listed here.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolCatalogActionDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "requiresConnection"
+        ]
+      },
       "ToolsetDto": {
         "type": "object",
         "properties": {
@@ -18525,6 +18888,19 @@
           "credits"
         ]
       },
+      "UsageUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Acting-user email present in usage over the window.",
+            "example": "jane@acme.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
       "WorkflowDto": {
         "type": "object",
         "properties": {
@@ -18978,7 +19354,20 @@
       },
       "CancelRunDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Human-readable reason for the cancel, logged server-side only."
+          },
+          "lastSeenEventId": {
+            "type": "string",
+            "description": "Redis Stream id of the last SSE frame the client rendered, so the persisted partial message matches what the client saw. Falls back to the server-side accumulator when absent."
+          }
+        }
       },
       "DocumentAttachmentDto": {
         "type": "object",
@@ -19019,7 +19408,23 @@
       },
       "EditQueuedRunDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
+          },
+          "nextRun": {
+            "description": "New payload replacing the queued run.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FollowUpRunDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "nextRun"
+        ]
       },
       "ErrorEnvelopeDto1": {
         "type": "object",
@@ -19075,6 +19480,83 @@
           "error"
         ]
       },
+      "FollowUpRunDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The user message to send."
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together."
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization id. Ignored for authenticated callers — the server uses the principal's org."
+          },
+          "version": {
+            "type": "string",
+            "enum": [
+              "published",
+              "draft"
+            ],
+            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+          },
+          "fileThreadId": {
+            "type": "string",
+            "description": "Document-scoped conversation thread id."
+          },
+          "config": {
+            "$ref": "#/components/schemas/RunConfigDto"
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/AttachmentsDto"
+          },
+          "userContext": {
+            "$ref": "#/components/schemas/UserContextDto"
+          },
+          "supplementalContext": {
+            "$ref": "#/components/schemas/SupplementalContextDto"
+          },
+          "source": {
+            "description": "Origin of the run.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunSource"
+              }
+            ]
+          },
+          "runId": {
+            "type": "string",
+            "description": "Client-supplied run id (Idempotency-Key header wins)."
+          },
+          "streamProtocolVersion": {
+            "type": "number",
+            "enum": [
+              2
+            ],
+            "description": "Streaming protocol version. Version 2 supports assistant-content replacement events."
+          },
+          "experimentalFeatures": {
+            "type": "boolean"
+          },
+          "debug": {
+            "type": "boolean"
+          },
+          "subordinateSkillIds": {
+            "description": "Saved scope ids to subordinate under this Modus run.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "message",
+          "sessionId"
+        ]
+      },
       "ImageAttachmentDto": {
         "type": "object",
         "properties": {
@@ -19097,7 +19579,27 @@
       },
       "InterruptRunDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
+          },
+          "lastSeenEventId": {
+            "type": "string",
+            "description": "Redis Stream id of the last SSE frame the client rendered (see CancelRunDto)."
+          },
+          "nextRun": {
+            "description": "Follow-up message that supersedes the current turn.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FollowUpRunDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "nextRun"
+        ]
       },
       "ModusRunDto": {
         "type": "object",
@@ -19485,7 +19987,7 @@
         "properties": {
           "email": {
             "type": "string",
-            "description": "End-user email for personalization."
+            "description": "End-user email for personalization; also used for usage attribution."
           },
           "name": {
             "type": "string",
@@ -19506,7 +20008,7 @@
         "properties": {
           "organizationId": {
             "type": "string",
-            "description": "Organization ID the run belongs to. Must match the authenticated principal's org."
+            "description": "Organization the run belongs to. Omit for PAT/SDK callers — falls back to the authenticated principal's org."
           },
           "sessionId": {
             "type": "string",
@@ -19551,7 +20053,6 @@
           }
         },
         "required": [
-          "organizationId",
           "sessionId",
           "workflowAction"
         ]

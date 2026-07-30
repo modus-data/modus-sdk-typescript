@@ -15,7 +15,7 @@ function parseMemory(raw: unknown): Memory {
   return raw as Memory
 }
 
-/** Long-term memory stored per scope (`/api/v1/scopes/{id}/memories`). */
+/** Long-term memory stored per scope. */
 export class ScopeMemoriesResource {
   constructor(
     private readonly http: HttpClient,
@@ -23,6 +23,14 @@ export class ScopeMemoriesResource {
     private readonly scopeId: number | string,
   ) {}
 
+  /**
+   * List memories stored for this scope.
+   *
+   * @param options.pageSize - Items per page (default 25).
+   * @param options.pageToken - Token from a previous page's `nextPageToken`.
+   * @param options.userId - Optional end-user id when memories are scoped per user.
+   * @returns A page of memories.
+   */
   list(options: {
     pageSize?: number
     pageToken?: string
@@ -55,6 +63,12 @@ export class ScopeMemoriesResource {
     )
   }
 
+  /**
+   * Search this scope's memories by natural-language query.
+   *
+   * @param request - Query text and optional `userId` / `limit`.
+   * @returns Matching memories and relevance scores.
+   */
   async search(request: MemorySearchRequest): Promise<MemorySearchResult> {
     validateId(this.scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, 'ScopeMemoriesController_search', {
@@ -64,6 +78,14 @@ export class ScopeMemoriesResource {
     return data as MemorySearchResult
   }
 
+  /**
+   * Update one memory. Requires manage permission on the scope.
+   *
+   * @param memoryId - Id from list or search.
+   * @param update - Fields to change (`memory` and/or `metadata`).
+   * @param options.updateMask - Optional comma-separated field names to update.
+   * @returns The updated memory.
+   */
   async update(
     memoryId: string,
     update: MemoryUpdate,
@@ -79,6 +101,7 @@ export class ScopeMemoriesResource {
     return parseMemory(data)
   }
 
+  /** Delete one memory (idempotent). */
   async delete(memoryId: string): Promise<void> {
     validateId(memoryId, 'memory_id')
     validateId(this.scopeId, 'scope_id')

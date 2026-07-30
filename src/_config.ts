@@ -1,4 +1,5 @@
 import {
+  deriveAgentHostFromBaseUrl,
   resolveAgentHost,
   resolveApiKey,
   resolveBaseUrl,
@@ -13,24 +14,33 @@ export const DEFAULT_TIMEOUT_MS = 300_000
 export const DEFAULT_MAX_RETRIES = 2
 
 export interface ModusOptions {
+  /** Modus API key. Falls back to the `MODUS_API_KEY` environment variable. */
   apiKey?: string
+  /** API origin without a path suffix (default `https://api.getmodus.com`). */
   baseUrl?: string
-  /** Agent host origin for streaming runs (default https://agent.getmodus.com). */
+  /**
+   * Agent-host origin for streaming runs.
+   * @internal Staging/local escape hatch — not part of the public client surface.
+   */
   agentHost?: string
   /**
-   * Optional Clerk organization id for agent-host run bodies. Usually omit —
-   * agent-service uses the PAT principal's org.
+   * Optional org id for agent-host run bodies.
+   * @internal Usually omit; the PAT principal's org is used.
    */
   organizationId?: string
   /**
-   * Override service-specific API origins, for example:
-   * `{ 'agent-service': 'http://localhost:3130' }`.
+   * Per-service origin overrides (e.g. agent-service).
+   * @internal Local/dev escape hatch — not part of the public client surface.
    */
   baseUrls?: Record<string, string>
-  /** Request timeout in milliseconds. */
+  /** Request timeout in milliseconds (default 300000). */
   timeoutMs?: number
+  /** Retries on rate limits and server errors (default 2). */
   maxRetries?: number
-  /** Test injection only. */
+  /**
+   * Custom fetch implementation.
+   * @internal Test injection only.
+   */
   fetch?: typeof fetch
 }
 
@@ -66,9 +76,12 @@ export function createModusConfig(options: ModusOptions = {}): ModusConfig {
   const baseUrl = normalizeBaseUrl(resolveBaseUrl(options.baseUrl) ?? DEFAULT_BASE_URL)
   const baseUrlOverrides = normalizeBaseUrls(options.baseUrls)
   // baseUrls['agent-service'] must drive streaming too (same origin as invoke).
+  // When unset, derive agent.<rest> from api.<rest> baseUrl so staging chat
+  // works with only the API origin env override (no separate agent-host override).
   const agentHost = normalizeBaseUrl(
     baseUrlOverrides['agent-service'] ??
       resolveAgentHost(options.agentHost) ??
+      deriveAgentHostFromBaseUrl(baseUrl) ??
       DEFAULT_AGENT_HOST,
   )
   const organizationId = resolveOrganizationId(options.organizationId)

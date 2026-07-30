@@ -18,6 +18,13 @@ export class ModusResource {
     this.conversations = new ModusConversationsResource(http, config)
   }
 
+  /**
+   * Return composed full-environment context for an intent, without running chat.
+   *
+   * @param message - User intent or question to compose context for.
+   * @param options.limit - Optional cap on structured fallback items.
+   * @returns Composed Modus context.
+   */
   async getContext(
     message: string,
     options: { limit?: number } = {},
@@ -28,10 +35,32 @@ export class ModusResource {
     return data as ModusContextComposition
   }
 
+  /**
+   * Send a message to Modus (org-wide assistant) and get the complete reply.
+   *
+   * @param message - Message to send.
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
+   * @param options.threadId - Continue an existing conversation.
+   * @returns Chat result with content and threadId.
+   *
+   * @example
+   * ```ts
+   * const result = await client.modus.chat('What tables describe revenue?', { model: 'claude-sonnet-5' })
+   * console.log(result.content, result.threadId)
+   * ```
+   */
   chat(message: string, options: { model: ChatModel; threadId?: string }): Promise<ChatResult> {
     return modusChatBuffered(this.http, message, options)
   }
 
+  /**
+   * Stream a Modus reply token by token.
+   *
+   * @param message - Message to send.
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
+   * @param options.threadId - Continue an existing conversation.
+   * @returns Chat stream.
+   */
   chatStream(message: string, options: { model: ChatModel; threadId?: string }): ChatStream {
     return modusChatStreamSession(this.http, this.config, message, options)
   }
