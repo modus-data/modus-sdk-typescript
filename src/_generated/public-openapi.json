@@ -15471,13 +15471,13 @@
           },
           "connectionId": {
             "type": "string",
-            "description": "Originating integration connection id for integration-derived items. Null for user-created items.",
+            "description": "Originating integration connection id, or a virtual connection id such as `custom` or `files` for org-owned context.",
             "nullable": true,
             "example": "00000000-0000-4000-a000-000000000111"
           },
           "selectionId": {
             "type": "string",
-            "description": "Originating selection id (datamap-scoped) for integration-derived items.",
+            "description": "Datamap selection id. For custom context, this is the customer-defined source id.",
             "nullable": true,
             "example": "00000000-0000-4000-a000-000000000222"
           },
@@ -16166,8 +16166,9 @@
             "example": "custom_entity_metadata"
           },
           "dataPath": {
-            "description": "Hierarchical path used to group custom context.",
+            "description": "Canonical hierarchy path rooted at the virtual `custom` connection and the customer-defined source.",
             "example": [
+              "custom",
               "billing-db",
               "contracts",
               "contract-123"

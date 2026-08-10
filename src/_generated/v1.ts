@@ -2066,12 +2066,12 @@ export interface components {
              */
             topics: string[];
             /**
-             * @description Originating integration connection id for integration-derived items. Null for user-created items.
+             * @description Originating integration connection id, or a virtual connection id such as `custom` or `files` for org-owned context.
              * @example 00000000-0000-4000-a000-000000000111
              */
             connectionId?: string | null;
             /**
-             * @description Originating selection id (datamap-scoped) for integration-derived items.
+             * @description Datamap selection id. For custom context, this is the customer-defined source id.
              * @example 00000000-0000-4000-a000-000000000222
              */
             selectionId?: string | null;
@@ -2523,8 +2523,9 @@ export interface components {
              */
             contextType: string;
             /**
-             * @description Hierarchical path used to group custom context.
+             * @description Canonical hierarchy path rooted at the virtual `custom` connection and the customer-defined source.
              * @example [
+             *       "custom",
              *       "billing-db",
              *       "contracts",
              *       "contract-123"
