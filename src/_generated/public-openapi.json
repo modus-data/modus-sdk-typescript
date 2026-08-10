@@ -3541,6 +3541,29 @@
             }
           },
           {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`.",
+            "schema": {
+              "example": "context_chat",
+              "type": "string",
+              "enum": [
+                "home",
+                "agent_settings",
+                "agent",
+                "api",
+                "modus_api",
+                "mcp",
+                "slack",
+                "slack_dm",
+                "teams",
+                "context_chat",
+                "other"
+              ]
+            }
+          },
+          {
             "name": "timeframe",
             "required": false,
             "in": "query",
@@ -5408,6 +5431,29 @@
             "schema": {
               "example": "sql_runner",
               "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`.",
+            "schema": {
+              "example": "context_chat",
+              "type": "string",
+              "enum": [
+                "home",
+                "agent_settings",
+                "agent",
+                "api",
+                "modus_api",
+                "mcp",
+                "slack",
+                "slack_dm",
+                "teams",
+                "context_chat",
+                "other"
+              ]
             }
           },
           {
@@ -15560,6 +15606,12 @@
             "nullable": true,
             "description": "User-managed display title. Null until the user renames the conversation.",
             "example": "Q3 Revenue Analysis"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown, absent on responses that predate the field.",
+            "example": "context_chat"
           },
           "messageCount": {
             "type": "number",

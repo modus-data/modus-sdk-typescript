@@ -2159,6 +2159,11 @@ export interface components {
              */
             title: string | null;
             /**
+             * @description UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown, absent on responses that predate the field.
+             * @example context_chat
+             */
+            source?: string | null;
+            /**
              * @description Total number of message turns in the (post-collapse) conversation.
              * @example 12
              */
@@ -7106,6 +7111,8 @@ export interface operations {
                 userId?: string;
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
+                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "other";
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
@@ -8561,6 +8568,8 @@ export interface operations {
                 userId?: string;
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
+                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "other";
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
