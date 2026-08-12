@@ -11,16 +11,18 @@ import {
   resolveAndUpdateSavedQuery,
   type UserFeedback,
 } from './_content-merge.js'
+import { ManagementContextFilesResource } from './files.js'
 import { ManagementContextItemsResource } from './items.js'
 
 /**
- * Create and update context items (notes, links, saved queries).
+ * Create and update context items (notes, links, saved queries, file uploads).
  *
  * Call path: `mgmt.context` after `new ModusManagement(...)`.
  */
 export class ManagementContextResource {
   readonly items: ManagementContextItemsResource
   readonly customItems: CustomContextItemsResource
+  readonly files: ManagementContextFilesResource
 
   /** @internal */
   constructor(
@@ -29,6 +31,7 @@ export class ManagementContextResource {
   ) {
     this.items = new ManagementContextItemsResource(http, config)
     this.customItems = new CustomContextItemsResource(http, config)
+    this.files = new ManagementContextFilesResource(http, config)
   }
 
   /**

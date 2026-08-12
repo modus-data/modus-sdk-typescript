@@ -92,6 +92,14 @@ export const OPERATIONS: Record<string, string> = {
   CustomContextItemsController_batchCreate: 'mgmt.context.customItems.batchCreate()',
   CustomContextItemsController_update: 'mgmt.context.customItems.update()',
   CustomContextItemsController_delete: 'mgmt.context.customItems.delete()',
+  ContextFilesController_uploadUrl:
+    'mgmt.context.files.createUploadUrl(); convenience: upload(), uploadDir()',
+  ContextFilesController_uploadUrls:
+    'mgmt.context.files.createUploadUrls(); convenience: upload(), uploadDir()',
+  ContextFilesController_uploadFromUrl: 'mgmt.context.files.uploadFromUrl()',
+  ContextFilesController_uploadFromUrls: 'mgmt.context.files.uploadFromUrls()',
+  ContextFilesController_get: 'mgmt.context.files.get()',
+  ContextFilesController_list: 'mgmt.context.files.list()',
   // --- Connections ---
   ConnectionsController_list: 'client.connections.list()',
   // --- Suggestions ---
