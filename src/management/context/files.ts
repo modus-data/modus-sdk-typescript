@@ -29,50 +29,14 @@ const DEFAULT_CONCURRENCY = 10
 const STATUS_ORDER: Record<string, number> = { pending: 0, processing: 1, ready: 2 }
 const WAIT_UNTIL_VALUES = new Set<WaitUntil>(['processing', 'ready'])
 
-// simplification: small extension→MIME map covering the documented allow-list
-// (PDF, images, text, Office/OpenDocument, audio, video) — Node has no stdlib
-// mimetypes module. Upgrade path: swap in the `mime` package if broader
-// extension coverage is ever needed.
-const EXTENSION_CONTENT_TYPES: Record<string, string> = {
-  '.pdf': 'application/pdf',
-  '.txt': 'text/plain',
-  '.csv': 'text/csv',
-  '.md': 'text/markdown',
-  '.html': 'text/html',
-  '.htm': 'text/html',
-  '.json': 'application/json',
-  '.xml': 'application/xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-  '.svg': 'image/svg+xml',
-  '.bmp': 'image/bmp',
-  '.tiff': 'image/tiff',
-  '.doc': 'application/msword',
-  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  '.xls': 'application/vnd.ms-excel',
-  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  '.ppt': 'application/vnd.ms-powerpoint',
-  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  '.odt': 'application/vnd.oasis.opendocument.text',
-  '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
-  '.odp': 'application/vnd.oasis.opendocument.presentation',
-  '.mp3': 'audio/mpeg',
-  '.wav': 'audio/wav',
-  '.m4a': 'audio/mp4',
-  '.mp4': 'video/mp4',
-  '.mov': 'video/quicktime',
-  '.avi': 'video/x-msvideo',
-  '.webm': 'video/webm',
-}
-
-function guessContentType(fileName: string): string {
-  const dot = fileName.lastIndexOf('.')
-  if (dot < 0) return 'application/octet-stream'
-  return EXTENSION_CONTENT_TYPES[fileName.slice(dot).toLowerCase()] ?? 'application/octet-stream'
-}
+/**
+ * The server owns the extension→MIME table (`EXTENSION_MIME_MAP` in
+ * `@modus/file-uploads`) and resolves it whenever a client sends
+ * `application/octet-stream`. Sending that instead of guessing locally keeps
+ * one source of truth: a client-side table inevitably drifts from the server's
+ * allow-list, and a guess the server rejects fails the upload for no reason.
+ */
+const DEFER_CONTENT_TYPE_TO_SERVER = 'application/octet-stream'
 
 function validateWaitUntil(waitUntil: string): asserts waitUntil is WaitUntil {
   if (!WAIT_UNTIL_VALUES.has(waitUntil as WaitUntil)) {
@@ -347,7 +311,7 @@ export class ManagementContextFilesResource {
     const fileName = path.split(/[/\\]/).pop() as string
     const slot = await this.createUploadUrl({
       fileName,
-      contentType: guessContentType(fileName),
+      contentType: DEFER_CONTENT_TYPE_TO_SERVER,
       fileSize: fileStat.size,
     })
     const data = await readFile(path)
@@ -427,7 +391,7 @@ export class ManagementContextFilesResource {
       try {
         const fileStat = await stat(path)
         const fileName = path.split(/[/\\]/).pop() as string
-        inputs.push({ fileName, contentType: guessContentType(fileName), fileSize: fileStat.size })
+        inputs.push({ fileName, contentType: DEFER_CONTENT_TYPE_TO_SERVER, fileSize: fileStat.size })
         readable.push(path)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
