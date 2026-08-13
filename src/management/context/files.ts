@@ -7,9 +7,11 @@ import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry } from '../../_request.js'
 import { validateId, validatePageSize } from '../../_validation.js'
 import type {
+  BulkFinalizeResult,
   BulkUploadFromUrlsResult,
   BulkUploadUrlsResult,
   FileUpload,
+  FinalizeInput,
   UploadDirFailure,
   UploadDirResult,
   UploadFromUrlInput,
@@ -187,7 +189,10 @@ export class ManagementContextFilesResource {
    *   Office/OpenDocument documents, audio, and video.
    * @param input.fileSize - File size in bytes. Rejected above 50MB.
    * @returns Presigned upload slot. PUT the raw bytes to `uploadUrl` within 15
-   *   minutes, then poll `get(uploadId)` — there is no separate finalize call.
+   *   minutes, then call `finalize(slot.uploadId, slot.fileName)`. Pass the
+   *   slot's own `fileName` rather than your local basename — the server may
+   *   sanitize the requested name when it mints the key, and finalization
+   *   re-derives the key from `uploadId` and `fileName`.
    */
   async createUploadUrl(input: UploadUrlInput): Promise<UploadUrlSlot> {
     return asRecord(
@@ -286,6 +291,64 @@ export class ManagementContextFilesResource {
     return buildAipPage(data, 'files', (raw) => raw as FileUpload, (token) => this.listPage(pageSize, token))
   }
 
+
+  /**
+   * Turn a file already PUT to a presigned URL into durable context.
+   *
+   * Call this once the PUT completes. The server locates the object from
+   * `uploadId` + `fileName` and validates the bytes that actually arrived.
+   * Safe to retry — a second call returns the same resource.
+   *
+   * @param uploadId - Upload id returned by `createUploadUrl`.
+   * @param fileName - File name returned alongside it.
+   * @returns The file upload resource, status `"processing"`.
+   */
+  async finalize(uploadId: string, fileName: string): Promise<FileUpload> {
+    validateId(uploadId, 'uploadId')
+    return asRecord(
+      await invokeWithRetry(this.config, this.http, 'ContextFilesController_finalize', {
+        pathParams: { uploadId },
+        jsonBody: { fileName },
+      }),
+    ) as unknown as FileUpload
+  }
+
+  /**
+   * Finalize up to 100 uploads in one call.
+   *
+   * What makes directory upload cheap: 2000 files cost 20 requests here rather
+   * than 2000.
+   *
+   * @param uploads - Uploads to finalize (max 100).
+   * @returns Resources for every upload that finalized, plus per-index
+   *   failures for the rest — never a partial 4xx.
+   */
+  async finalizeMany(uploads: readonly FinalizeInput[]): Promise<BulkFinalizeResult> {
+    validateBulkSize(uploads.length, 'uploads')
+    return asRecord(
+      await invokeWithRetry(this.config, this.http, 'ContextFilesController_finalizeMany', {
+        jsonBody: { uploads: uploads.map((u) => ({ uploadId: u.uploadId, fileName: u.fileName })) },
+      }),
+    ) as unknown as BulkFinalizeResult
+  }
+
+  /**
+   * Upload an explicit list of local files.
+   *
+   * Same machinery as `uploadDir`, without the directory walk — use it when
+   * the caller already knows which files to send.
+   *
+   * @param paths - Paths to local files.
+   * @param options.concurrency - Max concurrent PUTs (default 10).
+   * @param options.waitUntil - `"processing"` (default) or `"ready"`.
+   */
+  async uploadFiles(
+    paths: readonly string[],
+    options: { concurrency?: number; waitUntil?: WaitUntil } = {},
+  ): Promise<UploadDirResult> {
+    return this.uploadPaths([...paths], options)
+  }
+
   /**
    * Upload a local file and wait for it to reach `"processing"` or `"ready"`.
    *
@@ -316,6 +379,11 @@ export class ManagementContextFilesResource {
     })
     const data = await readFile(path)
     await putBytes(this.config.fetch, slot.uploadUrl, data, slot.contentType, DEFAULT_PUT_TIMEOUT_MS)
+    // Finalize returns the resource already at `processing`, so it replaces the
+    // first poll rather than adding a round trip. Only `waitUntil: 'ready'`
+    // needs to keep polling afterwards.
+    const finalized = await this.finalize(slot.uploadId, slot.fileName)
+    if (statusSatisfies(finalized.status, waitUntil)) return finalized
     return this.pollUntil(
       slot.uploadId,
       waitUntil,
@@ -370,9 +438,23 @@ export class ManagementContextFilesResource {
     const dirStat = await stat(path)
     if (!dirStat.isDirectory()) throw new Error(`Not a directory: ${path}`)
 
+    const files = await walkFiles(path, options.recursive ?? true)
+    return this.uploadPaths(files, options)
+  }
+
+  /** Shared body of `uploadFiles` and `uploadDir`: presign in batches of 100,
+   * PUT with bounded concurrency, then bulk-finalize the batch. */
+  private async uploadPaths(
+    files: readonly string[],
+    options: { concurrency?: number; waitUntil?: WaitUntil },
+  ): Promise<UploadDirResult> {
+    const waitUntil = options.waitUntil ?? 'processing'
+    validateWaitUntil(waitUntil)
+    const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY
+    if (concurrency < 1) throw new Error(`concurrency must be >= 1, got ${concurrency}`)
+
     const uploaded: FileUpload[] = []
     const failed: UploadDirFailure[] = []
-    const files = await walkFiles(path, options.recursive ?? true)
     for (const batch of chunked(files, MAX_BULK_UPLOAD_FILES)) {
       const slots = await this.createSlots(batch, failed)
       const results = await this.uploadBatch(slots, waitUntil, concurrency)
@@ -409,15 +491,59 @@ export class ManagementContextFilesResource {
     concurrency: number,
   ): Promise<(FileUpload | UploadDirFailure)[]> {
     if (slots.length === 0) return []
-    return mapWithConcurrency(slots, concurrency, async ({ path, slot }) => {
+    const out: (FileUpload | UploadDirFailure)[] = []
+
+    // PUT everything first, collecting the ones whose bytes landed.
+    type PutOutcome = { landed: SlotAssignment } | { failure: UploadDirFailure }
+    const put = await mapWithConcurrency<SlotAssignment, PutOutcome>(
+      slots,
+      concurrency,
+      async ({ path, slot }) => {
+        try {
+          const data = await readFile(path)
+          await putBytes(this.config.fetch, slot.uploadUrl, data, slot.contentType, DEFAULT_PUT_TIMEOUT_MS)
+          return { landed: { path, slot } }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          return { failure: { path, error: message } }
+        }
+      },
+    )
+    const landed: SlotAssignment[] = []
+    for (const entry of put) {
+      if ('failure' in entry) out.push(entry.failure)
+      else landed.push(entry.landed)
+    }
+    if (landed.length === 0) return out
+
+    // One bulk finalize for the whole batch — the reason a 2000-file directory
+    // costs 20 requests here instead of 2000.
+    const result = await this.finalizeMany(
+      landed.map(({ slot }) => ({ uploadId: slot.uploadId, fileName: slot.fileName })),
+    )
+    const failedIndices = new Set(result.failed.map((f) => f.index))
+    for (const f of result.failed) {
+      out.push({ path: landed[f.index]?.path ?? '', error: f.error })
+    }
+    const finalized = result.finalized
+    const remaining = landed.filter((_, i) => !failedIndices.has(i))
+
+    if (waitUntil !== 'ready') {
+      out.push(...finalized)
+      return out
+    }
+
+    // Only `ready` needs polling; `processing` is already satisfied by the
+    // finalize response.
+    const polled = await mapWithConcurrency(remaining, concurrency, async ({ path, slot }) => {
       try {
-        const data = await readFile(path)
-        await putBytes(this.config.fetch, slot.uploadUrl, data, slot.contentType, DEFAULT_PUT_TIMEOUT_MS)
         return await this.pollUntil(slot.uploadId, waitUntil, DEFAULT_POLL_INTERVAL_MS, DEFAULT_UPLOAD_TIMEOUT_MS)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
         return { path, error: message }
       }
     })
+    out.push(...polled)
+    return out
   }
 }

@@ -101,14 +101,27 @@ describe('ManagementContextFilesResource raw operations', () => {
 })
 
 describe('ManagementContextFilesResource.upload', () => {
-  it('presigns, PUTs bytes, and polls until processing', async () => {
+  it('presigns, PUTs bytes, and finalizes without needing a poll', async () => {
     const filePath = join(dir, 'report.txt')
     await writeFile(filePath, 'hello world')
 
     let getCalls = 0
+    let finalizeCalls = 0
     const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.includes('/uploadUrl')) return jsonResponse(slotFor('report.txt'))
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        finalizeCalls++
+        expect(JSON.parse(String(init?.body))).toEqual({ fileName: 'report.txt' })
+        return jsonResponse({ uploadId: url.split('/').slice(-2)[0], status: 'processing' })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
       if (url.startsWith(S3_HOST)) {
         expect(init?.method).toBe('PUT')
         return new Response(null, { status: 200 })
@@ -122,7 +135,10 @@ describe('ManagementContextFilesResource.upload', () => {
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
     const result = await mgmt.context.files.upload(filePath)
     expect(result.status).toBe('processing')
-    expect(getCalls).toBe(1)
+    expect(finalizeCalls).toBe(1)
+    // Finalize already returns `processing`, so the default waitUntil is
+    // satisfied without a poll — same request count as the old poll-based flow.
+    expect(getCalls).toBe(0)
   })
 
   it('rejects an invalid waitUntil before any request', async () => {
@@ -175,6 +191,16 @@ describe('ManagementContextFilesResource.uploadDir', () => {
           failed: [],
         })
       }
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        return jsonResponse({ uploadId: url.split('/').slice(-2)[0], status: 'processing' })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
       if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
       if (url.includes('/context/files/upload-')) {
         const uploadId = url.split('/').pop() as string
@@ -202,6 +228,16 @@ describe('ManagementContextFilesResource.uploadDir', () => {
         batchSizes.push(body.files.length)
         return jsonResponse({
           uploaded: body.files.map((f) => slotFor(f.fileName)),
+          failed: [],
+        })
+      }
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        return jsonResponse({ uploadId: url.split('/').slice(-2)[0], status: 'processing' })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
           failed: [],
         })
       }
@@ -234,6 +270,16 @@ describe('ManagementContextFilesResource.uploadDir', () => {
           failed: [],
         })
       }
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        return jsonResponse({ uploadId: url.split('/').slice(-2)[0], status: 'processing' })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
       if (url.startsWith(S3_HOST)) {
         inFlight++
         maxInFlight = Math.max(maxInFlight, inFlight)
@@ -263,6 +309,16 @@ describe('ManagementContextFilesResource.uploadDir', () => {
         const body = JSON.parse(String(init?.body)) as { files: { fileName: string }[] }
         return jsonResponse({
           uploaded: body.files.map((f) => slotFor(f.fileName)),
+          failed: [],
+        })
+      }
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        return jsonResponse({ uploadId: url.split('/').slice(-2)[0], status: 'processing' })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
           failed: [],
         })
       }
@@ -300,6 +356,16 @@ describe('ManagementContextFilesResource.uploadDir', () => {
             badIndex >= 0
               ? [{ index: badIndex, fileName: 'bad.exe', error: 'File type not allowed' }]
               : [],
+        })
+      }
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        return jsonResponse({ uploadId: url.split('/').slice(-2)[0], status: 'processing' })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
+          failed: [],
         })
       }
       if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })

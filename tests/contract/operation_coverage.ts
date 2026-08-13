@@ -98,6 +98,8 @@ export const OPERATIONS: Record<string, string> = {
     'mgmt.context.files.createUploadUrls(); convenience: upload(), uploadDir()',
   ContextFilesController_uploadFromUrl: 'mgmt.context.files.uploadFromUrl()',
   ContextFilesController_uploadFromUrls: 'mgmt.context.files.uploadFromUrls()',
+  ContextFilesController_finalize: 'mgmt.context.files.finalize()',
+  ContextFilesController_finalizeMany: 'mgmt.context.files.finalizeMany()',
   ContextFilesController_get: 'mgmt.context.files.get()',
   ContextFilesController_list: 'mgmt.context.files.list()',
   // --- Connections ---
