@@ -28,6 +28,9 @@ const DEFAULT_PUT_TIMEOUT_MS = 60_000
 const DEFAULT_POLL_INTERVAL_MS = 500
 const DEFAULT_UPLOAD_TIMEOUT_MS = 120_000
 const DEFAULT_CONCURRENCY = 10
+// `pending` is gone from the public enum: an upload has no resource until it
+// is finalized. Kept at rank 0 so an older server still reporting it is
+// ordered below `processing` rather than treated as unknown.
 const STATUS_ORDER: Record<string, number> = { pending: 0, processing: 1, ready: 2 }
 const WAIT_UNTIL_VALUES = new Set<WaitUntil>(['processing', 'ready'])
 

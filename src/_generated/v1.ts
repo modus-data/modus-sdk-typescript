@@ -3111,7 +3111,7 @@ export interface components {
          * @description Current processing status.
          * @enum {string}
          */
-        FileUploadResourceStatus: "pending" | "processing" | "ready" | "failed";
+        FileUploadResourceStatus: "processing" | "ready" | "failed";
         FinalizeUploadDto: {
             /**
              * @description File name returned by `uploadUrl`, used to locate the uploaded object.
