@@ -36,6 +36,16 @@ export interface UploadDirResult {
   failed: UploadDirFailure[]
 }
 
+/** Progress event after each file succeeds or fails in a batch upload. */
+export interface UploadProgress {
+  completed: number
+  total: number
+  succeeded: number
+  failed: number
+}
+
+export type UploadProgressCallback = (progress: UploadProgress) => void
+
 /** One entry of a bulk finalize request. */
 export interface FinalizeInput {
   uploadId: string

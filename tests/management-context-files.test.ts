@@ -380,4 +380,74 @@ describe('ManagementContextFilesResource.uploadDir', () => {
     expect(result.uploaded).toHaveLength(1)
     expect(result.failed).toEqual([{ path: join(dir, 'bad.exe'), error: 'File type not allowed' }])
   })
+
+  it('calls onProgress with completed/total/succeeded/failed after each file', async () => {
+    await writeFile(join(dir, 'a.txt'), 'a')
+    await writeFile(join(dir, 'b.txt'), 'b')
+
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        const body = JSON.parse(String(init?.body)) as { files: { fileName: string }[] }
+        return jsonResponse({
+          uploaded: body.files.map((f) => slotFor(f.fileName)),
+          failed: [],
+        })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const ticks: Array<{ completed: number; total: number; succeeded: number; failed: number }> = []
+    const result = await mgmt.context.files.uploadFiles([join(dir, 'a.txt'), join(dir, 'b.txt')], {
+      onProgress: (p) => ticks.push(p),
+    })
+    expect(result.uploaded).toHaveLength(2)
+    expect(ticks).toEqual([
+      { completed: 1, total: 2, succeeded: 1, failed: 0 },
+      { completed: 2, total: 2, succeeded: 2, failed: 0 },
+    ])
+  })
+
+  it('counts slot failures in onProgress and continues', async () => {
+    await writeFile(join(dir, 'good.txt'), 'ok')
+    await writeFile(join(dir, 'bad.exe'), 'x')
+
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        return jsonResponse({
+          uploaded: [slotFor('good.txt')],
+          failed: [{ index: 0, fileName: 'bad.exe', error: 'File type not allowed' }],
+        })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: { uploadId: string; fileName: string }[] }
+        return jsonResponse({
+          finalized: body.uploads.map((u) => ({ uploadId: u.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const ticks: Array<{ completed: number; total: number; succeeded: number; failed: number }> = []
+    const result = await mgmt.context.files.uploadDir(dir, {
+      onProgress: (p) => ticks.push(p),
+    })
+    expect(result.uploaded).toHaveLength(1)
+    expect(result.failed).toHaveLength(1)
+    expect(ticks).toEqual([
+      { completed: 1, total: 2, succeeded: 0, failed: 1 },
+      { completed: 2, total: 2, succeeded: 1, failed: 1 },
+    ])
+  })
 })

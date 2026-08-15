@@ -60,6 +60,8 @@ export type {
   UploadDirFailure,
   UploadDirResult,
   UploadFromUrlInput,
+  UploadProgress,
+  UploadProgressCallback,
   UploadUrlInput,
   UploadUrlSlot,
   WaitUntil,

@@ -15,6 +15,7 @@ import type {
   UploadDirFailure,
   UploadDirResult,
   UploadFromUrlInput,
+  UploadProgressCallback,
   UploadUrlInput,
   UploadUrlSlot,
   WaitUntil,
@@ -76,6 +77,7 @@ async function mapWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,
   worker: (item: T) => Promise<R>,
+  onItemDone?: (result: R) => void,
 ): Promise<R[]> {
   const results: R[] = new Array(items.length)
   let cursor = 0
@@ -83,7 +85,9 @@ async function mapWithConcurrency<T, R>(
     for (;;) {
       const index = cursor++
       if (index >= items.length) return
-      results[index] = await worker(items[index] as T)
+      const result = await worker(items[index] as T)
+      results[index] = result
+      onItemDone?.(result)
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, run))
@@ -344,10 +348,15 @@ export class ManagementContextFilesResource {
    * @param paths - Paths to local files.
    * @param options.concurrency - Max concurrent PUTs (default 10).
    * @param options.waitUntil - `"processing"` (default) or `"ready"`.
+   * @param options.onProgress - Optional progress callback after each file.
    */
   async uploadFiles(
     paths: readonly string[],
-    options: { concurrency?: number; waitUntil?: WaitUntil } = {},
+    options: {
+      concurrency?: number
+      waitUntil?: WaitUntil
+      onProgress?: UploadProgressCallback
+    } = {},
   ): Promise<UploadDirResult> {
     return this.uploadPaths([...paths], options)
   }
@@ -427,12 +436,18 @@ export class ManagementContextFilesResource {
    * @param options.recursive - Recurse into subdirectories (default `true`).
    * @param options.concurrency - Max concurrent PUT+poll operations (default 10).
    * @param options.waitUntil - `"processing"` (default) or `"ready"` — same as `upload()`.
+   * @param options.onProgress - Optional progress callback after each file.
    * @returns `UploadDirResult` with every successful `FileUpload` and every
    *   per-file failure (slot creation or PUT/poll), each tagged with its local path.
    */
   async uploadDir(
     path: string,
-    options: { recursive?: boolean; concurrency?: number; waitUntil?: WaitUntil } = {},
+    options: {
+      recursive?: boolean
+      concurrency?: number
+      waitUntil?: WaitUntil
+      onProgress?: UploadProgressCallback
+    } = {},
   ): Promise<UploadDirResult> {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
@@ -449,7 +464,7 @@ export class ManagementContextFilesResource {
    * PUT with bounded concurrency, then bulk-finalize the batch. */
   private async uploadPaths(
     files: readonly string[],
-    options: { concurrency?: number; waitUntil?: WaitUntil },
+    options: { concurrency?: number; waitUntil?: WaitUntil; onProgress?: UploadProgressCallback },
   ): Promise<UploadDirResult> {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
@@ -458,13 +473,27 @@ export class ManagementContextFilesResource {
 
     const uploaded: FileUpload[] = []
     const failed: UploadDirFailure[] = []
+    const total = files.length
+    let completed = 0
+    const emit = () => {
+      completed += 1
+      options.onProgress?.({
+        completed,
+        total,
+        succeeded: uploaded.length,
+        failed: failed.length,
+      })
+    }
+
     for (const batch of chunked(files, MAX_BULK_UPLOAD_FILES)) {
+      const failedBefore = failed.length
       const slots = await this.createSlots(batch, failed)
-      const results = await this.uploadBatch(slots, waitUntil, concurrency)
-      for (const result of results) {
+      for (let i = failedBefore; i < failed.length; i += 1) emit()
+      await this.uploadBatch(slots, waitUntil, concurrency, (result) => {
         if ('error' in result) failed.push(result)
         else uploaded.push(result)
-      }
+        emit()
+      })
     }
     return { uploaded, failed }
   }
@@ -492,6 +521,7 @@ export class ManagementContextFilesResource {
     slots: readonly SlotAssignment[],
     waitUntil: WaitUntil,
     concurrency: number,
+    onOutcome?: (result: FileUpload | UploadDirFailure) => void,
   ): Promise<(FileUpload | UploadDirFailure)[]> {
     if (slots.length === 0) return []
     const out: (FileUpload | UploadDirFailure)[] = []
@@ -511,11 +541,22 @@ export class ManagementContextFilesResource {
           return { failure: { path, error: message } }
         }
       },
+      (outcome) => {
+        // Emit PUT failures as each concurrent worker finishes — do not wait for
+        // the rest of the batch / finalize before progress moves.
+        if ('failure' in outcome) {
+          out.push(outcome.failure)
+          onOutcome?.(outcome.failure)
+        }
+      },
     )
     const landed: SlotAssignment[] = []
     for (const entry of put) {
-      if ('failure' in entry) out.push(entry.failure)
-      else landed.push(entry.landed)
+      if ('failure' in entry) {
+        // already recorded + emitted in onItemDone
+        continue
+      }
+      landed.push(entry.landed)
     }
     if (landed.length === 0) return out
 
@@ -526,27 +567,39 @@ export class ManagementContextFilesResource {
     )
     const failedIndices = new Set(result.failed.map((f) => f.index))
     for (const f of result.failed) {
-      out.push({ path: landed[f.index]?.path ?? '', error: f.error })
+      const failure: UploadDirFailure = { path: landed[f.index]?.path ?? '', error: f.error }
+      out.push(failure)
+      onOutcome?.(failure)
     }
     const finalized = result.finalized
     const remaining = landed.filter((_, i) => !failedIndices.has(i))
 
     if (waitUntil !== 'ready') {
-      out.push(...finalized)
+      for (const item of finalized) {
+        out.push(item)
+        onOutcome?.(item)
+      }
       return out
     }
 
     // Only `ready` needs polling; `processing` is already satisfied by the
     // finalize response.
-    const polled = await mapWithConcurrency(remaining, concurrency, async ({ path, slot }) => {
-      try {
-        return await this.pollUntil(slot.uploadId, waitUntil, DEFAULT_POLL_INTERVAL_MS, DEFAULT_UPLOAD_TIMEOUT_MS)
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        return { path, error: message }
-      }
-    })
-    out.push(...polled)
+    await mapWithConcurrency(
+      remaining,
+      concurrency,
+      async ({ path, slot }) => {
+        try {
+          return await this.pollUntil(slot.uploadId, waitUntil, DEFAULT_POLL_INTERVAL_MS, DEFAULT_UPLOAD_TIMEOUT_MS)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          return { path, error: message } satisfies UploadDirFailure
+        }
+      },
+      (item) => {
+        out.push(item)
+        onOutcome?.(item)
+      },
+    )
     return out
   }
 }
