@@ -33,6 +33,7 @@ const SAMPLE_SUGGESTION = {
 }
 const SAMPLE_VALUE_ENTRY = { value: 123 }
 const SAMPLE_MEMORY = { id: 'mem_01', memory: 'User prefers bullet points.' }
+const SAMPLE_FILE_UPLOAD = { uploadId: '7a3f9d2c-1111-4000-a000-000000000abc', status: 'ready' }
 const SAMPLE_CONVERSATION_LIST_ITEM = {
   threadId: 'thread-0',
   scopeId: 42,
@@ -122,6 +123,17 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
         pageSize: 25,
         pageToken: 'tok_abc',
       }),
+  },
+  {
+    operationId: 'ContextFilesController_list',
+    mockUrlSuffix: '/api/v1/context/files',
+    itemsKey: 'files',
+    wrongItemsKey: 'scopes',
+    sampleItem: SAMPLE_FILE_UPLOAD,
+    clientKind: 'management',
+    expectedPageSize: 50,
+    invoke: (c) =>
+      (c as ModusManagement).context.files.list({ pageSize: 50, pageToken: 'tok_abc' }),
   },
   {
     operationId: 'ContextItemsController_listValues',

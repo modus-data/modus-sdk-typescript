@@ -50,6 +50,20 @@ export type {
   WorkflowGraphInput,
 } from './workflows/agents.js'
 export type { UserFeedback } from './context/context.js'
+export type {
+  BulkUploadFromUrlsResult,
+  BulkUploadUrlsResult,
+  FailedUploadFromUrl,
+  FailedUploadUrl,
+  FileUpload,
+  FileUploadStatus,
+  UploadDirFailure,
+  UploadDirResult,
+  UploadFromUrlInput,
+  UploadUrlInput,
+  UploadUrlSlot,
+  WaitUntil,
+} from '../types/context-files.js'
 export type { ToolsetInput } from './types/toolset.js'
 export type {
   Memory,
