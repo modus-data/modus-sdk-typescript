@@ -488,7 +488,14 @@ export class ManagementContextFilesResource {
     for (const batch of chunked(files, MAX_BULK_UPLOAD_FILES)) {
       const failedBefore = failed.length
       const slots = await this.createSlots(batch, failed)
-      for (let i = failedBefore; i < failed.length; i += 1) emit()
+      // createSlots can report several failures from one synchronous call, so tick
+      // `failed` up one at a time here — reusing `emit()` would report the final
+      // `failed.length` on every tick and break the completed = succeeded + failed
+      // invariant for all but the last of them.
+      for (let reported = failedBefore + 1; reported <= failed.length; reported += 1) {
+        completed += 1
+        options.onProgress?.({ completed, total, succeeded: uploaded.length, failed: reported })
+      }
       await this.uploadBatch(slots, waitUntil, concurrency, (result) => {
         if ('error' in result) failed.push(result)
         else uploaded.push(result)

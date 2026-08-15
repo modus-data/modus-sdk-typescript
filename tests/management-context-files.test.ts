@@ -450,4 +450,34 @@ describe('ManagementContextFilesResource.uploadDir', () => {
       { completed: 2, total: 2, succeeded: 1, failed: 1 },
     ])
   })
+
+  it('ticks failed up one at a time when a single slot-creation call rejects more than one file', async () => {
+    await writeFile(join(dir, 'bad1.exe'), 'x')
+    await writeFile(join(dir, 'bad2.exe'), 'x')
+
+    const fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        return jsonResponse({
+          uploaded: [],
+          failed: [
+            { index: 0, fileName: 'bad1.exe', error: 'File type not allowed' },
+            { index: 1, fileName: 'bad2.exe', error: 'File type not allowed' },
+          ],
+        })
+      }
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const ticks: Array<{ completed: number; total: number; succeeded: number; failed: number }> = []
+    const result = await mgmt.context.files.uploadDir(dir, {
+      onProgress: (p) => ticks.push(p),
+    })
+    expect(result.failed).toHaveLength(2)
+    // completed must equal succeeded + failed on every tick, not just the last one.
+    expect(ticks).toEqual([
+      { completed: 1, total: 2, succeeded: 0, failed: 1 },
+      { completed: 2, total: 2, succeeded: 0, failed: 2 },
+    ])
+  })
 })
