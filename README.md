@@ -165,9 +165,17 @@ await mgmt.scopes.deploy(scope.id)
 // Create returns contextItemId (also available as .uid); list/get use .uid
 const note = await mgmt.context.createNote('Title', 'Body')
 console.log(note.contextItemId, note.uid) // same UUID
+
+// Context file upload (presign → PUT → finalize; polls until processing by default)
+const upload = await mgmt.context.files.upload('report.pdf')
+console.log(upload.uploadId, upload.status)
+
+// Directory / many files — bulk uploadUrls + finalize (chunks of 100)
+const batch = await mgmt.context.files.uploadDir('./reports')
+console.log(batch.uploaded.length, batch.failed.length)
 ```
 
-Requires a token with write access to scopes and workflows (same as the Modus UI).
+Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
 
 ## Pagination
 
