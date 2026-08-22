@@ -141,6 +141,27 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     await expect(bad.scopes.list({ pageSize: 1 })).rejects.toBeInstanceOf(AuthenticationError)
   }, 240_000)
 
+  it('context files upload (presign → PUT → finalize)', async () => {
+    const { mkdtemp, writeFile } = await import('node:fs/promises')
+    const { join } = await import('node:path')
+    const { tmpdir } = await import('node:os')
+    const dir = await mkdtemp(join(tmpdir(), 'modus-sdk-staging-files-'))
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const runId = crypto.randomUUID().slice(0, 8)
+    const filePath = join(dir, `[SDK Staging Smoke]-files-${stamp}-${runId}.txt`)
+    await writeFile(filePath, 'sdk staging smoke context file — safe to leave\n', 'utf8')
+
+    const m = mgmt()
+    const uploaded = await m.context.files.upload(filePath, { waitUntil: 'processing' })
+    expect(uploaded.uploadId).toBeTruthy()
+    expect(['processing', 'ready']).toContain(uploaded.status)
+
+    const got = await m.context.files.get(uploaded.uploadId)
+    expect(got.uploadId).toBe(uploaded.uploadId)
+    expect(['processing', 'ready']).toContain(got.status)
+    // Orphan prefix documented in STAGING-SMOKE.md — no public delete for file uploads.
+  }, 240_000)
+
   it('buffered chat + streaming via agent host', async () => {
     const model = (process.env.MODUS_SMOKE_MODEL || 'claude-sonnet-5') as import('../../src/types/chat.js').ChatModel
     const agentHost =

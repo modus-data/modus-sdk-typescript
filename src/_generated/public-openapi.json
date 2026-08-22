@@ -1516,6 +1516,200 @@
         ]
       }
     },
+    "/api/v1/context/files/finalize": {
+      "post": {
+        "description": "Finalizes up to 100 uploaded files in one call, so a directory upload costs one request per 100 files. Always returns 200 — a file that has not been received only fails its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).\n\n**Requires:** `context:write`",
+        "operationId": "ContextFilesController_finalizeMany",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkFinalizeDto"
+              },
+              "examples": {
+                "basic": {
+                  "value": {
+                    "uploads": [
+                      {
+                        "uploadId": "7a3f9d2c-1111-4000-a000-000000000abc",
+                        "fileName": "report.pdf"
+                      },
+                      {
+                        "uploadId": "9c5b1e4a-2222-4000-a000-000000000def",
+                        "fileName": "notes.txt"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkFinalizeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Finalize uploaded files in bulk",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/context/files/uploadFromUrl": {
       "post": {
         "description": "Fetches one file from a URL (SSRF-guarded, redirects re-validated, 50MB cap, same MIME allow-list as `uploadUrl`) and lands it as durable context — status `processing`, with parsing continuing async. One URL = one object; no directory crawl. Rejects (422) a bad URL, MIME type, or size; other fetch failures are 502.\n\n**Requires:** `context:write`",
@@ -2429,6 +2623,202 @@
         ],
         "x-required-scopes": [
           "context:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/context/files/{uploadId}/finalize": {
+      "post": {
+        "description": "Turns a file already uploaded to a presigned URL into durable context. Call this once the PUT completes. Validates the size and type of the object actually stored. Safe to retry — a second call returns the same resource. 404 if the file has not been received.\n\n**Requires:** `context:write`",
+        "operationId": "ContextFilesController_finalize",
+        "parameters": [
+          {
+            "name": "uploadId",
+            "required": true,
+            "in": "path",
+            "description": "Upload id returned by `uploadUrl` / `uploadUrls`.",
+            "schema": {
+              "example": "7a3f9d2c-1111-4000-a000-000000000abc",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeUploadDto"
+              },
+              "examples": {
+                "basic": {
+                  "value": {
+                    "fileName": "Q3-churn-report.pdf"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResourceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Finalize an uploaded file",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
         ],
         "x-modus-service": "modus-api",
         "servers": [
@@ -16359,6 +16749,63 @@
           "contextItems"
         ]
       },
+      "BulkFinalizeDto": {
+        "type": "object",
+        "properties": {
+          "uploads": {
+            "description": "Uploads to finalize. Max 100 per request.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulkFinalizeItemDto"
+            }
+          }
+        },
+        "required": [
+          "uploads"
+        ]
+      },
+      "BulkFinalizeItemDto": {
+        "type": "object",
+        "properties": {
+          "uploadId": {
+            "type": "string",
+            "description": "Upload id returned by `uploadUrl` / `uploadUrls`.",
+            "example": "7a3f9d2c-1111-4000-a000-000000000abc"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "File name returned alongside the upload id.",
+            "example": "Q3-churn-report.pdf"
+          }
+        },
+        "required": [
+          "uploadId",
+          "fileName"
+        ]
+      },
+      "BulkFinalizeResponseDto": {
+        "type": "object",
+        "properties": {
+          "finalized": {
+            "description": "Resources for every upload that was finalized.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileUploadResourceDto"
+            }
+          },
+          "failed": {
+            "description": "Per-item failures. Empty when every upload was finalized.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FailedFinalizeDto"
+            }
+          }
+        },
+        "required": [
+          "finalized",
+          "failed"
+        ]
+      },
       "BulkUploadFromUrlItemDto": {
         "type": "object",
         "properties": {
@@ -17922,6 +18369,31 @@
           "slackUserIdByRecipient"
         ]
       },
+      "FailedFinalizeDto": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "number",
+            "description": "Index of the failing entry in the request `uploads` array.",
+            "example": 2
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "Upload id from the failing request entry.",
+            "example": "7a3f9d2c-1111-4000-a000-000000000abc"
+          },
+          "error": {
+            "type": "string",
+            "description": "Reason this entry could not be finalized.",
+            "example": "The upload has not been received."
+          }
+        },
+        "required": [
+          "index",
+          "uploadId",
+          "error"
+        ]
+      },
       "FailedUploadFromUrlDto": {
         "type": "object",
         "properties": {
@@ -18043,12 +18515,24 @@
       "FileUploadResourceStatus": {
         "type": "string",
         "enum": [
-          "pending",
           "processing",
           "ready",
           "failed"
         ],
         "description": "Current processing status."
+      },
+      "FinalizeUploadDto": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "File name returned by `uploadUrl`, used to locate the uploaded object.",
+            "example": "Q3-churn-report.pdf"
+          }
+        },
+        "required": [
+          "fileName"
+        ]
       },
       "GetAutomationRunResponseDto": {
         "type": "object",

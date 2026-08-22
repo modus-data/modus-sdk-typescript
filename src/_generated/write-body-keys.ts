@@ -5,6 +5,8 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ContextCreatorsController_createLink: ["url", "title", "isCrawl", "pageLimit"],
   ContextCreatorsController_createNote: ["title", "content"],
   ContextCreatorsController_createSavedQuery: ["name", "connectionId", "query", "description", "path"],
+  ContextFilesController_finalize: ["fileName"],
+  ContextFilesController_finalizeMany: ["uploads"],
   ContextFilesController_uploadFromUrl: ["url", "fileName"],
   ContextFilesController_uploadFromUrls: ["urls"],
   ContextFilesController_uploadUrl: ["fileName", "contentType", "fileSize"],
