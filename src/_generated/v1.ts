@@ -3400,7 +3400,22 @@ export interface components {
             member_ids: string[];
             created_at: string;
             updated_at: string;
+            /**
+             * @description Provenance of the group: org-managed ("native") or backed by an identity-provider directory group ("directory").
+             * @example native
+             */
+            source?: components["schemas"]["MemberGroupSource"];
+            /**
+             * @description Member count for directory-sourced groups. Present (and non-null) only when `source` is "directory".
+             * @example 42
+             */
+            member_count?: number | null;
         };
+        /**
+         * @description Provenance of the group: org-managed ("native") or backed by an identity-provider directory group ("directory").
+         * @enum {string}
+         */
+        MemberGroupSource: "native" | "directory";
         MemoryDto: {
             /**
              * @description Opaque memory id.

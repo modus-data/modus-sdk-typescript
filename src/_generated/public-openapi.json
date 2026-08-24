@@ -19213,6 +19213,21 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "source": {
+            "description": "Provenance of the group: org-managed (\"native\") or backed by an identity-provider directory group (\"directory\").",
+            "example": "native",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MemberGroupSource"
+              }
+            ]
+          },
+          "member_count": {
+            "type": "number",
+            "nullable": true,
+            "description": "Member count for directory-sourced groups. Present (and non-null) only when `source` is \"directory\".",
+            "example": 42
           }
         },
         "required": [
@@ -19223,6 +19238,14 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "MemberGroupSource": {
+        "type": "string",
+        "enum": [
+          "native",
+          "directory"
+        ],
+        "description": "Provenance of the group: org-managed (\"native\") or backed by an identity-provider directory group (\"directory\")."
       },
       "MemoryDto": {
         "type": "object",
