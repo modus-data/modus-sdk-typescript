@@ -36,7 +36,20 @@ function parseLookupResponse(raw: Record<string, unknown>): ContextItemLookupRow
 }
 
 /**
- * Read access to Modus knowledge-base items.
+ * Read the org knowledge base (notes, metrics, saved queries, integration items).
+ *
+ * Use `client.context.items` after `new Modus()`. Prefer `list` / `get` /
+ * `lookup` for discovery; use `listValues` when a field holds a large array
+ * inside `content`.
+ *
+ * @example
+ * ```ts
+ * import { Modus } from '@getmodus/sdk'
+ * const client = new Modus()
+ * for await (const item of (await client.context.items.list({ pageSize: 25 })).autoPagingIter()) {
+ *   console.log(item.contextType, item.description ?? item.uid)
+ * }
+ * ```
  */
 export class ContextItemsResource {
   /** @internal */
@@ -50,8 +63,16 @@ export class ContextItemsResource {
    *
    * @param options.pageSize - Maximum items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
-   * @param options.contextType - Filter to a single context type.
-   * @returns A page of context items.
+   * @param options.contextType - Filter to a single context type (e.g. `"note"`).
+   * @returns A page of context items — use `.autoPagingIter()` for all pages.
+   *
+   * @example
+   * ```ts
+   * const notes = await client.context.items.list({ contextType: 'note', pageSize: 50 })
+   * for (const item of notes.items) {
+   *   console.log(item.description ?? item.uid, item.uid)
+   * }
+   * ```
    */
   list(options: {
     pageSize?: number
@@ -82,8 +103,14 @@ export class ContextItemsResource {
    * Retrieve a knowledge-base item by uid.
    *
    * @param uid - Item uid.
-   * @returns The context item.
+   * @returns The context item (`uid`, `contextType`, `content`, …).
    * @throws {NotFoundError} When no item matches the uid.
+   *
+   * @example
+   * ```ts
+   * const item = await client.context.items.get(uid)
+   * console.log(item.contextType, item.description ?? item.uid)
+   * ```
    */
   async get(uid: string): Promise<ContextItem> {
     const data = await invokeWithRetry(this.config, this.http, 'ContextItemsController_get', {
@@ -95,10 +122,19 @@ export class ContextItemsResource {
   /**
    * Look up a knowledge-base item by type and data path.
    *
-   * @param options.contextType - Context type to match.
+   * @param options.contextType - Context type to match (e.g. `"note"`).
    * @param options.dataPath - Hierarchical path segments that identify the item.
    * @param options.contentProjection - Optional fields to include from item content.
    * @returns The matching row, or `undefined` when no item is found (404).
+   *
+   * @example
+   * ```ts
+   * const found = await client.context.items.lookup({
+   *   contextType: 'note',
+   *   dataPath: ['finance', 'arr-definition'],
+   * })
+   * if (found) console.log(found.uid, found.description ?? found.uid)
+   * ```
    */
   async lookup(options: {
     contextType: string
@@ -128,10 +164,22 @@ export class ContextItemsResource {
    *
    * @param uid - Item uid.
    * @param contextType - Context type of the item.
-   * @param contentKeyPath - Dot path to the value field inside item content.
+   * @param contentKeyPath - Dot path to the value field inside item content (e.g. `"enumValues"`).
    * @param options.pageSize - Maximum items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
    * @returns A page of value rows.
+   *
+   * @example
+   * ```ts
+   * // Replace PLACEHOLDER_UID with a real uid whose content has enumValues.
+   * const page = await client.context.items.listValues(
+   *   'PLACEHOLDER_UID',
+   *   'table_column',
+   *   'enumValues',
+   *   { pageSize: 25 },
+   * )
+   * for (const row of page.items) console.log(row)
+   * ```
    */
   listValues(
     uid: string,
@@ -152,6 +200,14 @@ export class ContextItemsResource {
    * @param options.pageSize - Maximum items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
    * @returns A page of value rows.
+   *
+   * @example
+   * ```ts
+   * // Replace PLACEHOLDER_UID with a real uid that has enumValues in content.
+   * const item = await client.context.items.get('PLACEHOLDER_UID')
+   * const page = await client.context.items.listValuesFor(item, 'enumValues')
+   * for (const row of page.items) console.log(row)
+   * ```
    */
   listValuesFor(
     item: ContextItem,

@@ -13,7 +13,7 @@ function parseConversation(raw: unknown): Conversation {
   return raw as Conversation
 }
 
-/** Conversation threads for a single scope. */
+/** Conversation threads for a single published scope (`client.scopes.conversations(scopeId)`). */
 export class ScopeConversationsResource {
   constructor(
     private readonly http: HttpClient,
@@ -26,7 +26,16 @@ export class ScopeConversationsResource {
    *
    * @param options.pageSize - Items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
-   * @returns Page of conversation list items.
+   * @returns Page of conversation list items (`threadId`, `firstMessage`, `messageCount`).
+   *
+   * @example
+   * ```ts
+   * for await (const row of (
+   *   await client.scopes.conversations(scopeId).list({ pageSize: 10 })
+   * ).autoPagingIter()) {
+   *   console.log(row.threadId, row.firstMessage, row.messageCount)
+   * }
+   * ```
    */
   list(options: { pageSize?: number; pageToken?: string } = {}): Promise<Page<ConversationListItem>> {
     const pageSize = options.pageSize ?? 25
@@ -59,7 +68,15 @@ export class ScopeConversationsResource {
    * @param threadId - Conversation thread id.
    * @param options.messageLimit - Maximum messages to return (1–100).
    * @param options.beforeMessageIndex - Return messages before this index (requires messageLimit).
-   * @returns Conversation with messages.
+   * @returns Conversation with `messages` (`type`, `content`).
+   *
+   * @example
+   * ```ts
+   * const thread = await client.scopes.conversations(scopeId).get(row.threadId)
+   * for (const msg of thread.messages) {
+   *   console.log(msg.type, String(msg.content).slice(0, 80))
+   * }
+   * ```
    */
   async get(
     threadId: string,
