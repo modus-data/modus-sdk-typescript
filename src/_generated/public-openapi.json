@@ -5009,6 +5009,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "dashboard_copilot",
                 "other"
               ]
             }
@@ -6902,6 +6903,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "dashboard_copilot",
                 "other"
               ]
             }
@@ -21162,6 +21164,10 @@
             "type": "string",
             "description": "User message that started the run."
           },
+          "source": {
+            "type": "string",
+            "description": "Client interaction source for the run."
+          },
           "createdAt": {
             "type": "string",
             "description": "Creation timestamp.",
@@ -21847,6 +21853,7 @@
           "slack_dm",
           "teams",
           "context_chat",
+          "dashboard_copilot",
           "other"
         ],
         "description": "Origin of the run."

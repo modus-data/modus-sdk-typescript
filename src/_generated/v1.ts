@@ -4516,6 +4516,8 @@ export interface components {
             status: components["schemas"]["ActiveConversationRunStatus"];
             /** @description User message that started the run. */
             message?: string;
+            /** @description Client interaction source for the run. */
+            source?: string;
             /**
              * Format: date-time
              * @description Creation timestamp.
@@ -4773,7 +4775,7 @@ export interface components {
          * @description Origin of the run.
          * @enum {string}
          */
-        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "other";
+        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
         SkillRunDto: {
             /** @description The user message to send. */
             message: string;
@@ -8753,7 +8755,7 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "other";
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
@@ -10210,7 +10212,7 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "other";
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
