@@ -9,6 +9,11 @@ until `1.0.0` — keep `[Unreleased]` empty while the package stays on `0.x`.
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking (pre-1.0):** Directory-managed member groups no longer include member IDs.
+  Use the member count to determine their size. Native member groups are unchanged.
+
 ## [0.6.0] — 2026-08-15
 
 ### Changed

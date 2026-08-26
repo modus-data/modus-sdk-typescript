@@ -20933,6 +20933,7 @@
             "nullable": true
           },
           "member_ids": {
+            "description": "Clerk user ids in this group. Present for native groups (the synthesized Everyone group included). Absent for directory-sourced groups — use `member_count`; membership is directory-managed.",
             "type": "array",
             "items": {
               "type": "string"
@@ -20964,7 +20965,6 @@
           "uid",
           "name",
           "description",
-          "member_ids",
           "created_at",
           "updated_at"
         ]

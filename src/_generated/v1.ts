@@ -3397,7 +3397,8 @@ export interface components {
             uid: string;
             name: string;
             description: string | null;
-            member_ids: string[];
+            /** @description Clerk user ids in this group. Present for native groups (the synthesized Everyone group included). Absent for directory-sourced groups — use `member_count`; membership is directory-managed. */
+            member_ids?: string[];
             created_at: string;
             updated_at: string;
             /**
