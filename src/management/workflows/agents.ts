@@ -114,6 +114,13 @@ export class ManagementWorkflowsResource {
    * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
    * @param options.includeVariation - Include variation payload on each list row.
    * @returns A page of workflows.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * for await (const wf of (await mgmt.workflows.list({ search: 'digest' })).autoPagingIter()) {
+   *   console.log(wf.id, wf.name, wf.status)
+   * }
+   * ```
    */
   list(options: {
     pageSize?: number
@@ -163,6 +170,12 @@ export class ManagementWorkflowsResource {
    * @param workflowId - Workflow id.
    * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
    * @returns The workflow.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const wf = await mgmt.workflows.get('weekly-digest')
+   * console.log(wf.name, wf.status)
+   * ```
    */
   async get(workflowId: number | string, options: { view?: VariationView } = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
@@ -194,7 +207,8 @@ export class ManagementWorkflowsResource {
    * @returns The created workflow (draft).
    * @example
    * ```ts
-   * const wf = await mgmt.workflows.create({ name: 'Daily report', type: WorkflowType.Task })
+   * const mgmt = new ModusManagement()
+   * const wf = await mgmt.workflows.create({ name: 'Daily report', type: 'task' })
    * ```
    */
   async create(options: CreateWorkflowOptions): Promise<Workflow> {
@@ -223,6 +237,11 @@ export class ManagementWorkflowsResource {
    * @param options.guardrails - Guardrail labels to set. Fetches the current workflow first to merge. Pass `[]` to clear all.
    * @param options.updateMask - Comma-separated field names to update or clear.
    * @returns The updated workflow.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const wf = await mgmt.workflows.update('PLACEHOLDER_WORKFLOW_ID', { description: 'Runs every morning' })
+   * ```
    */
   async update(workflowId: number | string, options: UpdateWorkflowOptions = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
@@ -258,8 +277,9 @@ export class ManagementWorkflowsResource {
    * @returns The published workflow.
    * @example
    * ```ts
-   * await mgmt.workflows.update(workflowId, { description: 'Runs every morning' })
-   * const published = await mgmt.workflows.deploy(workflowId)
+   * const mgmt = new ModusManagement()
+   * await mgmt.workflows.update('PLACEHOLDER_WORKFLOW_ID', { description: 'Runs every morning' })
+   * const published = await mgmt.workflows.deploy('PLACEHOLDER_WORKFLOW_ID')
    * ```
    */
   async deploy(workflowId: number | string): Promise<Workflow> {
@@ -294,6 +314,11 @@ export class ManagementWorkflowsResource {
    *
    * @param workflowId - Workflow id.
    * @returns Resolves when the workflow is deleted.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * await mgmt.workflows.delete('PLACEHOLDER_WORKFLOW_ID')
+   * ```
    */
   async delete(workflowId: number | string): Promise<void> {
     validateId(workflowId, 'workflow_id')

@@ -42,6 +42,7 @@ export class ManagementContextResource {
    * @returns The created context item.
    * @example
    * ```ts
+   * const mgmt = new ModusManagement()
    * const note = await mgmt.context.createNote('Runbook', '# Steps\n1. Check logs')
    * ```
    */
@@ -60,6 +61,14 @@ export class ManagementContextResource {
    * @param options.body - New markdown body.
    * @param options.existing - Optional cached item to avoid a GET.
    * @returns The updated context item.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const item = await mgmt.context.updateNote('PLACEHOLDER_UID', {
+   *   title: 'Runbook',
+   *   body: '# Steps\n1. Check logs\n2. Escalate',
+   * })
+   * ```
    */
   updateNote(
     uid: string,
@@ -83,6 +92,14 @@ export class ManagementContextResource {
    * @param options.query - SQL text.
    * @param options.path - Optional hierarchy path segments.
    * @returns The created context item.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const query = await mgmt.context.createSavedQuery('Monthly ARR', {
+   *   connectionId: 'conn_warehouse',
+   *   query: 'select * from arr_monthly',
+   * })
+   * ```
    */
   createSavedQuery(
     name: string,
@@ -113,6 +130,14 @@ export class ManagementContextResource {
    * @param options.query - New SQL text.
    * @param options.existing - Optional cached item to avoid a GET.
    * @returns The updated context item.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const item = await mgmt.context.updateSavedQuery('PLACEHOLDER_UID', {
+   *   name: 'Monthly ARR',
+   *   query: 'select sum(amount) from arr_monthly',
+   * })
+   * ```
    */
   updateSavedQuery(
     uid: string,
@@ -138,6 +163,13 @@ export class ManagementContextResource {
    * @param options.isCrawl - When true, crawl linked pages into context.
    * @param options.pageLimit - Maximum pages to crawl when `isCrawl` is true.
    * @returns The created context item.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const link = await mgmt.context.createLink('https://docs.example.com/runbook', {
+   *   title: 'Ops runbook',
+   * })
+   * ```
    */
   createLink(
     url: string,
@@ -164,6 +196,13 @@ export class ManagementContextResource {
    * @param options.url - New URL.
    * @param options.existing - Optional cached item to avoid a GET.
    * @returns The updated context item.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const item = await mgmt.context.updateLink('PLACEHOLDER_UID', {
+   *   title: 'Ops runbook (2025)',
+   * })
+   * ```
    */
   updateLink(
     uid: string,
