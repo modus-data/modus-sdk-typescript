@@ -115,6 +115,23 @@ export function makeAgentRunStream(runId: string, events: AsyncIterable<RunEvent
   }
 }
 
+/**
+ * Start, inspect, and control workflow runs.
+ *
+ * Typical path: `create` (or `createScope` / `createModus`) → stream events →
+ * `list` / `get` history → `cancel` or `resume` when needed.
+ *
+ * @example
+ * ```ts
+ * const stream = client.workflows.runs.create(workflowId, {
+ *   message: "Summarize yesterday's sales",
+ *   config: { model: 'claude-sonnet-5' },
+ * })
+ * for await (const event of stream) {
+ *   if (event.type === 'token') process.stdout.write(event.content)
+ * }
+ * ```
+ */
 export class WorkflowRunsResource {
   /** @internal */
   constructor(
@@ -132,7 +149,16 @@ export class WorkflowRunsResource {
    * @param options.timeframe - Filter by recency (`last_hour`, `last_day`, or `last_week`).
    * @param options.approvalScope - Filter approval-related runs (`mine` or `all`).
    * @param options.search - Free-text search filter.
-   * @returns A page of run summaries.
+   * @returns A page of run summaries — use `.autoPagingIter()` for all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const run of (
+   *   await client.workflows.runs.list(workflowId, { status: 'completed' })
+   * ).autoPagingIter()) {
+   *   console.log(run.workflowId, run.status, run.startedAt)
+   * }
+   * ```
    */
   list(
     workflowId: number | string,
@@ -194,10 +220,16 @@ export class WorkflowRunsResource {
    * Retrieve a workflow run by id.
    *
    * @param workflowId - Workflow id or slug the run belongs to.
-   * @param runId - Run id.
+   * @param runId - Run id (the list row's `workflowId` field, not the composite `id`).
    * @param options.temporalRunId - Optional internal execution id when disambiguating retries.
    * @returns Run details including status and output.
    * @throws {NotFoundError} When the run does not exist.
+   *
+   * @example
+   * ```ts
+   * const run = await client.workflows.runs.get(workflowId, runId)
+   * console.log(run.status)
+   * ```
    */
   async get(
     workflowId: number | string,
@@ -228,8 +260,8 @@ export class WorkflowRunsResource {
    * @example
    * ```ts
    * const stream = client.workflows.runs.create(workflowId, {
-   *   message: 'Summarize yesterday\'s sales',
-   *   sessionId: 'conv-abc',
+   *   message: "Summarize yesterday's sales",
+   *   config: { model: 'claude-sonnet-5' },
    * })
    * for await (const event of stream) {
    *   if (event.type === 'token') process.stdout.write(event.content)
@@ -249,10 +281,23 @@ export class WorkflowRunsResource {
   /**
    * Start a scope run and stream run events.
    *
+   * Same event stream shape as {@link create}, but targets a published scope.
+   *
    * @param scopeId - Scope id to run.
    * @param body - Run body (`message`, optional `sessionId`, optional `version` as `published` or `draft`).
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events.
+   *
+   * @example
+   * ```ts
+   * const stream = client.workflows.runs.createScope(scopeId, {
+   *   message: 'What is our ARR trend?',
+   *   config: { model: 'claude-sonnet-5' },
+   * })
+   * for await (const event of stream) {
+   *   if (event.type === 'token') process.stdout.write(event.content)
+   * }
+   * ```
    */
   createScope(
     scopeId: number | string,
@@ -264,11 +309,22 @@ export class WorkflowRunsResource {
   }
 
   /**
-   * Start a Modus assistant run and stream run events.
+   * Start a Modus org-assistant run and stream run events.
    *
    * @param body - Run body (`message`, optional `sessionId`, optional `subordinateSkillIds` to narrow context).
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events.
+   *
+   * @example
+   * ```ts
+   * const stream = client.workflows.runs.createModus({
+   *   message: 'Summarize ARR in three bullets.',
+   *   config: { model: 'claude-sonnet-5' },
+   * })
+   * for await (const event of stream) {
+   *   if (event.type === 'token') process.stdout.write(event.content)
+   * }
+   * ```
    */
   createModus(
     body: ModusRunCreateRequest,
@@ -284,6 +340,18 @@ export class WorkflowRunsResource {
    * @param body - Resume body (`message`, `sessionId`, and `decision`: `approve` / `deny` / `connected` / `cancelled`).
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events.
+   *
+   * @example
+   * ```ts
+   * const stream = client.workflows.runs.resume(runId, {
+   *   decision: 'approve',
+   *   message: 'Looks good — continue.',
+   *   sessionId,
+   * })
+   * for await (const event of stream) {
+   *   if (event.type === 'token') process.stdout.write(event.content)
+   * }
+   * ```
    */
   resume(
     runId: string,
@@ -298,6 +366,11 @@ export class WorkflowRunsResource {
    * Cancel a run that is still in progress.
    *
    * @param runId - Run id to cancel.
+   *
+   * @example
+   * ```ts
+   * await client.workflows.runs.cancel(runId)
+   * ```
    */
   async cancel(runId: string): Promise<void> {
     validateId(runId, 'run_id')

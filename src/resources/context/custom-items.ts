@@ -101,6 +101,12 @@ export class CustomContextItemsResource {
    * @param options.searchQuery - Free-text search filter.
    * @param options.topics - Filter to items tagged with any of these topics.
    * @returns A page of custom context items.
+   * @example
+   * ```ts
+   * const client = new Modus()
+   * const page = await client.context.customItems.list({ pageSize: 25 })
+   * for (const item of page.items) console.log(item.uid, item.contextType)
+   * ```
    */
   list(options: {
     pageSize?: number
@@ -137,6 +143,11 @@ export class CustomContextItemsResource {
    * @param uid - Item uid.
    * @returns The custom context item.
    * @throws {NotFoundError} When no item matches the uid.
+   * @example
+   * ```ts
+   * const client = new Modus()
+   * const item = await client.context.customItems.get('PLACEHOLDER_UID')
+   * ```
    */
   async get(uid: string): Promise<ContextItem> {
     return parseContextItem(
@@ -158,6 +169,7 @@ export class CustomContextItemsResource {
    *
    * @example
    * ```ts
+   * const client = new Modus()
    * const created = await client.context.customItems.create({
    *   kind: 'entity',
    *   sourceId: 'my-source',
@@ -182,6 +194,7 @@ export class CustomContextItemsResource {
    *
    * @example
    * ```ts
+   * const client = new Modus()
    * const created = await client.context.customItems.batchCreate([
    *   { kind: 'field', sourceId: 'src', fieldName: 'region', dataType: 'string' },
    *   { kind: 'field', sourceId: 'src', fieldName: 'amount', dataType: 'number' },
@@ -206,6 +219,13 @@ export class CustomContextItemsResource {
    * @param uid - Item uid.
    * @param input - Fields to change (kind and hierarchy ids cannot be changed).
    * @returns The updated item uid.
+   * @example
+   * ```ts
+   * const client = new Modus()
+   * await client.context.customItems.update('PLACEHOLDER_UID', {
+   *   description: 'Updated summary',
+   * })
+   * ```
    */
   async update(uid: string, input: UpdateCustomContextItemInput): Promise<{ uid: string }> {
     return asRecord(
@@ -221,6 +241,11 @@ export class CustomContextItemsResource {
    *
    * @param uid - Item uid.
    * @returns Deletion confirmation with uid and context type.
+   * @example
+   * ```ts
+   * const client = new Modus()
+   * const result = await client.context.customItems.delete('PLACEHOLDER_UID')
+   * ```
    */
   async delete(uid: string): Promise<CustomContextItemDeletion> {
     return parseDeletion(

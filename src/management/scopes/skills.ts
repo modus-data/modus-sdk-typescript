@@ -168,7 +168,14 @@ export class ManagementScopesResource {
    * @param options.search - Case-insensitive substring filter on the scope name.
    * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
    * @param options.managerId - Return only scopes supervised by this manager scope id.
-   * @returns A page of scopes.
+   * @returns A page of scopes — use `.autoPagingIter()` for all pages.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * for await (const scope of (await mgmt.scopes.list()).autoPagingIter()) {
+   *   console.log(scope.id, scope.name, scope.status)
+   * }
+   * ```
    */
   list(options: {
     pageSize?: number
@@ -215,6 +222,12 @@ export class ManagementScopesResource {
    * @param scopeId - Scope id.
    * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
    * @returns The scope.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const scope = await mgmt.scopes.get('PLACEHOLDER_SCOPE_ID')
+   * console.log(scope.name, scope.status)
+   * ```
    */
   async get(scopeId: number | string, options: { view?: VariationView } = {}): Promise<Scope> {
     validateId(scopeId, 'scope_id')
@@ -238,7 +251,9 @@ export class ManagementScopesResource {
    * @returns The created scope (draft).
    * @example
    * ```ts
+   * const mgmt = new ModusManagement()
    * const scope = await mgmt.scopes.create({ name: 'Support assistant', model: 'claude-sonnet-5' })
+   * console.log(scope.id, scope.name)
    * ```
    */
   async create(options: CreateScopeOptions): Promise<Scope> {
@@ -270,6 +285,13 @@ export class ManagementScopesResource {
    * @param options.guardrails - Guardrail labels to set. Fetches the current scope first to merge. Pass `[]` to clear all.
    * @param options.updateMask - Comma-separated field names to update or clear.
    * @returns The updated scope.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const scope = await mgmt.scopes.update('PLACEHOLDER_SCOPE_ID', {
+   *   description: 'Answers billing questions for enterprise customers.',
+   * })
+   * ```
    */
   async update(scopeId: number | string, options: UpdateScopeOptions = {}): Promise<Scope> {
     validateId(scopeId, 'scope_id')
@@ -312,8 +334,10 @@ export class ManagementScopesResource {
    * @returns The published scope.
    * @example
    * ```ts
-   * await mgmt.scopes.update(scopeId, { instructions: ['Be concise.'] })
-   * const published = await mgmt.scopes.deploy(scopeId)
+   * const mgmt = new ModusManagement()
+   * const scope = await mgmt.scopes.create({ name: 'Support assistant' })
+   * const published = await mgmt.scopes.deploy(scope.id)
+   * console.log(published.status)
    * ```
    */
   async deploy(scopeId: number | string): Promise<Scope> {
@@ -332,6 +356,11 @@ export class ManagementScopesResource {
    *
    * @param scopeId - Scope id.
    * @returns Resolves when the scope is deleted.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * await mgmt.scopes.delete('PLACEHOLDER_SCOPE_ID')
+   * ```
    */
   async delete(scopeId: number | string): Promise<void> {
     validateId(scopeId, 'scope_id')

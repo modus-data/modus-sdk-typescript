@@ -32,9 +32,19 @@ function parseScope(raw: unknown): Scope {
 }
 
 /**
- * Read / chat with scopes.
+ * Read / chat with published scopes.
  *
- * Call path: `client.scopes` after `new Modus(...)`.
+ * Call path: `client.scopes` after `new Modus(...)`. Prefer `client.modus` for
+ * the org-wide assistant. Create/deploy via `ModusManagement`.
+ *
+ * @example
+ * ```ts
+ * const scope = await client.scopes.get('revenue-analysis')
+ * const result = await client.scopes.chat(scope.id, 'What is our ARR trend?', {
+ *   model: 'claude-sonnet-5',
+ * })
+ * console.log(result.content, result.threadId)
+ * ```
  */
 export class ScopesResource {
   /** @internal */
@@ -48,6 +58,15 @@ export class ScopesResource {
    *
    * @param scopeId - Scope numeric id or slug.
    * @returns Conversations resource for the scope.
+   *
+   * @example
+   * ```ts
+   * for await (const row of (
+   *   await client.scopes.conversations(scopeId).list({ pageSize: 10 })
+   * ).autoPagingIter()) {
+   *   console.log(row.threadId, row.firstMessage)
+   * }
+   * ```
    */
   conversations(scopeId: number | string): ScopeConversationsResource {
     return new ScopeConversationsResource(this.http, this.config, scopeId)
@@ -61,7 +80,14 @@ export class ScopesResource {
    * @param options.search - Case-insensitive substring filter on the scope name.
    * @param options.view - `"active"` (deployed) or `"draft"`.
    * @param options.managerId - Only scopes supervised by this manager scope id.
-   * @returns Page of scopes.
+   * @returns Page of scopes — use `.autoPagingIter()` for all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const scope of (await client.scopes.list()).autoPagingIter()) {
+   *   console.log(scope.id, scope.name, scope.status)
+   * }
+   * ```
    */
   list(options: {
     pageSize?: number
@@ -108,7 +134,13 @@ export class ScopesResource {
    * @param scopeId - Scope numeric id or slug.
    * @param options.view - `"active"` (deployed) or `"draft"`.
    * @throws {NotFoundError} When no scope matches the id or slug.
-   * @returns Scope.
+   * @returns Scope (`id`, `name`, `status`, …).
+   *
+   * @example
+   * ```ts
+   * const scope = await client.scopes.get('revenue-analysis')
+   * console.log(scope.name, scope.status)
+   * ```
    */
   async get(
     scopeId: number | string,
@@ -124,12 +156,20 @@ export class ScopesResource {
   }
 
   /**
-   * Return composed context Modus would use for a scope query, without running chat.
+   * Compose context this scope would use for an intent, without running chat.
    *
    * @param scopeId - Scope numeric id or slug.
-   * @param message - User intent or question to compose context for.
+   * @param message - Natural-language intent used to select context.
    * @param options.limit - Optional cap on structured fallback items.
-   * @returns Composed scope context.
+   * @returns Composition metadata. Use `chat` when you need an assistant reply.
+   *
+   * @example
+   * ```ts
+   * const ctx = await client.scopes.getContext(scopeId, 'Which tables describe churn?', {
+   *   limit: 5,
+   * })
+   * console.log(ctx.originalCount, ctx.sessionId)
+   * ```
    */
   async getContext(
     scopeId: number | string,
@@ -145,18 +185,26 @@ export class ScopesResource {
   }
 
   /**
-   * Send a message to a scope and get the complete reply.
+   * Send a message to a published scope and wait for the complete reply.
    *
-   * @param scopeId - Scope numeric id or slug.
-   * @param message - Message to send.
+   * For the org-wide assistant use `client.modus.chat` instead.
+   *
+   * @param scopeId - Scope numeric id or slug (must be active for chat).
+   * @param message - User message text.
    * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
-   * @param options.threadId - Continue an existing conversation.
-   * @returns Chat result with content and threadId.
+   * @param options.threadId - Continue an existing conversation; omit to start new.
+   * @returns Chat result: `content`, `threadId`, `runId`.
    *
    * @example
    * ```ts
-   * const result = await client.scopes.chat(scopeId, 'Hello', { model: 'claude-sonnet-5' })
+   * const result = await client.scopes.chat(scopeId, 'What is our ARR trend?', {
+   *   model: 'claude-sonnet-5',
+   * })
    * console.log(result.content, result.threadId)
+   * const follow = await client.scopes.chat(scopeId, 'Break that down by segment.', {
+   *   model: 'claude-sonnet-5',
+   *   threadId: result.threadId,
+   * })
    * ```
    */
   chat(
@@ -168,14 +216,27 @@ export class ScopesResource {
   }
 
   /**
-   * Stream a scope reply token by token.
+   * Stream a scope reply token by token (SSE).
+   *
+   * The request starts when you consume `textStream()` or `eventStream()`.
    *
    * @param scopeId - Scope numeric id or slug.
-   * @param message - Message to send.
+   * @param message - User message text.
    * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
-   * @param options.threadId - Continue an existing conversation.
+   * @param options.threadId - Continue an existing conversation; omit to start new.
    * @param options.version - `"published"` or `"draft"`.
-   * @returns Chat stream.
+   * @returns Chat stream — iterate `textStream()` for tokens.
+   *
+   * @example
+   * ```ts
+   * const stream = client.scopes.chatStream(scopeId, 'Summarize in three bullets.', {
+   *   model: 'claude-sonnet-5',
+   * })
+   * for await (const token of stream.textStream()) {
+   *   process.stdout.write(token)
+   * }
+   * console.log(stream.getFinalResult().threadId)
+   * ```
    */
   chatStream(
     scopeId: number | string,

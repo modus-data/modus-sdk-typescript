@@ -34,8 +34,18 @@ function parseWorkflow(raw: unknown): Workflow {
 /**
  * Read and run access to Modus workflows.
  *
- * - {@link WorkflowRunsResource runs} — start, monitor, and control workflow runs.
- * - {@link AgentWorkflowActionsResource workflowActions} — execute workflow actions.
+ * - `list` / `get` — browse workflows (`view: 'active'` or `'draft'`)
+ * - {@link WorkflowRunsResource runs} — start, monitor, and control workflow runs
+ * - {@link AgentWorkflowActionsResource workflowActions} — execute workflow actions
+ *
+ * @example
+ * ```ts
+ * import { Modus } from '@getmodus/sdk'
+ * const client = new Modus()
+ * for await (const wf of (await client.workflows.list()).autoPagingIter()) {
+ *   console.log(wf.id, wf.name, wf.status)
+ * }
+ * ```
  */
 export class WorkflowsResource {
   readonly runs: WorkflowRunsResource
@@ -51,15 +61,22 @@ export class WorkflowsResource {
   }
 
   /**
-   * List workflows.
+   * List workflows in the organisation.
    *
    * @param options.pageSize - Maximum items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
-   * @param options.search - Free-text search filter.
+   * @param options.search - Case-insensitive substring filter on the workflow name.
    * @param options.type - Workflow kind: `"task"` or `"workflow"`.
    * @param options.view - Which saved version to return (`active` or `draft`).
    * @param options.includeVariation - Include variation metadata when supported.
-   * @returns A page of workflows.
+   * @returns A page of workflows — use `.autoPagingIter()` for all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const wf of (await client.workflows.list({ search: 'digest' })).autoPagingIter()) {
+   *   console.log(wf.id, wf.name, wf.status)
+   * }
+   * ```
    */
   list(options: {
     pageSize?: number
@@ -116,8 +133,14 @@ export class WorkflowsResource {
    * @param workflowId - Numeric id or slug.
    * @param options.view - Which saved version to return (`active` or `draft`).
    * @param options.includeVariation - Include variation metadata when supported.
-   * @returns The workflow.
+   * @returns The workflow (`id`, `name`, `status`, …).
    * @throws {NotFoundError} When no workflow matches the id or slug.
+   *
+   * @example
+   * ```ts
+   * const wf = await client.workflows.get('weekly-digest')
+   * console.log(wf.name, wf.status)
+   * ```
    */
   async get(
     workflowId: number | string,

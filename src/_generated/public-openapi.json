@@ -204,6 +204,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -393,6 +411,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -596,6 +632,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -812,6 +866,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -949,6 +1021,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -1162,6 +1252,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -1339,6 +1447,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -1472,6 +1598,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -1671,6 +1815,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -1850,6 +2012,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -2067,6 +2247,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -2248,6 +2446,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -2450,6 +2666,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -2587,6 +2821,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -2789,6 +3041,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -2978,6 +3248,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -3190,6 +3478,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -3327,6 +3633,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -3558,6 +3882,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -3729,6 +4071,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -3957,6 +4317,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -4149,6 +4527,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -4329,6 +4725,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -4522,6 +4936,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -4702,6 +5134,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -4893,6 +5343,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -5009,6 +5477,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "dashboard_copilot",
                 "other"
               ]
             }
@@ -5122,6 +5591,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -5264,6 +5751,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -5467,6 +5972,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -5641,6 +6164,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -5838,6 +6379,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -5988,6 +6547,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -6208,6 +6785,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -6372,6 +6967,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -6568,6 +7181,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -6776,6 +7407,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -6902,6 +7551,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "dashboard_copilot",
                 "other"
               ]
             }
@@ -7016,6 +7666,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -7192,6 +7860,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -7404,6 +8090,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -7603,6 +8307,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -7740,6 +8462,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -7949,6 +8689,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -8128,6 +8886,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -8285,6 +9061,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -8432,6 +9226,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -8646,6 +9458,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -8828,6 +9658,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -9031,6 +9879,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -9253,6 +10119,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -9427,6 +10311,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -9612,6 +10514,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -9762,6 +10682,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -9965,6 +10903,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -10176,6 +11132,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -10372,6 +11346,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -10543,6 +11535,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -10728,6 +11738,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -10875,6 +11903,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -11050,6 +12096,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -11247,6 +12311,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -11378,6 +12460,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -11642,6 +12742,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -11777,6 +12895,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -11891,6 +13027,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -12000,6 +13154,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -12182,6 +13354,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -12386,6 +13576,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -12536,6 +13744,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -12758,6 +13984,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -12922,6 +14166,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -13127,6 +14389,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -13264,6 +14544,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -13476,6 +14774,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -13640,6 +14956,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -13871,6 +15205,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -14051,6 +15403,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -14224,6 +15594,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -14429,6 +15817,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -14584,6 +15990,24 @@
                     "code": "NOT_FOUND",
                     "status": "NOT_FOUND",
                     "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -14791,6 +16215,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -14987,6 +16429,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -15158,6 +16618,24 @@
                     "code": "VALIDATION",
                     "status": "INVALID_ARGUMENT",
                     "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -15343,6 +16821,24 @@
               }
             }
           },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
             "content": {
@@ -15429,6 +16925,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Run the Modus agent",
@@ -15511,6 +17025,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "List active conversation runs",
@@ -15581,6 +17113,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "List active runs for conversation sessions",
@@ -15630,6 +17180,24 @@
         "responses": {
           "204": {
             "description": ""
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Cancel a run",
@@ -15669,6 +17237,24 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Poll run events",
@@ -15718,6 +17304,24 @@
         "responses": {
           "202": {
             "description": ""
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Interrupt an active run",
@@ -15767,6 +17371,24 @@
         "responses": {
           "200": {
             "description": ""
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Edit a queued run",
@@ -15846,6 +17468,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Resume a run",
@@ -15911,6 +17551,24 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
                 }
               }
             }
@@ -15993,6 +17651,24 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Run a scope",
@@ -16052,6 +17728,24 @@
                 "example": "id: 1717000000000-0\ndata: {\"type\":\"token\",\"content\":\"Result: 42\"}\n\nid: 1717000000001-0\ndata: {\"type\":\"done\",\"runId\":\"xyz-456\"}\n\n"
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Execute a workflow action",
@@ -16101,6 +17795,24 @@
         "responses": {
           "204": {
             "description": ""
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
           }
         },
         "summary": "Cancel a workflow-action run",
@@ -16176,6 +17888,24 @@
                     "status": {
                       "type": "string"
                     }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -19203,6 +20933,7 @@
             "nullable": true
           },
           "member_ids": {
+            "description": "Clerk user ids in this group. Present for native groups (the synthesized Everyone group included). Absent for directory-sourced groups — use `member_count`; membership is directory-managed.",
             "type": "array",
             "items": {
               "type": "string"
@@ -19213,16 +20944,38 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "source": {
+            "description": "Provenance of the group: org-managed (\"native\") or backed by an identity-provider directory group (\"directory\").",
+            "example": "native",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MemberGroupSource"
+              }
+            ]
+          },
+          "member_count": {
+            "type": "number",
+            "nullable": true,
+            "description": "Member count for directory-sourced groups. Present (and non-null) only when `source` is \"directory\".",
+            "example": 42
           }
         },
         "required": [
           "uid",
           "name",
           "description",
-          "member_ids",
           "created_at",
           "updated_at"
         ]
+      },
+      "MemberGroupSource": {
+        "type": "string",
+        "enum": [
+          "native",
+          "directory"
+        ],
+        "description": "Provenance of the group: org-managed (\"native\") or backed by an identity-provider directory group (\"directory\")."
       },
       "MemoryDto": {
         "type": "object",
@@ -21139,6 +22892,10 @@
             "type": "string",
             "description": "User message that started the run."
           },
+          "source": {
+            "type": "string",
+            "description": "Client interaction source for the run."
+          },
           "createdAt": {
             "type": "string",
             "description": "Creation timestamp.",
@@ -21824,6 +23581,7 @@
           "slack_dm",
           "teams",
           "context_chat",
+          "dashboard_copilot",
           "other"
         ],
         "description": "Origin of the run."
