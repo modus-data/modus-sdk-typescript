@@ -48,11 +48,11 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'access',
   ],
   CustomContextItemsController_batchCreate: ['items'],
-  ContextFilesController_finalize: ['fileName'],
+  ContextFilesController_finalize: ['fileName', 'folderPath'],
   ContextFilesController_finalizeMany: ['uploads'],
   ContextFilesController_uploadUrl: ['fileName', 'contentType', 'fileSize'],
   ContextFilesController_uploadUrls: ['files'],
-  ContextFilesController_uploadFromUrl: ['url', 'fileName'],
+  ContextFilesController_uploadFromUrl: ['url', 'fileName', 'folderPath'],
   ContextFilesController_uploadFromUrls: ['urls'],
   CustomContextItemsController_update: [
     'name',

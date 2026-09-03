@@ -66,15 +66,19 @@ describe('ManagementContextFilesResource raw operations', () => {
     await expect(mgmt.context.files.createUploadUrls(files)).rejects.toThrow(/at most 100/)
   })
 
-  it('uploadFromUrl posts url and optional fileName', async () => {
+  it('uploadFromUrl posts url, optional fileName, and folderPath', async () => {
     const fetch = vi.fn().mockResolvedValue(
       jsonResponse({ uploadId: 'u1', status: 'processing' }),
     )
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
-    await mgmt.context.files.uploadFromUrl('https://example.com/f.pdf', { fileName: 'f.pdf' })
+    await mgmt.context.files.uploadFromUrl('https://example.com/f.pdf', {
+      fileName: 'f.pdf',
+      folderPath: 'reports/2026',
+    })
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       url: 'https://example.com/f.pdf',
       fileName: 'f.pdf',
+      folderPath: 'reports/2026',
     })
   })
 
@@ -170,6 +174,40 @@ describe('ManagementContextFilesResource.uploadDir', () => {
   it('rejects concurrency < 1', async () => {
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch: vi.fn() })
     await expect(mgmt.context.files.uploadDir(dir, { concurrency: 0 })).rejects.toThrow(/concurrency must be/)
+  })
+
+  it('sends each nested directory relative to the upload root at bulk finalize', async () => {
+    await mkdir(join(dir, 'nested'))
+    await writeFile(join(dir, 'root.txt'), 'root')
+    await writeFile(join(dir, 'nested', 'child.txt'), 'child')
+
+    const finalizeBodies: Array<{ uploads: Array<{ uploadId: string; fileName: string; folderPath?: string }> }> = []
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        const body = JSON.parse(String(init?.body)) as { files: Array<{ fileName: string }> }
+        return jsonResponse({ uploaded: body.files.map((f) => slotFor(f.fileName)), failed: [] })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as typeof finalizeBodies[number]
+        finalizeBodies.push(body)
+        return jsonResponse({
+          finalized: body.uploads.map((upload) => ({ uploadId: upload.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+
+    await mgmt.context.files.uploadDir(dir)
+
+    expect(finalizeBodies).toHaveLength(1)
+    expect(finalizeBodies[0]?.uploads).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fileName: 'root.txt' }),
+      expect.objectContaining({ fileName: 'child.txt', folderPath: 'nested' }),
+    ]))
   })
 
   it('skips hidden files/dirs and symlinks', async () => {

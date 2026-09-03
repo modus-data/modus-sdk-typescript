@@ -18506,6 +18506,11 @@
             "type": "string",
             "description": "File name returned alongside the upload id.",
             "example": "Q3-churn-report.pdf"
+          },
+          "folderPath": {
+            "type": "string",
+            "description": "Relative folder label to store with the upload.",
+            "example": "reports/2026/Q3"
           }
         },
         "required": [
@@ -18548,6 +18553,11 @@
             "type": "string",
             "description": "Override file name. Inferred from the URL path when omitted.",
             "example": "Q3-churn-report.pdf"
+          },
+          "folderPath": {
+            "type": "string",
+            "description": "Relative folder label to store with the upload.",
+            "example": "reports/2026/Q3"
           }
         }
       },
@@ -20196,6 +20206,12 @@
             "nullable": true,
             "example": "Q3-churn-report.pdf"
           },
+          "folderPath": {
+            "type": "string",
+            "nullable": true,
+            "example": "reports/2026/Q3",
+            "description": "Relative folder label supplied when the upload was finalized."
+          },
           "contentType": {
             "type": "string",
             "nullable": true,
@@ -20258,6 +20274,11 @@
             "type": "string",
             "description": "File name returned by `uploadUrl`, used to locate the uploaded object.",
             "example": "Q3-churn-report.pdf"
+          },
+          "folderPath": {
+            "type": "string",
+            "description": "Relative folder label to store with the upload.",
+            "example": "reports/2026/Q3"
           }
         },
         "required": [
@@ -22454,6 +22475,11 @@
             "type": "string",
             "description": "Override file name. Inferred from the URL path when omitted.",
             "example": "Q3-churn-report.pdf"
+          },
+          "folderPath": {
+            "type": "string",
+            "description": "Relative folder label to store with the upload.",
+            "example": "reports/2026/Q3"
           }
         },
         "required": [

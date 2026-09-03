@@ -9,6 +9,13 @@ until `1.0.0` — keep `[Unreleased]` empty while the package stays on `0.x`.
 
 ## [Unreleased]
 
+### Added
+
+- **File uploads: optional `folderPath`.** `uploadFromUrl`, `finalize`, and directory
+  uploads now accept an optional relative folder label that is stored with the file and
+  returned on the file resource. `uploadDir` sets it automatically from each file's path
+  relative to the upload root, so directory structure is preserved.
+
 ### Changed
 
 - **Breaking (pre-1.0):** Directory-managed member groups no longer include member IDs.
