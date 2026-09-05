@@ -923,6 +923,219 @@
         ]
       }
     },
+    "/api/v1/context/custom-items/relations": {
+      "post": {
+        "description": "Creates or updates typed relations between context items. Both endpoints must be visible context items in your organization (custom or integration-mined). Idempotent by (fromUid, toUid, relationType).\n\n**Requires:** `context:write`",
+        "operationId": "CustomContextItemsController_createRelations",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreateCustomContextItemRelationsDto"
+              },
+              "examples": {
+                "dependency": {
+                  "value": {
+                    "relations": [
+                      {
+                        "fromUid": "00000000-0000-4000-a000-000000000abc",
+                        "toUid": "00000000-0000-4000-a000-000000000def",
+                        "relationType": "depends_on",
+                        "content": {
+                          "version": "v1.1.8",
+                          "source": "go.mod"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchCreateCustomContextItemRelationsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create context item relations",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/context/custom-items/{uid}": {
       "get": {
         "description": "Returns one customer-created custom context item by uid. Returns 404 if the item does not exist or you cannot access it.\n\n**Requires:** `context:read`",
@@ -18449,6 +18662,34 @@
         ],
         "description": "Where the payload was read from. `live-query` = the run is still in progress; `history` = a completed run."
       },
+      "BatchCreateCustomContextItemRelationsDto": {
+        "type": "object",
+        "properties": {
+          "relations": {
+            "description": "Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending updates content.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateCustomContextItemRelationDto"
+            }
+          }
+        },
+        "required": [
+          "relations"
+        ]
+      },
+      "BatchCreateCustomContextItemRelationsResponseDto": {
+        "type": "object",
+        "properties": {
+          "upsertedCount": {
+            "type": "number",
+            "description": "Number of relations created or updated by the batch.",
+            "example": 12
+          }
+        },
+        "required": [
+          "upsertedCount"
+        ]
+      },
       "BatchCreateCustomContextItemsDto": {
         "type": "object",
         "properties": {
@@ -19285,6 +19526,36 @@
         "required": [
           "kind",
           "sourceId"
+        ]
+      },
+      "CreateCustomContextItemRelationDto": {
+        "type": "object",
+        "properties": {
+          "fromUid": {
+            "type": "string",
+            "description": "Uid of the source context item.",
+            "example": "00000000-0000-4000-a000-000000000abc"
+          },
+          "toUid": {
+            "type": "string",
+            "description": "Uid of the target context item.",
+            "example": "00000000-0000-4000-a000-000000000def"
+          },
+          "relationType": {
+            "type": "string",
+            "description": "Snake_case relation type describing how the source relates to the target.",
+            "example": "depends_on"
+          },
+          "content": {
+            "type": "object",
+            "description": "Optional structured payload stored on the relation edge.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "fromUid",
+          "toUid",
+          "relationType"
         ]
       },
       "CreateLinkDto": {

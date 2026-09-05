@@ -46,6 +46,13 @@ export type UpdateCustomContextItemInput = Omit<
   'kind' | 'sourceId' | 'sourceName' | 'collectionId' | 'collectionName' | 'externalId' | 'fieldName' | 'idempotencyKey'
 >
 
+export interface CustomContextItemRelationInput {
+  fromUid: string
+  toUid: string
+  relationType: string
+  content?: Record<string, unknown>
+}
+
 export interface CreatedCustomContextItem {
   contextItemId: string
   /** Same value as ``contextItemId`` — prefer this in new code (list/get parity). */
@@ -211,6 +218,33 @@ export class CustomContextItemsResource {
     )
     const items = data.contextItems
     return Array.isArray(items) ? items.map(parseCreatedCustomContextItem) : []
+  }
+
+  /**
+   * Create or update typed relations between context items.
+   *
+   * @param relations - Relations with source and target item uids, a snake_case type, and optional content.
+   * @returns Number of relations created or updated.
+   * @example
+   * ```ts
+   * const client = new Modus()
+   * await client.context.customItems.createRelations([{
+   *   fromUid: 'SOURCE_UID',
+   *   toUid: 'TARGET_UID',
+   *   relationType: 'depends_on',
+   * }])
+   * ```
+   */
+  async createRelations(relations: CustomContextItemRelationInput[]): Promise<number> {
+    const data = asRecord(
+      await invokeWithRetry(
+        this.config,
+        this.http,
+        'CustomContextItemsController_createRelations',
+        { jsonBody: { relations } },
+      ),
+    )
+    return data.upsertedCount as number
   }
 
   /**

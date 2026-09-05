@@ -214,6 +214,16 @@ export const OPERATIONS = {
     requestSchema: "CreateCustomContextItemDto",
     responseSchema: "CreatedCustomContextItemResponseDto",
   },
+  "CustomContextItemsController_createRelations": {
+    method: "POST",
+    path: "/api/v1/context/custom-items/relations",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: [],
+    queryParams: [],
+    requestSchema: "BatchCreateCustomContextItemRelationsDto",
+    responseSchema: "BatchCreateCustomContextItemRelationsResponseDto",
+  },
   "CustomContextItemsController_delete": {
     method: "DELETE",
     path: "/api/v1/context/custom-items/{uid}",

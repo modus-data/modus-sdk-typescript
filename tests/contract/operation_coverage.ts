@@ -90,6 +90,7 @@ export const OPERATIONS: Record<string, string> = {
   CustomContextItemsController_get: 'client.context.customItems.get() / mgmt.context.customItems.get()',
   CustomContextItemsController_create: 'mgmt.context.customItems.create()',
   CustomContextItemsController_batchCreate: 'mgmt.context.customItems.batchCreate()',
+  CustomContextItemsController_createRelations: 'mgmt.context.customItems.createRelations()',
   CustomContextItemsController_update: 'mgmt.context.customItems.update()',
   CustomContextItemsController_delete: 'mgmt.context.customItems.delete()',
   ContextFilesController_uploadUrl:
