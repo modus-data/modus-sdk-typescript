@@ -22,6 +22,13 @@ export interface UploadUrlInput {
 export interface UploadFromUrlInput {
   url: string
   fileName?: string
+  folderPath?: string
+}
+
+/** A local file and its optional durable folder label for `uploadFiles()`. */
+export interface UploadFileInput {
+  path: string
+  folderPath?: string
 }
 
 /** A single file that failed during `uploadDir()` (slot creation or PUT/poll). */
@@ -50,6 +57,7 @@ export type UploadProgressCallback = (progress: UploadProgress) => void
 export interface FinalizeInput {
   uploadId: string
   fileName: string
+  folderPath?: string
 }
 
 /** One entry that could not be finalized. */

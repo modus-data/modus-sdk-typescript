@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import type { ModusConfig } from '../../_config.js'
 import { ModusError } from '../../_exceptions.js'
 import type { HttpClient } from '../../_http.js'
@@ -14,6 +14,7 @@ import type {
   FinalizeInput,
   UploadDirFailure,
   UploadDirResult,
+  UploadFileInput,
   UploadFromUrlInput,
   UploadProgressCallback,
   UploadUrlInput,
@@ -143,32 +144,37 @@ function createSlotsPayload(files: readonly UploadUrlInput[]): Record<string, un
 
 function uploadFromUrlsPayload(urls: readonly UploadFromUrlInput[]): Record<string, unknown> {
   return {
-    urls: urls.map((u) => (u.fileName !== undefined ? { url: u.url, fileName: u.fileName } : { url: u.url })),
+    urls: urls.map((u) => ({
+      url: u.url,
+      ...(u.fileName !== undefined ? { fileName: u.fileName } : {}),
+      ...(u.folderPath !== undefined ? { folderPath: u.folderPath } : {}),
+    })),
   }
 }
 
-type SlotAssignment = { path: string; slot: UploadUrlSlot }
+type UploadPath = UploadFileInput
+type SlotAssignment = UploadPath & { slot: UploadUrlSlot }
 
 function assignSlots(
-  batch: readonly string[],
+  batch: readonly UploadPath[],
   result: BulkUploadUrlsResult,
   failed: UploadDirFailure[],
 ): SlotAssignment[] {
   const failedIndices = new Set(result.failed.map((f) => f.index))
   for (const f of result.failed) {
-    failed.push({ path: batch[f.index] as string, error: f.error })
+    failed.push({ path: batch[f.index]?.path ?? '', error: f.error })
   }
   const remaining = batch.filter((_, i) => !failedIndices.has(i))
   const uploaded = result.uploaded
   if (uploaded.length < remaining.length) {
-    for (const path of remaining.slice(uploaded.length)) {
-      failed.push({ path, error: 'Server returned fewer upload slots than requested files.' })
+    for (const file of remaining.slice(uploaded.length)) {
+      failed.push({ path: file.path, error: 'Server returned fewer upload slots than requested files.' })
     }
   }
   const paired = Math.min(remaining.length, uploaded.length)
   const assignments: SlotAssignment[] = []
   for (let i = 0; i < paired; i++) {
-    assignments.push({ path: remaining[i] as string, slot: uploaded[i] as UploadUrlSlot })
+    assignments.push({ ...(remaining[i] as UploadPath), slot: uploaded[i] as UploadUrlSlot })
   }
   return assignments
 }
@@ -233,10 +239,14 @@ export class ManagementContextFilesResource {
    * @param options.fileName - Override file name. Inferred from the URL path when omitted.
    * @returns File upload resource with status `processing` — parsing continues async.
    */
-  async uploadFromUrl(url: string, options: { fileName?: string } = {}): Promise<FileUpload> {
+  async uploadFromUrl(url: string, options: { fileName?: string; folderPath?: string } = {}): Promise<FileUpload> {
     return asRecord(
       await invokeWithRetry(this.config, this.http, 'ContextFilesController_uploadFromUrl', {
-        jsonBody: options.fileName !== undefined ? { url, fileName: options.fileName } : { url },
+        jsonBody: {
+          url,
+          ...(options.fileName !== undefined ? { fileName: options.fileName } : {}),
+          ...(options.folderPath !== undefined ? { folderPath: options.folderPath } : {}),
+        },
       }),
     ) as unknown as FileUpload
   }
@@ -310,12 +320,12 @@ export class ManagementContextFilesResource {
    * @param fileName - File name returned alongside it.
    * @returns The file upload resource, status `"processing"`.
    */
-  async finalize(uploadId: string, fileName: string): Promise<FileUpload> {
+  async finalize(uploadId: string, fileName: string, options: { folderPath?: string } = {}): Promise<FileUpload> {
     validateId(uploadId, 'uploadId')
     return asRecord(
       await invokeWithRetry(this.config, this.http, 'ContextFilesController_finalize', {
         pathParams: { uploadId },
-        jsonBody: { fileName },
+        jsonBody: { fileName, ...(options.folderPath !== undefined ? { folderPath: options.folderPath } : {}) },
       }),
     ) as unknown as FileUpload
   }
@@ -334,7 +344,13 @@ export class ManagementContextFilesResource {
     validateBulkSize(uploads.length, 'uploads')
     return asRecord(
       await invokeWithRetry(this.config, this.http, 'ContextFilesController_finalizeMany', {
-        jsonBody: { uploads: uploads.map((u) => ({ uploadId: u.uploadId, fileName: u.fileName })) },
+        jsonBody: {
+          uploads: uploads.map((u) => ({
+            uploadId: u.uploadId,
+            fileName: u.fileName,
+            ...(u.folderPath !== undefined ? { folderPath: u.folderPath } : {}),
+          })),
+        },
       }),
     ) as unknown as BulkFinalizeResult
   }
@@ -351,14 +367,14 @@ export class ManagementContextFilesResource {
    * @param options.onProgress - Optional progress callback after each file.
    */
   async uploadFiles(
-    paths: readonly string[],
+    paths: readonly (string | UploadFileInput)[],
     options: {
       concurrency?: number
       waitUntil?: WaitUntil
       onProgress?: UploadProgressCallback
     } = {},
   ): Promise<UploadDirResult> {
-    return this.uploadPaths([...paths], options)
+    return this.uploadPaths(paths.map((input) => typeof input === 'string' ? { path: input } : input), options)
   }
 
   /**
@@ -457,13 +473,16 @@ export class ManagementContextFilesResource {
     if (!dirStat.isDirectory()) throw new Error(`Not a directory: ${path}`)
 
     const files = await walkFiles(path, options.recursive ?? true)
-    return this.uploadPaths(files, options)
+    return this.uploadPaths(files.map((file) => {
+      const folderPath = relative(path, dirname(file)).replace(/\\/g, '/')
+      return { path: file, ...(folderPath.length > 0 ? { folderPath } : {}) }
+    }), options)
   }
 
   /** Shared body of `uploadFiles` and `uploadDir`: presign in batches of 100,
    * PUT with bounded concurrency, then bulk-finalize the batch. */
   private async uploadPaths(
-    files: readonly string[],
+    files: readonly UploadPath[],
     options: { concurrency?: number; waitUntil?: WaitUntil; onProgress?: UploadProgressCallback },
   ): Promise<UploadDirResult> {
     const waitUntil = options.waitUntil ?? 'processing'
@@ -505,18 +524,18 @@ export class ManagementContextFilesResource {
     return { uploaded, failed }
   }
 
-  private async createSlots(batch: readonly string[], failed: UploadDirFailure[]): Promise<SlotAssignment[]> {
-    const readable: string[] = []
+  private async createSlots(batch: readonly UploadPath[], failed: UploadDirFailure[]): Promise<SlotAssignment[]> {
+    const readable: UploadPath[] = []
     const inputs: UploadUrlInput[] = []
-    for (const path of batch) {
+    for (const file of batch) {
       try {
-        const fileStat = await stat(path)
-        const fileName = path.split(/[/\\]/).pop() as string
+        const fileStat = await stat(file.path)
+        const fileName = file.path.split(/[/\\]/).pop() as string
         inputs.push({ fileName, contentType: DEFER_CONTENT_TYPE_TO_SERVER, fileSize: fileStat.size })
-        readable.push(path)
+        readable.push(file)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        failed.push({ path, error: message })
+        failed.push({ path: file.path, error: message })
       }
     }
     if (inputs.length === 0) return []
@@ -538,11 +557,11 @@ export class ManagementContextFilesResource {
     const put = await mapWithConcurrency<SlotAssignment, PutOutcome>(
       slots,
       concurrency,
-      async ({ path, slot }) => {
+      async ({ path, folderPath, slot }) => {
         try {
           const data = await readFile(path)
           await putBytes(this.config.fetch, slot.uploadUrl, data, slot.contentType, DEFAULT_PUT_TIMEOUT_MS)
-          return { landed: { path, slot } }
+          return { landed: { path, ...(folderPath !== undefined ? { folderPath } : {}), slot } }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error)
           return { failure: { path, error: message } }
@@ -570,7 +589,11 @@ export class ManagementContextFilesResource {
     // One bulk finalize for the whole batch — the reason a 2000-file directory
     // costs 20 requests here instead of 2000.
     const result = await this.finalizeMany(
-      landed.map(({ slot }) => ({ uploadId: slot.uploadId, fileName: slot.fileName })),
+      landed.map(({ slot, folderPath }) => ({
+        uploadId: slot.uploadId,
+        fileName: slot.fileName,
+        ...(folderPath !== undefined ? { folderPath } : {}),
+      })),
     )
     const failedIndices = new Set(result.failed.map((f) => f.index))
     for (const f of result.failed) {

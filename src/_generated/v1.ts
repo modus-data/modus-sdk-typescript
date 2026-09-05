@@ -2132,6 +2132,11 @@ export interface components {
              * @example Q3-churn-report.pdf
              */
             fileName: string;
+            /**
+             * @description Relative folder label to store with the upload.
+             * @example reports/2026/Q3
+             */
+            folderPath?: string;
         };
         BulkFinalizeResponseDto: {
             /** @description Resources for every upload that was finalized. */
@@ -2150,6 +2155,11 @@ export interface components {
              * @example Q3-churn-report.pdf
              */
             fileName?: string;
+            /**
+             * @description Relative folder label to store with the upload.
+             * @example reports/2026/Q3
+             */
+            folderPath?: string;
         };
         BulkUploadFromUrlsDto: {
             /** @description URLs to fetch and upload. Max 100 per request. */
@@ -3090,6 +3100,11 @@ export interface components {
             status: components["schemas"]["FileUploadResourceStatus"];
             /** @example Q3-churn-report.pdf */
             fileName?: string | null;
+            /**
+             * @description Relative folder label supplied when the upload was finalized.
+             * @example reports/2026/Q3
+             */
+            folderPath?: string | null;
             /** @example application/pdf */
             contentType?: string | null;
             /** @example 1048576 */
@@ -3118,6 +3133,11 @@ export interface components {
              * @example Q3-churn-report.pdf
              */
             fileName: string;
+            /**
+             * @description Relative folder label to store with the upload.
+             * @example reports/2026/Q3
+             */
+            folderPath?: string;
         };
         GetAutomationRunResponseDto: {
             /**
@@ -4274,6 +4294,11 @@ export interface components {
              * @example Q3-churn-report.pdf
              */
             fileName?: string;
+            /**
+             * @description Relative folder label to store with the upload.
+             * @example reports/2026/Q3
+             */
+            folderPath?: string;
         };
         UploadUrlDto: {
             /**
