@@ -5696,6 +5696,17 @@
             }
           },
           {
+            "name": "sourceRef",
+            "required": false,
+            "in": "query",
+            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422.",
+            "schema": {
+              "maxLength": 200,
+              "example": "a3f1c0de-1234-4a56-9b78-0123456789ab",
+              "type": "string"
+            }
+          },
+          {
             "name": "timeframe",
             "required": false,
             "in": "query",
@@ -7767,6 +7778,17 @@
                 "dashboard_copilot",
                 "other"
               ]
+            }
+          },
+          {
+            "name": "sourceRef",
+            "required": false,
+            "in": "query",
+            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422.",
+            "schema": {
+              "maxLength": 200,
+              "example": "a3f1c0de-1234-4a56-9b78-0123456789ab",
+              "type": "string"
             }
           },
           {

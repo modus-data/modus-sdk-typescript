@@ -9510,6 +9510,8 @@ export interface operations {
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
                 source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
+                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422. */
+                sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
@@ -11157,6 +11159,8 @@ export interface operations {
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
                 source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
+                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422. */
+                sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
