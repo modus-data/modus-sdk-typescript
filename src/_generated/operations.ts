@@ -304,6 +304,16 @@ export const OPERATIONS = {
     requestSchema: "UpdateEvaluationConfigDto",
     responseSchema: "EvaluationConfigDto",
   },
+  "IngestedDataController_upload": {
+    method: "POST",
+    path: "/api/v1/ingested-data",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: [],
+    queryParams: [],
+    requestSchema: "CreateIngestedDataDto",
+    responseSchema: "CreatedIngestedDataResponseDto",
+  },
   "MemberGroupsController_list": {
     method: "GET",
     path: "/api/v1/users/member-groups",

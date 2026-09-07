@@ -7,6 +7,8 @@
 
 /** operationId → short note on where/how the SDK exposes it. */
 export const OPERATIONS: Record<string, string> = {
+  // --- Ingested data ---
+  IngestedDataController_upload: 'client.ingestedData.upload()',
   // --- Scopes (/api/v1/scopes) ---
   ScopesController_list: 'client.scopes.list() / mgmt.scopes.list()',
   ScopesController_create: 'mgmt.scopes.create()',

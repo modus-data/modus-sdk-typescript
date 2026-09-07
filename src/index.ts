@@ -81,11 +81,21 @@ export type {
   SuggestionEventType,
   SuggestionQuestion,
 } from './types/suggestions.js'
+export type {
+  HttpIngestedDataRequest,
+  IngestedDataRequest,
+  IngestedDataResponse,
+  IngestedDataResponseFormat,
+  IngestedDataUploadResult,
+  SqlIngestedDataRequest,
+  UploadIngestedDataOptions,
+} from './types/ingested-data.js'
 
 import { ModusClientBase } from './_client-base.js'
 import { WorkflowsResource } from './resources/workflows.js'
 import { ConnectionsResource } from './resources/connections.js'
 import { ContextResource } from './resources/context/context.js'
+import { IngestedDataResource } from './resources/ingested-data.js'
 import { ModusResource } from './resources/modus/modus.js'
 import { ScopesResource } from './resources/scopes.js'
 import { SuggestionsResource } from './resources/suggestions.js'
@@ -104,6 +114,7 @@ export class Modus extends ModusClientBase {
   readonly context: ContextResource
   readonly connections: ConnectionsResource
   readonly suggestions: SuggestionsResource
+  readonly ingestedData: IngestedDataResource
 
   constructor(options: import('./_config.js').ModusOptions = {}) {
     super(options)
@@ -113,5 +124,6 @@ export class Modus extends ModusClientBase {
     this.context = new ContextResource(this.http, this.config)
     this.connections = new ConnectionsResource(this.http, this.config)
     this.suggestions = new SuggestionsResource(this.http, this.config)
+    this.ingestedData = new IngestedDataResource(this.http, this.config)
   }
 }

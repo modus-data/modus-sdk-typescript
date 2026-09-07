@@ -10,6 +10,7 @@
     "docs/typedoc/Modus.connections.ts",
     "docs/typedoc/Modus.chat.ts",
     "docs/typedoc/Modus.suggestions.ts",
+    "docs/typedoc/Modus.ingestedData.ts",
     "docs/typedoc/Modus.errors.ts",
     "docs/typedoc/Management.ts",
     "docs/typedoc/Management.scopes.ts",
