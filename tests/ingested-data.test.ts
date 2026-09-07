@@ -19,7 +19,6 @@ describe('Modus.ingestedData', () => {
     const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
 
     const result = await client.ingestedData.upload({
-      organizationId: 'org_test',
       integrationType: 'generic',
       request: {
         type: 'http',
@@ -39,7 +38,6 @@ describe('Modus.ingestedData', () => {
     expect(String(fetch.mock.calls[0]?.[0])).toBe(`${BASE}/api/v1/ingested-data`)
     expect(fetch.mock.calls[0]?.[1]?.method).toBe('POST')
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
-      org_id: 'org_test',
       integration_type: 'generic',
       request: {
         type: 'http',
@@ -65,7 +63,6 @@ describe('Modus.ingestedData', () => {
 
     await expect(
       client.ingestedData.upload({
-        organizationId: 'org_test',
         integrationType: 'generic',
         request: { type: 'sql', query: 'SELECT 1' },
         response: { format: 'csv', content: '' },

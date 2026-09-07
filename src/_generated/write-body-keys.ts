@@ -17,7 +17,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   CustomContextItemsController_create: ["kind", "sourceId", "sourceName", "collectionId", "collectionName", "externalId", "fieldName", "name", "entityType", "description", "content", "url", "attributes", "dataType", "value", "samples", "raw", "topics", "idempotencyKey", "access"],
   CustomContextItemsController_update: ["name", "entityType", "description", "content", "url", "attributes", "dataType", "value", "samples", "raw", "topics"],
   EvaluationsController_updateConfig: ["enabled", "cadence", "judgeModel", "judgeGuidance", "notifications"],
-  IngestedDataController_upload: ["org_id", "integration_type", "request", "response"],
+  IngestedDataController_upload: ["integration_type", "request", "response"],
   ModusChatController_chat: ["message", "model"],
   ModusContextController_compose: ["message", "limit"],
   ModusRunsController_create: ["message", "sessionId", "organizationId", "version", "fileThreadId", "config", "attachments", "userContext", "source", "runId", "subordinateSkillIds"],

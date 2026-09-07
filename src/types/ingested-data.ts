@@ -8,7 +8,6 @@ export type IngestedDataResponse = components['schemas']['IngestedDataResponseDt
 
 /** Complete content used to identify an immutable ingested-data upload. */
 export interface UploadIngestedDataOptions {
-  organizationId: string
   integrationType: string
   request: IngestedDataRequest
   response: IngestedDataResponse

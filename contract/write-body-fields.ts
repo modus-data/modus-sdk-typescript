@@ -5,7 +5,7 @@
  * these are JSON field names on the wire.
  */
 export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
-  IngestedDataController_upload: ['org_id', 'integration_type', 'request', 'response'],
+  IngestedDataController_upload: ['integration_type', 'request', 'response'],
   ContextItemsController_update: [
     'contextType',
     'content',
