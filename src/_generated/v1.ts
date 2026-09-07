@@ -2698,11 +2698,6 @@ export interface components {
         };
         CreateIngestedDataDto: {
             /**
-             * @description Clerk organization id. Must match the authenticated organization.
-             * @example org_2abc123
-             */
-            org_id: string;
-            /**
              * @description Canonical Modus integration identifier.
              * @example generic
              */

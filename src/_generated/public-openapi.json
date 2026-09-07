@@ -19793,11 +19793,6 @@
       "CreateIngestedDataDto": {
         "type": "object",
         "properties": {
-          "org_id": {
-            "type": "string",
-            "description": "Clerk organization id. Must match the authenticated organization.",
-            "example": "org_2abc123"
-          },
           "integration_type": {
             "type": "string",
             "description": "Canonical Modus integration identifier.",
@@ -19825,7 +19820,6 @@
           }
         },
         "required": [
-          "org_id",
           "integration_type",
           "request",
           "response"
