@@ -76,6 +76,10 @@
       "description": "Create and manage organization context items."
     },
     {
+      "name": "Ingested data",
+      "description": "Store immutable integration request and response data."
+    },
+    {
       "name": "Usage",
       "description": "Organization LLM usage reporting."
     },
@@ -5189,6 +5193,212 @@
         "summary": "Create a saved-query context item",
         "tags": [
           "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/ingested-data": {
+      "post": {
+        "description": "Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.\n\n**Requires:** `context:write`",
+        "operationId": "IngestedDataController_upload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIngestedDataDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedIngestedDataResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The complete JSON request body exceeds 10 MiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Store ingested data",
+        "tags": [
+          "Ingested data"
         ],
         "security": [
           {
@@ -19580,6 +19790,47 @@
           "relationType"
         ]
       },
+      "CreateIngestedDataDto": {
+        "type": "object",
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "description": "Clerk organization id. Must match the authenticated organization.",
+            "example": "org_2abc123"
+          },
+          "integration_type": {
+            "type": "string",
+            "description": "Canonical Modus integration identifier.",
+            "example": "generic"
+          },
+          "request": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SqlIngestedDataRequestDto"
+              },
+              {
+                "$ref": "#/components/schemas/HttpIngestedDataRequestDto"
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "sql": "#/components/schemas/SqlIngestedDataRequestDto",
+                "http": "#/components/schemas/HttpIngestedDataRequestDto"
+              }
+            }
+          },
+          "response": {
+            "$ref": "#/components/schemas/IngestedDataResponseDto"
+          }
+        },
+        "required": [
+          "org_id",
+          "integration_type",
+          "request",
+          "response"
+        ]
+      },
       "CreateLinkDto": {
         "type": "object",
         "properties": {
@@ -19843,6 +20094,31 @@
           "contextType",
           "dataPath",
           "title"
+        ]
+      },
+      "CreatedIngestedDataResponseDto": {
+        "type": "object",
+        "properties": {
+          "checksum": {
+            "type": "string",
+            "description": "Lowercase SHA-256 checksum of the canonical JSON envelope.",
+            "example": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d"
+          },
+          "key": {
+            "type": "string",
+            "description": "Object key of the newly persisted envelope.",
+            "example": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.txt"
+          },
+          "created": {
+            "type": "boolean",
+            "description": "Always true for a newly created object.",
+            "example": true
+          }
+        },
+        "required": [
+          "checksum",
+          "key",
+          "created"
         ]
       },
       "CustomAttributeDto": {
@@ -20708,6 +20984,86 @@
         "required": [
           "use",
           "manage"
+        ]
+      },
+      "HttpIngestedDataRequestDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "example": "http",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HttpIngestedDataRequestType"
+              }
+            ]
+          },
+          "uri": {
+            "type": "string",
+            "description": "Request URI exactly as sent.",
+            "example": "https://api.example.com/v1/orders?status=open"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method exactly as sent. POST requests require `body`.",
+            "example": "GET"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Request headers exactly as sent. Authentication, Authorization, Proxy-Authorization, Cookie, API-key, and credential-token headers (for example, X-Access-Token or X-Amz-Security-Token) are rejected.",
+            "example": {
+              "Accept": "application/json"
+            }
+          },
+          "body": {
+            "type": "string",
+            "description": "Request body exactly as sent. Required when `method` is POST.",
+            "example": "{\"status\":\"open\"}"
+          }
+        },
+        "required": [
+          "type",
+          "uri",
+          "method"
+        ]
+      },
+      "HttpIngestedDataRequestType": {
+        "type": "string",
+        "enum": [
+          "http"
+        ]
+      },
+      "IngestedDataResponseDto": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "example": "json",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/IngestedDataResponseFormat"
+              }
+            ]
+          },
+          "content": {
+            "type": "string",
+            "description": "Response content exactly as received, including an empty response.",
+            "example": "{\"orders\":[]}"
+          }
+        },
+        "required": [
+          "format",
+          "content"
+        ]
+      },
+      "IngestedDataResponseFormat": {
+        "type": "string",
+        "enum": [
+          "csv",
+          "json",
+          "xml",
+          "text"
         ]
       },
       "ListAgentInterfacesResponseDto": {
@@ -22066,6 +22422,34 @@
           "interfaces",
           "supervisionSubordinateIds",
           "supervisionSubordinateDescriptions"
+        ]
+      },
+      "SqlIngestedDataRequestDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "example": "sql",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SqlIngestedDataRequestType"
+              }
+            ]
+          },
+          "query": {
+            "type": "string",
+            "description": "SQL query exactly as executed.",
+            "example": "SELECT * FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'"
+          }
+        },
+        "required": [
+          "type",
+          "query"
+        ]
+      },
+      "SqlIngestedDataRequestType": {
+        "type": "string",
+        "enum": [
+          "sql"
         ]
       },
       "SuggestionEventSource": {

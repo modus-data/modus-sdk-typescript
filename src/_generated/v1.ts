@@ -474,6 +474,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ingested-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Store ingested data
+         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.
+         *
+         *     **Requires:** `context:write`
+         */
+        post: operations["IngestedDataController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/modus/chat": {
         parameters: {
             query?: never;
@@ -2674,6 +2696,20 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        CreateIngestedDataDto: {
+            /**
+             * @description Clerk organization id. Must match the authenticated organization.
+             * @example org_2abc123
+             */
+            org_id: string;
+            /**
+             * @description Canonical Modus integration identifier.
+             * @example generic
+             */
+            integration_type: string;
+            request: components["schemas"]["SqlIngestedDataRequestDto"] | components["schemas"]["HttpIngestedDataRequestDto"];
+            response: components["schemas"]["IngestedDataResponseDto"];
+        };
         CreateLinkDto: {
             /**
              * @description URL to extract content from. Invoked via Tavily.
@@ -2848,6 +2884,23 @@ export interface components {
              * @example Acme renewal contract
              */
             title: string | null;
+        };
+        CreatedIngestedDataResponseDto: {
+            /**
+             * @description Lowercase SHA-256 checksum of the canonical JSON envelope.
+             * @example 84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d
+             */
+            checksum: string;
+            /**
+             * @description Object key of the newly persisted envelope.
+             * @example org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.txt
+             */
+            key: string;
+            /**
+             * @description Always true for a newly created object.
+             * @example true
+             */
+            created: boolean;
         };
         CustomAttributeDto: {
             /**
@@ -3272,6 +3325,50 @@ export interface components {
              */
             manage: boolean;
         };
+        HttpIngestedDataRequestDto: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "http";
+            /**
+             * @description Request URI exactly as sent.
+             * @example https://api.example.com/v1/orders?status=open
+             */
+            uri: string;
+            /**
+             * @description HTTP method exactly as sent. POST requests require `body`.
+             * @example GET
+             */
+            method: string;
+            /**
+             * @description Request headers exactly as sent. Authentication, Authorization, Proxy-Authorization, Cookie, API-key, and credential-token headers (for example, X-Access-Token or X-Amz-Security-Token) are rejected.
+             * @example {
+             *       "Accept": "application/json"
+             *     }
+             */
+            headers?: {
+                [key: string]: string;
+            };
+            /**
+             * @description Request body exactly as sent. Required when `method` is POST.
+             * @example {"status":"open"}
+             */
+            body?: string;
+        };
+        /** @enum {string} */
+        HttpIngestedDataRequestType: "http";
+        IngestedDataResponseDto: {
+            /** @example json */
+            format: components["schemas"]["IngestedDataResponseFormat"];
+            /**
+             * @description Response content exactly as received, including an empty response.
+             * @example {"orders":[]}
+             */
+            content: string;
+        };
+        /** @enum {string} */
+        IngestedDataResponseFormat: "csv" | "json" | "xml" | "text";
         ListAgentInterfacesResponseDto: {
             /** @description All interfaces attached to the workflow (in creation order). */
             interfaces: components["schemas"]["AgentInterfaceDto"][];
@@ -3920,6 +4017,20 @@ export interface components {
                 [key: string]: string;
             };
         };
+        SqlIngestedDataRequestDto: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "sql";
+            /**
+             * @description SQL query exactly as executed.
+             * @example SELECT * FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+             */
+            query: string;
+        };
+        /** @enum {string} */
+        SqlIngestedDataRequestType: "sql";
         /**
          * @description Product surface that emitted the event.
          * @enum {string}
@@ -9073,6 +9184,195 @@ export interface operations {
                      *       }
                      *     }
                      */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    IngestedDataController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIngestedDataDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedIngestedDataResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The complete JSON request body exceeds 10 MiB. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
