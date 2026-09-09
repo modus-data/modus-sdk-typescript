@@ -10,7 +10,7 @@ describe('Modus.ingestedData', () => {
       new Response(
         JSON.stringify({
           checksum: 'a'.repeat(64),
-          key: `org_test/generic/${'a'.repeat(64)}.txt`,
+          key: `org_test/generic/${'a'.repeat(64)}.json`,
           created: true,
         }),
         { status: 201, headers: { 'Content-Type': 'application/json' } },
@@ -24,7 +24,6 @@ describe('Modus.ingestedData', () => {
         type: 'http',
         uri: 'https://example.com/שלום?q=%20',
         method: 'PATCH',
-        headers: { 'X-Empty': '', 'X-Whitespace': '  ' },
         body: '',
       },
       response: { format: 'text', content: 'line 1\r\nשלום\r\n' },
@@ -32,7 +31,7 @@ describe('Modus.ingestedData', () => {
 
     expect(result).toEqual({
       checksum: 'a'.repeat(64),
-      key: `org_test/generic/${'a'.repeat(64)}.txt`,
+      key: `org_test/generic/${'a'.repeat(64)}.json`,
       created: true,
     })
     expect(String(fetch.mock.calls[0]?.[0])).toBe(`${BASE}/api/v1/ingested-data`)
@@ -43,7 +42,6 @@ describe('Modus.ingestedData', () => {
         type: 'http',
         uri: 'https://example.com/שלום?q=%20',
         method: 'PATCH',
-        headers: { 'X-Empty': '', 'X-Whitespace': '  ' },
         body: '',
       },
       response: { format: 'text', content: 'line 1\r\nשלום\r\n' },

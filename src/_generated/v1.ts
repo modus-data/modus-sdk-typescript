@@ -485,7 +485,7 @@ export interface paths {
         put?: never;
         /**
          * Store ingested data
-         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.
+         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict that reports the existing checksum and key.
          *
          *     **Requires:** `context:write`
          */
@@ -2888,7 +2888,7 @@ export interface components {
             checksum: string;
             /**
              * @description Object key of the newly persisted envelope.
-             * @example org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.txt
+             * @example org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json
              */
             key: string;
             /**
@@ -3332,21 +3332,12 @@ export interface components {
              */
             uri: string;
             /**
-             * @description HTTP method exactly as sent. POST requests require `body`.
+             * @description HTTP method exactly as sent.
              * @example GET
              */
             method: string;
             /**
-             * @description Request headers exactly as sent. Authentication, Authorization, Proxy-Authorization, Cookie, API-key, and credential-token headers (for example, X-Access-Token or X-Amz-Security-Token) are rejected.
-             * @example {
-             *       "Accept": "application/json"
-             *     }
-             */
-            headers?: {
-                [key: string]: string;
-            };
-            /**
-             * @description Request body exactly as sent. Required when `method` is POST.
+             * @description Request body exactly as sent. An omitted body is stored as an empty string, so both spellings of a bodiless request share one checksum.
              * @example {"status":"open"}
              */
             body?: string;
@@ -9343,7 +9334,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            /**
+             * @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).
+             *
+             *     Safe to treat as success on a retry — the identical payload is already stored, and `info` carries the `checksum` and `key` of the object that holds it.
+             */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9354,8 +9349,12 @@ export interface operations {
                      *       "error": {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *         "message": "Identical ingested data already exists",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "checksum": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d",
+                     *           "key": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
+                     *         }
                      *       }
                      *     }
                      */

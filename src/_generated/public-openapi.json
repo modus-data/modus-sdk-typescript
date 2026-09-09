@@ -5212,7 +5212,7 @@
     },
     "/api/v1/ingested-data": {
       "post": {
-        "description": "Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.\n\n**Requires:** `context:write`",
+        "description": "Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict that reports the existing checksum and key.\n\n**Requires:** `context:write`",
         "operationId": "IngestedDataController_upload",
         "parameters": [],
         "requestBody": {
@@ -5314,7 +5314,7 @@
             }
           },
           "409": {
-            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).\n\nSafe to treat as success on a retry — the identical payload is already stored, and `info` carries the `checksum` and `key` of the object that holds it.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5324,8 +5324,12 @@
                   "error": {
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
-                    "message": "A resource with that identifier already exists.",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                    "message": "Identical ingested data already exists",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "checksum": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d",
+                      "key": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
+                    }
                   }
                 }
               }
@@ -20101,7 +20105,7 @@
           "key": {
             "type": "string",
             "description": "Object key of the newly persisted envelope.",
-            "example": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.txt"
+            "example": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
           },
           "created": {
             "type": "boolean",
@@ -20998,22 +21002,12 @@
           },
           "method": {
             "type": "string",
-            "description": "HTTP method exactly as sent. POST requests require `body`.",
+            "description": "HTTP method exactly as sent.",
             "example": "GET"
-          },
-          "headers": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "Request headers exactly as sent. Authentication, Authorization, Proxy-Authorization, Cookie, API-key, and credential-token headers (for example, X-Access-Token or X-Amz-Security-Token) are rejected.",
-            "example": {
-              "Accept": "application/json"
-            }
           },
           "body": {
             "type": "string",
-            "description": "Request body exactly as sent. Required when `method` is POST.",
+            "description": "Request body exactly as sent. An omitted body is stored as an empty string, so both spellings of a bodiless request share one checksum.",
             "example": "{\"status\":\"open\"}"
           }
         },
