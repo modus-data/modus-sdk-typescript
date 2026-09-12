@@ -15,6 +15,8 @@ function listParams(
   pageSize: number,
   pageToken: string | undefined,
   kind?: ConversationKind,
+  source?: string,
+  sourceRef?: string,
 ): Record<string, string | number | boolean | undefined | null> {
   if (kind !== undefined && !ALLOWED_KINDS.has(kind)) {
     throw new Error(
@@ -23,6 +25,8 @@ function listParams(
   }
   const extra: Record<string, string> = {}
   if (kind !== undefined) extra.kind = kind
+  if (source !== undefined) extra.source = source
+  if (sourceRef !== undefined) extra.sourceRef = sourceRef
   return aipListParams(pageSize, pageToken, extra) as Record<
     string,
     string | number | boolean | undefined | null
@@ -50,30 +54,42 @@ export class ModusConversationsResource {
    * @param options.pageSize - Items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
    * @param options.kind - `"modus"`, `"scopes"`, or `"all"`.
+   * @param options.source - Restrict to conversations started from this UI surface
+   *   (e.g. `"context_chat"`, `"dashboard_copilot"`, `"slack"`). Only valid with an
+   *   omitted `kind` or `kind: "all"`; the API throws an `UnprocessableError` (422)
+   *   if combined with `kind: "modus"` or `kind: "scopes"`.
+   * @param options.sourceRef - Narrow `source` to one instance of that surface — for
+   *   `"dashboard_copilot"`, a dashboard id. Requires `source`; the API throws an
+   *   `UnprocessableError` (422) if sent on its own. Conversations recorded before
+   *   this filter shipped carry no instance key and never match it.
    * @returns Page of conversation list items.
    */
   list(options: {
     pageSize?: number
     pageToken?: string
     kind?: ConversationKind
+    source?: string
+    sourceRef?: string
   } = {}): Promise<Page<ConversationListItem>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
-    return this.listPage(pageSize, options.pageToken, options.kind)
+    return this.listPage(pageSize, options.pageToken, options.kind, options.source, options.sourceRef)
   }
 
   private async listPage(
     pageSize: number,
     pageToken: string | undefined,
     kind?: ConversationKind,
+    source?: string,
+    sourceRef?: string,
   ): Promise<Page<ConversationListItem>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'ModusConversationsController_list', {
-        query: listParams(pageSize, pageToken, kind),
+        query: listParams(pageSize, pageToken, kind, source, sourceRef),
       }),
     )
     return buildAipPage(data, 'conversations', parseListItem, (token) =>
-      this.listPage(pageSize, token, kind),
+      this.listPage(pageSize, token, kind, source, sourceRef),
     )
   }
 

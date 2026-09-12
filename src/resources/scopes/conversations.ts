@@ -26,6 +26,12 @@ export class ScopeConversationsResource {
    *
    * @param options.pageSize - Items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
+   * @param options.source - Restrict to conversations started from this UI surface
+   *   (e.g. `"context_chat"`, `"dashboard_copilot"`, `"slack"`).
+   * @param options.sourceRef - Narrow `source` to one instance of that surface — for
+   *   `"dashboard_copilot"`, a dashboard id. Requires `source`; the API throws an
+   *   `UnprocessableError` (422) if sent on its own. Conversations recorded before
+   *   this filter shipped carry no instance key and never match it.
    * @returns Page of conversation list items (`threadId`, `firstMessage`, `messageCount`).
    *
    * @example
@@ -37,28 +43,35 @@ export class ScopeConversationsResource {
    * }
    * ```
    */
-  list(options: { pageSize?: number; pageToken?: string } = {}): Promise<Page<ConversationListItem>> {
+  list(
+    options: { pageSize?: number; pageToken?: string; source?: string; sourceRef?: string } = {},
+  ): Promise<Page<ConversationListItem>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
-    return this.listPage(pageSize, options.pageToken)
+    return this.listPage(pageSize, options.pageToken, options.source, options.sourceRef)
   }
 
   private async listPage(
     pageSize: number,
     pageToken: string | undefined,
+    source?: string,
+    sourceRef?: string,
   ): Promise<Page<ConversationListItem>> {
     validateId(this.scopeId, 'scope_id')
+    const extra: Record<string, string> = {}
+    if (source !== undefined) extra.source = source
+    if (sourceRef !== undefined) extra.sourceRef = sourceRef
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'ScopeConversationsController_list', {
         pathParams: { id: this.scopeId },
-        query: aipListParams(pageSize, pageToken) as Record<
+        query: aipListParams(pageSize, pageToken, extra) as Record<
           string,
           string | number | boolean | undefined | null
         >,
       }),
     )
     return buildAipPage(data, 'conversations', parseListItem, (token) =>
-      this.listPage(pageSize, token),
+      this.listPage(pageSize, token, source, sourceRef),
     )
   }
 
