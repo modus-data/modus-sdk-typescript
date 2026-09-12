@@ -15,6 +15,8 @@ describe('@getmodus/sdk scaffold', () => {
     expect(client.context.items).toBeDefined()
     expect(client.connections).toBeDefined()
     expect(client.suggestions).toBeDefined()
+    expect(client.ingestedData).toBeDefined()
+    expect(typeof client.ingestedData.upload).toBe('function')
     // Canonical scopes/workflows surfaces on the consumption client.
     expect(client.scopes).toBeDefined()
     expect(typeof client.scopes.chat).toBe('function')
@@ -34,7 +36,7 @@ describe('@getmodus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(97)
+    expect(Object.keys(OPERATIONS).length).toBe(98)
     expect(OPERATIONS.IngestedDataController_upload).toMatchObject({
       method: 'POST',
       path: '/api/v1/ingested-data',

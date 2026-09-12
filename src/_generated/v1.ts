@@ -76,6 +76,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/context/custom-items/relations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create context item relations
+         * @description Creates or updates typed relations between context items. Both endpoints must be visible context items in your organization (custom or integration-mined). Idempotent by (fromUid, toUid, relationType).
+         *
+         *     **Requires:** `context:write`
+         */
+        post: operations["CustomContextItemsController_createRelations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/context/custom-items/{uid}": {
         parameters: {
             query?: never;
@@ -463,7 +485,7 @@ export interface paths {
         put?: never;
         /**
          * Store ingested data
-         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.
+         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict that reports the existing checksum and key.
          *
          *     **Requires:** `context:write`
          */
@@ -2131,6 +2153,17 @@ export interface components {
          * @enum {string}
          */
         AutomationRunSource: "live-query" | "history";
+        BatchCreateCustomContextItemRelationsDto: {
+            /** @description Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending updates content. */
+            relations: components["schemas"]["CreateCustomContextItemRelationDto"][];
+        };
+        BatchCreateCustomContextItemRelationsResponseDto: {
+            /**
+             * @description Number of relations created or updated by the batch.
+             * @example 12
+             */
+            upsertedCount: number;
+        };
         BatchCreateCustomContextItemsDto: {
             /** @description Custom context items to upsert. Batch imports are idempotent by item hierarchy. */
             items: components["schemas"]["CreateCustomContextItemDto"][];
@@ -2642,6 +2675,27 @@ export interface components {
             idempotencyKey?: string;
             access?: components["schemas"]["AccessPolicyDto"];
         };
+        CreateCustomContextItemRelationDto: {
+            /**
+             * @description Uid of the source context item.
+             * @example 00000000-0000-4000-a000-000000000abc
+             */
+            fromUid: string;
+            /**
+             * @description Uid of the target context item.
+             * @example 00000000-0000-4000-a000-000000000def
+             */
+            toUid: string;
+            /**
+             * @description Snake_case relation type describing how the source relates to the target.
+             * @example depends_on
+             */
+            relationType: string;
+            /** @description Optional structured payload stored on the relation edge. */
+            content?: {
+                [key: string]: unknown;
+            };
+        };
         CreateIngestedDataDto: {
             /**
              * @description Canonical Modus integration identifier.
@@ -2834,7 +2888,7 @@ export interface components {
             checksum: string;
             /**
              * @description Object key of the newly persisted envelope.
-             * @example org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.txt
+             * @example org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json
              */
             key: string;
             /**
@@ -3278,21 +3332,12 @@ export interface components {
              */
             uri: string;
             /**
-             * @description HTTP method exactly as sent. POST requests require `body`.
+             * @description HTTP method exactly as sent.
              * @example GET
              */
             method: string;
             /**
-             * @description Request headers exactly as sent. Authentication, Authorization, Proxy-Authorization, Cookie, API-key, and credential-token headers (for example, X-Access-Token or X-Amz-Security-Token) are rejected.
-             * @example {
-             *       "Accept": "application/json"
-             *     }
-             */
-            headers?: {
-                [key: string]: string;
-            };
-            /**
-             * @description Request body exactly as sent. Required when `method` is POST.
+             * @description Request body exactly as sent. An omitted body is stored as an empty string, so both spellings of a bodiless request share one checksum.
              * @example {"status":"open"}
              */
             body?: string;
@@ -5456,6 +5501,186 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BatchCreateCustomContextItemsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomContextItemsController_createRelations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchCreateCustomContextItemRelationsDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchCreateCustomContextItemRelationsResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -9109,7 +9334,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            /**
+             * @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).
+             *
+             *     Safe to treat as success on a retry — the identical payload is already stored, and `info` carries the `checksum` and `key` of the object that holds it.
+             */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9120,8 +9349,12 @@ export interface operations {
                      *       "error": {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *         "message": "Identical ingested data already exists",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "checksum": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d",
+                     *           "key": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
+                     *         }
                      *       }
                      *     }
                      */
@@ -9571,6 +9804,8 @@ export interface operations {
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
                 source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
+                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422. */
+                sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */
@@ -11218,6 +11453,8 @@ export interface operations {
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
                 source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
+                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422. */
+                sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
                 /** @description When true, populate `toolsUsed` on each list item by scanning message blobs. Defaults to false to keep the list cheap. */

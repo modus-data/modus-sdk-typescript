@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 import { Page } from '../../src/_pagination.js'
 import { ModusError } from '../../src/_exceptions.js'
 import { Modus } from '../../src/index.js'
@@ -17,7 +17,7 @@ const TEST_KEY = 'modus_test_key_list_aip'
 function mockFetchForUrl(
   urlSuffix: string,
   body: Record<string, unknown>,
-): ReturnType<typeof vi.fn> {
+): Mock {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input)
     if (url.includes(urlSuffix)) {
@@ -30,7 +30,7 @@ function mockFetchForUrl(
   })
 }
 
-function clients(fetch: ReturnType<typeof vi.fn>) {
+function clients(fetch: Mock) {
   const opts = { apiKey: TEST_KEY, baseUrl: TEST_BASE, maxRetries: 0, fetch }
   return {
     modus: new Modus(opts),

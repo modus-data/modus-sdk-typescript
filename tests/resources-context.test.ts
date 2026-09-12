@@ -107,6 +107,37 @@ describe('CustomContextItemsResource', () => {
     })
   })
 
+  it('creates custom context item relations', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ upsertedCount: 1 }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new CustomContextItemsResource(http, config)
+
+    const count = await resource.createRelations([{
+      fromUid: 'source-1',
+      toUid: 'target-1',
+      relationType: 'depends_on',
+      content: { source: 'go.mod' },
+    }])
+
+    expect(count).toBe(1)
+    const [url, init] = fetch.mock.calls[0] ?? []
+    expect(String(url)).toContain('/api/v1/context/custom-items/relations')
+    expect(JSON.parse(String(init?.body))).toEqual({
+      relations: [{
+        fromUid: 'source-1',
+        toUid: 'target-1',
+        relationType: 'depends_on',
+        content: { source: 'go.mod' },
+      }],
+    })
+  })
+
   it('lists custom context items from the custom route', async () => {
     const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
     const fetch = vi.fn().mockResolvedValue(
