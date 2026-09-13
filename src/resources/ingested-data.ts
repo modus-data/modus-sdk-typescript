@@ -23,8 +23,8 @@ export class IngestedDataResource {
    *
    * @param options.integrationType - Canonical Modus integration identifier.
    * @param options.request - Exact SQL or HTTP request that produced the response.
-   * @param options.response - Response format and exact string content. SQL requires CSV.
-   * @returns The checksum and organization-scoped object key for the new upload.
+   * @param options.response - Response format, optional source HTTP status, and exact string content. SQL requires CSV.
+   * @returns The checksum of the stored envelope.
    * @throws {ConflictError} When the complete payload is already stored.
    *
    * @example
@@ -34,7 +34,7 @@ export class IngestedDataResource {
    *   request: { type: 'sql', query: 'SELECT id, total FROM orders' },
    *   response: { format: 'csv', content: 'id,total\n1,42.00\n' },
    * })
-   * console.log(stored.checksum, stored.key)
+   * console.log(stored.checksum)
    * ```
    */
   async upload(options: UploadIngestedDataOptions): Promise<IngestedDataUploadResult> {

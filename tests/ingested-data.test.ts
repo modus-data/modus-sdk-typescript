@@ -8,11 +8,7 @@ describe('Modus.ingestedData', () => {
   it('uploads an HTTP request while preserving exact strings and wire field names', async () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify({
-          checksum: 'a'.repeat(64),
-          key: `org_test/generic/${'a'.repeat(64)}.json`,
-          created: true,
-        }),
+        JSON.stringify({ checksum: 'a'.repeat(64) }),
         { status: 201, headers: { 'Content-Type': 'application/json' } },
       ),
     )
@@ -26,14 +22,10 @@ describe('Modus.ingestedData', () => {
         method: 'PATCH',
         body: '',
       },
-      response: { format: 'text', content: 'line 1\r\nשלום\r\n' },
+      response: { status: 200, format: 'text', content: 'line 1\r\nשלום\r\n' },
     })
 
-    expect(result).toEqual({
-      checksum: 'a'.repeat(64),
-      key: `org_test/generic/${'a'.repeat(64)}.json`,
-      created: true,
-    })
+    expect(result).toEqual({ checksum: 'a'.repeat(64) })
     expect(String(fetch.mock.calls[0]?.[0])).toBe(`${BASE}/api/v1/ingested-data`)
     expect(fetch.mock.calls[0]?.[1]?.method).toBe('POST')
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
@@ -44,7 +36,7 @@ describe('Modus.ingestedData', () => {
         method: 'PATCH',
         body: '',
       },
-      response: { format: 'text', content: 'line 1\r\nשלום\r\n' },
+      response: { status: 200, format: 'text', content: 'line 1\r\nשלום\r\n' },
     })
   })
 
