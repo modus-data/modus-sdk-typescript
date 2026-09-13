@@ -5212,7 +5212,7 @@
     },
     "/api/v1/ingested-data": {
       "post": {
-        "description": "Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict that reports the existing checksum and key.\n\n**Requires:** `context:write`",
+        "description": "Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.\n\n**Requires:** `context:write`",
         "operationId": "IngestedDataController_upload",
         "parameters": [],
         "requestBody": {
@@ -5314,7 +5314,7 @@
             }
           },
           "409": {
-            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).\n\nSafe to treat as success on a retry — the identical payload is already stored, and `info` carries the `checksum` and `key` of the object that holds it.",
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -5324,12 +5324,8 @@
                   "error": {
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
-                    "message": "Identical ingested data already exists",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                    "info": {
-                      "checksum": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d",
-                      "key": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
-                    }
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -20101,22 +20097,10 @@
             "type": "string",
             "description": "Lowercase SHA-256 checksum of the canonical JSON envelope.",
             "example": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d"
-          },
-          "key": {
-            "type": "string",
-            "description": "Object key of the newly persisted envelope.",
-            "example": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
-          },
-          "created": {
-            "type": "boolean",
-            "description": "Always true for a newly created object.",
-            "example": true
           }
         },
         "required": [
-          "checksum",
-          "key",
-          "created"
+          "checksum"
         ]
       },
       "CustomAttributeDto": {
@@ -21026,6 +21010,13 @@
       "IngestedDataResponseDto": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "integer",
+            "description": "HTTP status returned by the source endpoint.",
+            "minimum": 100,
+            "maximum": 599,
+            "example": 200
+          },
           "format": {
             "example": "json",
             "allOf": [

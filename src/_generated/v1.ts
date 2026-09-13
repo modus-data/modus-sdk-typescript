@@ -485,7 +485,7 @@ export interface paths {
         put?: never;
         /**
          * Store ingested data
-         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict that reports the existing checksum and key.
+         * @description Stores an exact SQL or HTTP request and response as an immutable organization-scoped object. Identical content is rejected with a conflict.
          *
          *     **Requires:** `context:write`
          */
@@ -2886,16 +2886,6 @@ export interface components {
              * @example 84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d
              */
             checksum: string;
-            /**
-             * @description Object key of the newly persisted envelope.
-             * @example org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json
-             */
-            key: string;
-            /**
-             * @description Always true for a newly created object.
-             * @example true
-             */
-            created: boolean;
         };
         CustomAttributeDto: {
             /**
@@ -3345,6 +3335,11 @@ export interface components {
         /** @enum {string} */
         HttpIngestedDataRequestType: "http";
         IngestedDataResponseDto: {
+            /**
+             * @description HTTP status returned by the source endpoint.
+             * @example 200
+             */
+            status?: number;
             /** @example json */
             format: components["schemas"]["IngestedDataResponseFormat"];
             /**
@@ -9334,11 +9329,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /**
-             * @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).
-             *
-             *     Safe to treat as success on a retry — the identical payload is already stored, and `info` carries the `checksum` and `key` of the object that holds it.
-             */
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9349,12 +9340,8 @@ export interface operations {
                      *       "error": {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
-                     *         "message": "Identical ingested data already exists",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "checksum": "84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d",
-                     *           "key": "org_2abc123/generic/84f90e54a330d84e157af078f35409b093299941ffc623af900cd05bfc061b3d.json"
-                     *         }
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
