@@ -160,7 +160,7 @@ export class ScopesResource {
    *
    * @param scopeId - Scope numeric id or slug.
    * @param message - Natural-language intent used to select context.
-   * @param options.limit - Optional cap on structured fallback items.
+   * @param options.limit - Maximum context items to return. Omit to return all selected items.
    * @returns Composition metadata. Use `chat` when you need an assistant reply.
    *
    * @example
