@@ -42,7 +42,7 @@ export class ModusResource {
    * Compose full-environment context for an intent without running chat.
    *
    * @param message - Natural-language intent used to select context.
-   * @param options.limit - Optional cap on structured fallback items.
+   * @param options.limit - Maximum context items to return. Omit to return all selected items.
    * @returns Composition metadata (counts / session id). Use `chat` for a reply.
    *
    * @example

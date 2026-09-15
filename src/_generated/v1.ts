@@ -2260,7 +2260,7 @@ export interface components {
              */
             message: string;
             /**
-             * @description Optional cap on context items when the API falls back to structured JSON (no fragment markdown). Ignored when composed markdown is returned.
+             * @description Maximum context items to return. Omit to return all selected items.
              * @example 25
              */
             limit?: number;
@@ -3653,7 +3653,7 @@ export interface components {
              */
             message: string;
             /**
-             * @description Optional cap on context items in structured JSON fallback.
+             * @description Maximum context items to return. Omit to return all selected items.
              * @example 25
              */
             limit?: number;
