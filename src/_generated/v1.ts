@@ -4949,7 +4949,6 @@ export interface components {
             guardrails?: string[];
             /** @description Map of tool name to tool config. */
             toolset?: Record<string, never>;
-            strategies?: string[];
             experimentalFeatures?: boolean;
             debug?: boolean;
             /** @description Set false to keep composer output inline. */

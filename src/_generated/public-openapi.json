@@ -24237,12 +24237,6 @@
             "type": "object",
             "description": "Map of tool name to tool config."
           },
-          "strategies": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "experimentalFeatures": {
             "type": "boolean"
           },
