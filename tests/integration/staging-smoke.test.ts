@@ -90,16 +90,50 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
       expect(Array.isArray(page2.items)).toBe(true)
     }
 
+    // `toBeTruthy()` passed for months while the org-wide endpoint was returning
+    // nothing, because an empty composition is still a truthy object. Assert the
+    // contract instead, and bound the latency: the incident this smoke missed was
+    // a 90s hang that the edge turned into a 503 at 30s, which no assertion about
+    // the body can catch.
+    const assertComposition = (
+      label: string,
+      composed: Awaited<ReturnType<typeof c.modus.getContext>>,
+      elapsedMs: number,
+    ): void => {
+      expect(composed, `${label}: no response`).toBeTruthy()
+      // contextItems is deliberately unasserted: the schema documents it as
+      // deprecated and always empty, so a check on it would prove nothing.
+      expect(typeof composed.context, `${label}: context`).toBe('string')
+      expect(typeof composed.originalCount, `${label}: originalCount`).toBe('number')
+      expect(typeof composed.selectedCount, `${label}: selectedCount`).toBe('number')
+      expect(composed.sessionId, `${label}: sessionId`).toBeTruthy()
+
+      // Deliberately not asserting originalCount > 0: whether this org has mined
+      // context is an environment fact, and failing on it would make the check
+      // red for a data reason. Coherence is still assertable — having found items
+      // and rendered nothing is a composer bug in any org.
+      if (composed.originalCount > 0) {
+        expect(composed.context.length, `${label}: found ${composed.originalCount} items but rendered no context`).toBeGreaterThan(0)
+      }
+
+      expect(elapsedMs, `${label}: took ${elapsedMs}ms; the edge caps at 30s`).toBeLessThan(25_000)
+    }
+
+    // performance.now() is monotonic; Date.now() can step backwards mid-request
+    // and let an over-limit call report under the bound. Python uses
+    // time.monotonic() for the same reason.
+    const orgStart = performance.now()
     const composed = await c.modus.getContext('sdk staging smoke — list relevant tables', {
       limit: 3,
     })
-    expect(composed).toBeTruthy()
+    assertComposition('org-wide getContext', composed, performance.now() - orgStart)
 
     if (scopeId) {
+      const scopeStart = performance.now()
       const scopeComposed = await c.scopes.getContext(scopeId, 'sdk staging smoke — brief context', {
         limit: 3,
       })
-      expect(scopeComposed).toBeTruthy()
+      assertComposition('scope getContext', scopeComposed, performance.now() - scopeStart)
     }
 
     const mgmtScopes = await m.scopes.list({ pageSize: 5 })
