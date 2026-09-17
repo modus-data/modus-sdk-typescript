@@ -132,6 +132,84 @@ export interface paths {
         patch: operations["CustomContextItemsController_update"];
         trace?: never;
     };
+    "/api/v1/context/dashboards/{dashboardId}/elements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List dashboard elements
+         * @description Lists every tile and filter on the dashboard draft with id, kind, title and layout. Filters also carry sqlReferences, the exact templates tile SQL must use to reference them. Returns the current draftRevision.
+         *
+         *     **Requires:** `context:read`
+         */
+        get: operations["DashboardsController_listElements"];
+        put?: never;
+        /**
+         * Create a dashboard element
+         * @description Creates one blank tile or filter at the given grid position. The server generates the element id. expectedRevision must equal the current draftRevision or the call fails with 409.
+         *
+         *     **Requires:** `context:write`
+         */
+        post: operations["DashboardsController_createElement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/context/dashboards/{dashboardId}/elements/{elementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a dashboard element
+         * @description Returns the full draft configuration of one dashboard element, including SQL, chart settings and filter options, with the current draftRevision.
+         *
+         *     **Requires:** `context:read`
+         */
+        get: operations["DashboardsController_getElement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update a dashboard element
+         * @description Updates the title, query, chart, markdown or filter settings of one element on the draft. expectedRevision must equal the current draftRevision or the call fails with 409. Returns the updated dashboard.
+         *
+         *     **Requires:** `context:write`
+         */
+        patch: operations["DashboardsController_updateElement"];
+        trace?: never;
+    };
+    "/api/v1/context/dashboards/{dashboardId}/layout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update the dashboard layout
+         * @description Atomically sets x, y, width and height for several elements on the 12-column grid. expectedRevision must equal the current draftRevision or the call fails with 409. Returns the updated dashboard.
+         *
+         *     **Requires:** `context:write`
+         */
+        patch: operations["DashboardsController_updateLayout"];
+        trace?: never;
+    };
     "/api/v1/context/files": {
         parameters: {
             query?: never;
@@ -2708,6 +2786,16 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        CreateDashboardElementDto: {
+            /** @description Draft revision the change is based on; a stale value is rejected with 409. */
+            expectedRevision: number;
+            /** @description Element to create: a chart, KPI, table or markdown tile, or a filter. */
+            kind: components["schemas"]["DashboardElementKind"];
+            /** @description Title shown on the element. */
+            title: string;
+            /** @description Grid position of the new element. */
+            layout: components["schemas"]["DashboardElementLayoutDto"];
+        };
         CreateIngestedDataDto: {
             /**
              * @description Canonical Modus integration identifier.
@@ -2920,6 +3008,255 @@ export interface components {
          * @enum {string}
          */
         CustomContextItemKind: "source" | "collection" | "entity" | "field" | "entity_samples";
+        DashboardAccessResponseDto: {
+            visibility: components["schemas"]["DashboardVisibility"];
+            /** @description Permissions by group id. */
+            groupPermissions: {
+                [key: string]: components["schemas"]["DashboardGroupPermissionDto"];
+            };
+            sharedWith: components["schemas"]["DashboardSharedUserDto"][];
+            ownerUserId: string;
+            ownerEmail: string | null;
+        };
+        DashboardChartConfigDto: {
+            /** @description Any Chart.js chart type registered by the renderer. */
+            type: string;
+            labelColumn: string;
+            /** @description Chart.js datasets. valueColumn maps SQL results to data; all other Chart.js dataset settings pass through. */
+            datasets: components["schemas"]["DashboardChartDatasetDto"][];
+            /** @description Full JSON-serializable Chart.js options object. */
+            options?: {
+                [key: string]: unknown;
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        DashboardChartDatasetDto: {
+            label: string;
+            valueColumn: string;
+        } & {
+            [key: string]: unknown;
+        };
+        DashboardDefinitionDto: {
+            tiles: components["schemas"]["DashboardTileDto"][];
+            filters: components["schemas"]["DashboardFilterDto"][];
+            /** @description Element positions and filter settings. */
+            layout?: {
+                [key: string]: unknown;
+            };
+        };
+        DashboardDto: {
+            id: string;
+            contextItemId: string;
+            title: string;
+            description: string;
+            access: components["schemas"]["DashboardAccessResponseDto"];
+            definition: components["schemas"]["DashboardDefinitionDto"];
+            view: components["schemas"]["DashboardView"];
+            selectedVersion: components["schemas"]["DashboardSelectedVersionDto"];
+            /** @description Current draft revision; pass it as expectedRevision on the next write. */
+            draftRevision: number;
+            activeVersionId: string | null;
+            updatedByUserId: string;
+            /** @example 2026-09-16T10:00:00.000Z */
+            createdAt: string;
+            /** @example 2026-09-16T10:00:00.000Z */
+            updatedAt: string;
+            pendingOwnershipTransfer: components["schemas"]["PendingOwnershipTransferDto"] | null;
+            canUse: boolean;
+            canManage: boolean;
+        };
+        DashboardElementDto: {
+            id: string;
+            kind: components["schemas"]["DashboardElementKind"];
+            title?: string;
+            /** @description Grid position (x, y, w, h), or null when the element has none. */
+            layout: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Chart, KPI and table tiles. */
+            connectionId?: string;
+            /** @description Chart, KPI and table tiles. */
+            sql?: string;
+            /** @description Chart tiles: the chart settings, or null when none are set. */
+            chartConfig?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description KPI tiles: display format of the value. */
+            format?: string | null;
+            /** @description Markdown tiles. */
+            markdown?: string;
+            /** @description Filters: the filter type as stored, which can also be a storage type such as string_list. */
+            filterType?: string;
+            required?: boolean;
+            options?: string[];
+            allowMultiple?: boolean;
+            /** @description Filters: how the value is quoted in SQL. */
+            quotation?: string;
+            regex?: string;
+            /** @description Query dropdown filters: connectionId, sql, valueColumn and labelColumn. */
+            optionsQuery?: {
+                [key: string]: unknown;
+            };
+            /** @description Default filter value; a { start, end } object for date and datetime ranges. */
+            defaultValue?: string | number | boolean | (string | number)[] | ({
+                [key: string]: unknown;
+            } | null);
+            /** @description Filters: the exact {{ ... }} templates tile SQL uses to reference this filter. */
+            sqlReferences?: string[];
+        };
+        /** @enum {string} */
+        DashboardElementKind: "chart" | "kpi" | "table" | "markdown" | "filter";
+        DashboardElementLayoutDto: {
+            /** @description Left column, 0 through 11. */
+            x: number;
+            /** @description Top row, starting at 0. */
+            y: number;
+            /** @description Width in grid columns. */
+            w: number;
+            /** @description Height in grid rows. */
+            h: number;
+        };
+        DashboardElementPatchDto: {
+            /** @description Element title. */
+            title?: string;
+            /** @description Connection the tile query runs on. */
+            connectionId?: string;
+            /** @description SQL query of a chart, KPI or table tile. */
+            sql?: string;
+            /** @description Chart settings of a chart tile; null clears them. */
+            chartConfig?: components["schemas"]["DashboardChartConfigDto"] | null;
+            /** @description Display format of a KPI value. */
+            format?: components["schemas"]["DashboardValueFormat"] | null;
+            /** @description Content of a markdown tile. */
+            markdown?: string;
+            /** @description Use only the listed editor filter types. Configure a compatible defaultValue in the same patch. */
+            filterType?: components["schemas"]["DashboardFilterType"];
+            /** @description Whether the filter needs a value before tiles run. */
+            required?: boolean;
+            /** @description Fixed choices of a dropdown filter. */
+            options?: string[];
+            /** @description Whether a dropdown filter accepts several values. */
+            allowMultiple?: boolean;
+            /** @description How the filter value is quoted when inserted into SQL. */
+            quotation?: components["schemas"]["DashboardQuotationStyle"];
+            /** @description Pattern a text filter value must match. */
+            regex?: string;
+            /** @description Query that supplies the choices of a query dropdown filter. */
+            optionsQuery?: components["schemas"]["DashboardFilterOptionsQueryPatchDto"];
+            /** @description Use { start, end } for date/datetime ranges; null clears the default. The value must match the filterType and allowMultiple setting. */
+            defaultValue?: string | number | boolean | string[] | ({
+                start?: string;
+                end?: string;
+            } | null);
+            /** @description New grid position of the element. */
+            layout?: components["schemas"]["DashboardElementLayoutDto"];
+        };
+        DashboardElementResponseDto: {
+            dashboardId: string;
+            /** @description Current draft revision; pass it as expectedRevision on the next write. */
+            draftRevision: number;
+            element: {
+                [key: string]: unknown;
+            } & components["schemas"]["DashboardElementDto"];
+        };
+        DashboardElementSummaryDto: {
+            id: string;
+            kind: components["schemas"]["DashboardElementKind"];
+            title: string;
+            /** @description Grid position (x, y, w, h), or null when the element has none. */
+            layout: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Filters only: the exact {{ ... }} templates tile SQL uses to reference this filter; empty when it cannot be referenced. */
+            sqlReferences?: string[];
+        };
+        DashboardElementsListResponseDto: {
+            dashboardId: string;
+            /** @description Current draft revision; pass it as expectedRevision on the next write. */
+            draftRevision: number;
+            elements: components["schemas"]["DashboardElementSummaryDto"][];
+        };
+        DashboardFilterDto: {
+            id: string;
+            label: string;
+            type: components["schemas"]["DashboardFilterValueType"];
+            required: boolean;
+            quotation?: components["schemas"]["DashboardQuotationStyle"];
+            regex?: string;
+            /** @description Default filter value; a { start, end } object for date and datetime ranges. */
+            defaultValue?: string | number | boolean | (string | number)[] | ({
+                [key: string]: unknown;
+            } | null);
+        };
+        DashboardFilterOptionsQueryPatchDto: {
+            /** @description Connection the options query runs on. */
+            connectionId?: string;
+            /** @description SQL that returns the dropdown options. */
+            sql?: string;
+            /** @description Result column holding each option value. */
+            valueColumn?: string;
+            /** @description Result column holding each option label. */
+            labelColumn?: string;
+        };
+        /**
+         * @description Use only the listed editor filter types. Configure a compatible defaultValue in the same patch.
+         * @enum {string}
+         */
+        DashboardFilterType: "text_pattern" | "dropdown" | "query_dropdown" | "date" | "datetime" | "datetime_sec" | "date_range" | "datetime_range" | "datetime_sec_range" | "text" | "number" | "boolean";
+        /** @enum {string} */
+        DashboardFilterValueType: "string" | "number" | "boolean" | "date" | "datetime" | "string_list" | "number_list";
+        DashboardGroupPermissionDto: {
+            /** @description Group members can view the dashboard. */
+            use: boolean;
+            /** @description Group members can edit the dashboard. */
+            manage: boolean;
+        };
+        DashboardLayoutElementDto: {
+            /** @description Id of the dashboard element to place. */
+            elementId: string;
+            layout: components["schemas"]["DashboardElementLayoutDto"];
+        };
+        /** @enum {string} */
+        DashboardQuotationStyle: "single" | "double" | "none";
+        DashboardSelectedVersionDto: {
+            /** @description Null for the draft. */
+            id: string | null;
+            /** @description Null for the draft. */
+            versionNumber: number | null;
+            createdByUserId: string;
+            /** @example 2026-09-16T10:00:00.000Z */
+            createdAt: string;
+            access: components["schemas"]["DashboardAccessResponseDto"];
+        };
+        /** @enum {string} */
+        DashboardSharePermission: "use" | "manage";
+        DashboardSharedUserDto: {
+            email: string;
+            userId?: string;
+            permission?: components["schemas"]["DashboardSharePermission"];
+        };
+        DashboardTileDto: {
+            id: string;
+            title: string;
+            kind: components["schemas"]["DashboardTileKind"];
+            connectionId?: string;
+            sql?: string;
+            config: {
+                [key: string]: unknown;
+            };
+        };
+        /** @enum {string} */
+        DashboardTileKind: "chart" | "kpi" | "table" | "markdown";
+        /**
+         * @description Display format of a KPI value.
+         * @enum {string}
+         */
+        DashboardValueFormat: "number" | "currency" | "percent";
+        /** @enum {string} */
+        DashboardView: "active" | "draft";
+        /** @enum {string} */
+        DashboardVisibility: "shared" | "private";
         DeleteContextItemResponseDto: {
             /**
              * @description UUID of the deleted context item.
@@ -4338,6 +4675,18 @@ export interface components {
              *     ]
              */
             topics?: string[];
+        };
+        UpdateDashboardElementDto: {
+            /** @description Draft revision the change is based on; a stale value is rejected with 409. */
+            expectedRevision: number;
+            /** @description Fields to change; include at least one. */
+            patch: components["schemas"]["DashboardElementPatchDto"];
+        };
+        UpdateDashboardLayoutDto: {
+            /** @description Draft revision the change is based on; a stale value is rejected with 409. */
+            expectedRevision: number;
+            /** @description Every affected item with its final x, y, width, and height. */
+            elements: components["schemas"]["DashboardLayoutElementDto"][];
         };
         UpdateEvaluationConfigDto: {
             /** @description Whether scheduled evaluations are enabled */
@@ -6200,6 +6549,917 @@ export interface operations {
                     "application/json": {
                         uid: string;
                     };
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DashboardsController_listElements: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Dashboard id, as shown in the app URL. */
+                dashboardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardElementsListResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DashboardsController_createElement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Dashboard id, as shown in the app URL. */
+                dashboardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDashboardElementDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardElementResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DashboardsController_getElement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Dashboard id, as shown in the app URL. */
+                dashboardId: string;
+                /** @description The dashboard element id to read. */
+                elementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardElementResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DashboardsController_updateElement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Dashboard id, as shown in the app URL. */
+                dashboardId: string;
+                /** @description The dashboard element id to update. */
+                elementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDashboardElementDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DashboardsController_updateLayout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Dashboard id, as shown in the app URL. */
+                dashboardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDashboardLayoutDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */

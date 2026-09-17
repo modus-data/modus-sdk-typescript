@@ -1721,6 +1721,1039 @@
         ]
       }
     },
+    "/api/v1/context/dashboards/{dashboardId}/elements": {
+      "get": {
+        "description": "Lists every tile and filter on the dashboard draft with id, kind, title and layout. Filters also carry sqlReferences, the exact templates tile SQL must use to reference them. Returns the current draftRevision.\n\n**Requires:** `context:read`",
+        "operationId": "DashboardsController_listElements",
+        "parameters": [
+          {
+            "name": "dashboardId",
+            "required": true,
+            "in": "path",
+            "description": "Dashboard id, as shown in the app URL.",
+            "schema": {
+              "example": "3f1c2a7e-8b4d-4c1a-9e2f-5d6b7a8c9d0e",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardElementsListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List dashboard elements",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      },
+      "post": {
+        "description": "Creates one blank tile or filter at the given grid position. The server generates the element id. expectedRevision must equal the current draftRevision or the call fails with 409.\n\n**Requires:** `context:write`",
+        "operationId": "DashboardsController_createElement",
+        "parameters": [
+          {
+            "name": "dashboardId",
+            "required": true,
+            "in": "path",
+            "description": "Dashboard id, as shown in the app URL.",
+            "schema": {
+              "example": "3f1c2a7e-8b4d-4c1a-9e2f-5d6b7a8c9d0e",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDashboardElementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardElementResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a dashboard element",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/context/dashboards/{dashboardId}/elements/{elementId}": {
+      "get": {
+        "description": "Returns the full draft configuration of one dashboard element, including SQL, chart settings and filter options, with the current draftRevision.\n\n**Requires:** `context:read`",
+        "operationId": "DashboardsController_getElement",
+        "parameters": [
+          {
+            "name": "dashboardId",
+            "required": true,
+            "in": "path",
+            "description": "Dashboard id, as shown in the app URL.",
+            "schema": {
+              "example": "3f1c2a7e-8b4d-4c1a-9e2f-5d6b7a8c9d0e",
+              "type": "string"
+            }
+          },
+          {
+            "name": "elementId",
+            "required": true,
+            "in": "path",
+            "description": "The dashboard element id to read.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardElementResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a dashboard element",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      },
+      "patch": {
+        "description": "Updates the title, query, chart, markdown or filter settings of one element on the draft. expectedRevision must equal the current draftRevision or the call fails with 409. Returns the updated dashboard.\n\n**Requires:** `context:write`",
+        "operationId": "DashboardsController_updateElement",
+        "parameters": [
+          {
+            "name": "dashboardId",
+            "required": true,
+            "in": "path",
+            "description": "Dashboard id, as shown in the app URL.",
+            "schema": {
+              "example": "3f1c2a7e-8b4d-4c1a-9e2f-5d6b7a8c9d0e",
+              "type": "string"
+            }
+          },
+          {
+            "name": "elementId",
+            "required": true,
+            "in": "path",
+            "description": "The dashboard element id to update.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDashboardElementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update a dashboard element",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/context/dashboards/{dashboardId}/layout": {
+      "patch": {
+        "description": "Atomically sets x, y, width and height for several elements on the 12-column grid. expectedRevision must equal the current draftRevision or the call fails with 409. Returns the updated dashboard.\n\n**Requires:** `context:write`",
+        "operationId": "DashboardsController_updateLayout",
+        "parameters": [
+          {
+            "name": "dashboardId",
+            "required": true,
+            "in": "path",
+            "description": "Dashboard id, as shown in the app URL.",
+            "schema": {
+              "example": "3f1c2a7e-8b4d-4c1a-9e2f-5d6b7a8c9d0e",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDashboardLayoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update the dashboard layout",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/context/files": {
       "get": {
         "description": "Returns a page of durable landed file uploads. Uploads that have not landed yet are visible via `GET /context/files/{uploadId}`, not this list.\n\n**Requires:** `context:read`",
@@ -19809,6 +20842,44 @@
           "relationType"
         ]
       },
+      "CreateDashboardElementDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Draft revision the change is based on; a stale value is rejected with 409."
+          },
+          "kind": {
+            "description": "Element to create: a chart, KPI, table or markdown tile, or a filter.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementKind"
+              }
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Title shown on the element."
+          },
+          "layout": {
+            "description": "Grid position of the new element.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementLayoutDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "kind",
+          "title",
+          "layout"
+        ]
+      },
       "CreateIngestedDataDto": {
         "type": "object",
         "properties": {
@@ -20155,6 +21226,882 @@
           "entity_samples"
         ],
         "description": "Shape of custom context item to create."
+      },
+      "DashboardAccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "visibility": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardVisibility"
+              }
+            ]
+          },
+          "groupPermissions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DashboardGroupPermissionDto"
+            },
+            "description": "Permissions by group id."
+          },
+          "sharedWith": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardSharedUserDto"
+            }
+          },
+          "ownerUserId": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "visibility",
+          "groupPermissions",
+          "sharedWith",
+          "ownerUserId",
+          "ownerEmail"
+        ]
+      },
+      "DashboardChartConfigDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Any Chart.js chart type registered by the renderer."
+          },
+          "labelColumn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "datasets": {
+            "minItems": 1,
+            "description": "Chart.js datasets. valueColumn maps SQL results to data; all other Chart.js dataset settings pass through.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardChartDatasetDto"
+            }
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Full JSON-serializable Chart.js options object."
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "labelColumn",
+          "datasets"
+        ]
+      },
+      "DashboardChartDatasetDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "valueColumn": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "label",
+          "valueColumn"
+        ]
+      },
+      "DashboardDefinitionDto": {
+        "type": "object",
+        "properties": {
+          "tiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardTileDto"
+            }
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardFilterDto"
+            }
+          },
+          "layout": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Element positions and filter settings."
+          }
+        },
+        "required": [
+          "tiles",
+          "filters"
+        ]
+      },
+      "DashboardDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "contextItemId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "access": {
+            "$ref": "#/components/schemas/DashboardAccessResponseDto"
+          },
+          "definition": {
+            "$ref": "#/components/schemas/DashboardDefinitionDto"
+          },
+          "view": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardView"
+              }
+            ]
+          },
+          "selectedVersion": {
+            "$ref": "#/components/schemas/DashboardSelectedVersionDto"
+          },
+          "draftRevision": {
+            "type": "integer",
+            "description": "Current draft revision; pass it as expectedRevision on the next write."
+          },
+          "activeVersionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-16T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-16T10:00:00.000Z"
+          },
+          "pendingOwnershipTransfer": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PendingOwnershipTransferDto"
+              }
+            ]
+          },
+          "canUse": {
+            "type": "boolean"
+          },
+          "canManage": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "contextItemId",
+          "title",
+          "description",
+          "access",
+          "definition",
+          "view",
+          "selectedVersion",
+          "draftRevision",
+          "activeVersionId",
+          "updatedByUserId",
+          "createdAt",
+          "updatedAt",
+          "pendingOwnershipTransfer",
+          "canUse",
+          "canManage"
+        ]
+      },
+      "DashboardElementDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementKind"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Grid position (x, y, w, h), or null when the element has none."
+          },
+          "connectionId": {
+            "type": "string",
+            "description": "Chart, KPI and table tiles."
+          },
+          "sql": {
+            "type": "string",
+            "description": "Chart, KPI and table tiles."
+          },
+          "chartConfig": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Chart tiles: the chart settings, or null when none are set."
+          },
+          "format": {
+            "type": "string",
+            "nullable": true,
+            "description": "KPI tiles: display format of the value."
+          },
+          "markdown": {
+            "type": "string",
+            "description": "Markdown tiles."
+          },
+          "filterType": {
+            "type": "string",
+            "description": "Filters: the filter type as stored, which can also be a storage type such as string_list."
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowMultiple": {
+            "type": "boolean"
+          },
+          "quotation": {
+            "type": "string",
+            "description": "Filters: how the value is quoted in SQL."
+          },
+          "regex": {
+            "type": "string"
+          },
+          "optionsQuery": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Query dropdown filters: connectionId, sql, valueColumn and labelColumn."
+          },
+          "defaultValue": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": true
+              }
+            ],
+            "description": "Default filter value; a { start, end } object for date and datetime ranges."
+          },
+          "sqlReferences": {
+            "description": "Filters: the exact {{ ... }} templates tile SQL uses to reference this filter.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "layout"
+        ]
+      },
+      "DashboardElementKind": {
+        "type": "string",
+        "enum": [
+          "chart",
+          "kpi",
+          "table",
+          "markdown",
+          "filter"
+        ]
+      },
+      "DashboardElementLayoutDto": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11,
+            "description": "Left column, 0 through 11."
+          },
+          "y": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Top row, starting at 0."
+          },
+          "w": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "Width in grid columns."
+          },
+          "h": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Height in grid rows."
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "w",
+          "h"
+        ]
+      },
+      "DashboardElementPatchDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Element title."
+          },
+          "connectionId": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Connection the tile query runs on."
+          },
+          "sql": {
+            "type": "string",
+            "maxLength": 100000,
+            "description": "SQL query of a chart, KPI or table tile."
+          },
+          "chartConfig": {
+            "nullable": true,
+            "description": "Chart settings of a chart tile; null clears them.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardChartConfigDto"
+              }
+            ]
+          },
+          "format": {
+            "nullable": true,
+            "description": "Display format of a KPI value.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardValueFormat"
+              }
+            ]
+          },
+          "markdown": {
+            "type": "string",
+            "maxLength": 1000000,
+            "description": "Content of a markdown tile."
+          },
+          "filterType": {
+            "description": "Use only the listed editor filter types. Configure a compatible defaultValue in the same patch.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardFilterType"
+              }
+            ]
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the filter needs a value before tiles run."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "description": "Fixed choices of a dropdown filter."
+          },
+          "allowMultiple": {
+            "type": "boolean",
+            "description": "Whether a dropdown filter accepts several values."
+          },
+          "quotation": {
+            "description": "How the filter value is quoted when inserted into SQL.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardQuotationStyle"
+              }
+            ]
+          },
+          "regex": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Pattern a text filter value must match."
+          },
+          "optionsQuery": {
+            "description": "Query that supplies the choices of a query dropdown filter.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardFilterOptionsQueryPatchDto"
+              }
+            ]
+          },
+          "defaultValue": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "maxItems": 1000
+              },
+              {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "start": {
+                    "type": "string"
+                  },
+                  "end": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ],
+            "description": "Use { start, end } for date/datetime ranges; null clears the default. The value must match the filterType and allowMultiple setting."
+          },
+          "layout": {
+            "description": "New grid position of the element.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementLayoutDto"
+              }
+            ]
+          }
+        }
+      },
+      "DashboardElementResponseDto": {
+        "type": "object",
+        "properties": {
+          "dashboardId": {
+            "type": "string"
+          },
+          "draftRevision": {
+            "type": "integer",
+            "description": "Current draft revision; pass it as expectedRevision on the next write."
+          },
+          "element": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementDto"
+              }
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "dashboardId",
+          "draftRevision",
+          "element"
+        ]
+      },
+      "DashboardElementSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementKind"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Grid position (x, y, w, h), or null when the element has none."
+          },
+          "sqlReferences": {
+            "description": "Filters only: the exact {{ ... }} templates tile SQL uses to reference this filter; empty when it cannot be referenced.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "layout"
+        ]
+      },
+      "DashboardElementsListResponseDto": {
+        "type": "object",
+        "properties": {
+          "dashboardId": {
+            "type": "string"
+          },
+          "draftRevision": {
+            "type": "integer",
+            "description": "Current draft revision; pass it as expectedRevision on the next write."
+          },
+          "elements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardElementSummaryDto"
+            }
+          }
+        },
+        "required": [
+          "dashboardId",
+          "draftRevision",
+          "elements"
+        ]
+      },
+      "DashboardFilterDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardFilterValueType"
+              }
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "quotation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardQuotationStyle"
+              }
+            ]
+          },
+          "regex": {
+            "type": "string"
+          },
+          "defaultValue": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": true
+              }
+            ],
+            "description": "Default filter value; a { start, end } object for date and datetime ranges."
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "type",
+          "required"
+        ]
+      },
+      "DashboardFilterOptionsQueryPatchDto": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Connection the options query runs on."
+          },
+          "sql": {
+            "type": "string",
+            "maxLength": 100000,
+            "description": "SQL that returns the dropdown options."
+          },
+          "valueColumn": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Result column holding each option value."
+          },
+          "labelColumn": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Result column holding each option label."
+          }
+        }
+      },
+      "DashboardFilterType": {
+        "type": "string",
+        "enum": [
+          "text_pattern",
+          "dropdown",
+          "query_dropdown",
+          "date",
+          "datetime",
+          "datetime_sec",
+          "date_range",
+          "datetime_range",
+          "datetime_sec_range",
+          "text",
+          "number",
+          "boolean"
+        ],
+        "description": "Use only the listed editor filter types. Configure a compatible defaultValue in the same patch."
+      },
+      "DashboardFilterValueType": {
+        "type": "string",
+        "enum": [
+          "string",
+          "number",
+          "boolean",
+          "date",
+          "datetime",
+          "string_list",
+          "number_list"
+        ]
+      },
+      "DashboardGroupPermissionDto": {
+        "type": "object",
+        "properties": {
+          "use": {
+            "type": "boolean",
+            "description": "Group members can view the dashboard."
+          },
+          "manage": {
+            "type": "boolean",
+            "description": "Group members can edit the dashboard."
+          }
+        },
+        "required": [
+          "use",
+          "manage"
+        ]
+      },
+      "DashboardLayoutElementDto": {
+        "type": "object",
+        "properties": {
+          "elementId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Id of the dashboard element to place."
+          },
+          "layout": {
+            "$ref": "#/components/schemas/DashboardElementLayoutDto"
+          }
+        },
+        "required": [
+          "elementId",
+          "layout"
+        ]
+      },
+      "DashboardQuotationStyle": {
+        "type": "string",
+        "enum": [
+          "single",
+          "double",
+          "none"
+        ]
+      },
+      "DashboardSelectedVersionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null for the draft."
+          },
+          "versionNumber": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Null for the draft."
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-16T10:00:00.000Z"
+          },
+          "access": {
+            "$ref": "#/components/schemas/DashboardAccessResponseDto"
+          }
+        },
+        "required": [
+          "id",
+          "versionNumber",
+          "createdByUserId",
+          "createdAt",
+          "access"
+        ]
+      },
+      "DashboardSharePermission": {
+        "type": "string",
+        "enum": [
+          "use",
+          "manage"
+        ]
+      },
+      "DashboardSharedUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "permission": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardSharePermission"
+              }
+            ]
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "DashboardTileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardTileKind"
+              }
+            ]
+          },
+          "connectionId": {
+            "type": "string"
+          },
+          "sql": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "config"
+        ]
+      },
+      "DashboardTileKind": {
+        "type": "string",
+        "enum": [
+          "chart",
+          "kpi",
+          "table",
+          "markdown"
+        ]
+      },
+      "DashboardValueFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "description": "Display format of a KPI value."
+      },
+      "DashboardView": {
+        "type": "string",
+        "enum": [
+          "active",
+          "draft"
+        ]
+      },
+      "DashboardVisibility": {
+        "type": "string",
+        "enum": [
+          "shared",
+          "private"
+        ]
       },
       "DeleteContextItemResponseDto": {
         "type": "object",
@@ -22971,6 +24918,51 @@
             }
           }
         }
+      },
+      "UpdateDashboardElementDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Draft revision the change is based on; a stale value is rejected with 409."
+          },
+          "patch": {
+            "description": "Fields to change; include at least one.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DashboardElementPatchDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "patch"
+        ]
+      },
+      "UpdateDashboardLayoutDto": {
+        "type": "object",
+        "properties": {
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Draft revision the change is based on; a stale value is rejected with 409."
+          },
+          "elements": {
+            "minItems": 1,
+            "maxItems": 300,
+            "description": "Every affected item with its final x, y, width, and height.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardLayoutElementDto"
+            }
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "elements"
+        ]
       },
       "UpdateEvaluationConfigDto": {
         "type": "object",

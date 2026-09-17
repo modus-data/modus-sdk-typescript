@@ -105,6 +105,11 @@ export const OPERATIONS: Record<string, string> = {
   ContextFilesController_finalizeMany: 'mgmt.context.files.finalizeMany()',
   ContextFilesController_get: 'mgmt.context.files.get()',
   ContextFilesController_list: 'mgmt.context.files.list()',
+  DashboardsController_listElements: 'mgmt.context.dashboards.elements(id).list()',
+  DashboardsController_getElement: 'mgmt.context.dashboards.elements(id).get()',
+  DashboardsController_createElement: 'mgmt.context.dashboards.elements(id).create()',
+  DashboardsController_updateElement: 'mgmt.context.dashboards.elements(id).update()',
+  DashboardsController_updateLayout: 'mgmt.context.dashboards.updateLayout(id)',
   // --- Connections ---
   ConnectionsController_list: 'client.connections.list()',
   // --- Suggestions ---

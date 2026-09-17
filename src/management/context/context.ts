@@ -11,6 +11,7 @@ import {
   resolveAndUpdateSavedQuery,
   type UserFeedback,
 } from './_content-merge.js'
+import { ManagementDashboardsResource } from './dashboards.js'
 import { ManagementContextFilesResource } from './files.js'
 import { ManagementContextItemsResource } from './items.js'
 
@@ -23,6 +24,7 @@ export class ManagementContextResource {
   readonly items: ManagementContextItemsResource
   readonly customItems: CustomContextItemsResource
   readonly files: ManagementContextFilesResource
+  readonly dashboards: ManagementDashboardsResource
 
   /** @internal */
   constructor(
@@ -32,6 +34,7 @@ export class ManagementContextResource {
     this.items = new ManagementContextItemsResource(http, config)
     this.customItems = new CustomContextItemsResource(http, config)
     this.files = new ManagementContextFilesResource(http, config)
+    this.dashboards = new ManagementDashboardsResource(http, config)
   }
 
   /**

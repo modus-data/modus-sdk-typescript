@@ -19,6 +19,12 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **Dashboard draft elements and layout.** `mgmt.context.dashboards.elements(dashboardId)`
+  lists, reads, creates and updates the tiles and filters of a dashboard draft
+  (`list()`, `get()`, `create()`, `update()`), and `mgmt.context.dashboards.updateLayout()`
+  moves or resizes several of them in one change. Every write takes the `expectedRevision`
+  it is based on and throws `ConflictError` when the draft changed.
+
 - Ingested-data uploads accept an optional source HTTP `response.status` from 100 through 599.
 
 - **File uploads: optional `folderPath`.** `uploadFromUrl`, `finalize`, and directory

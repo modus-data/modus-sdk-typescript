@@ -56,6 +56,9 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ContextFilesController_uploadUrls: ['files'],
   ContextFilesController_uploadFromUrl: ['url', 'fileName', 'folderPath'],
   ContextFilesController_uploadFromUrls: ['urls'],
+  DashboardsController_createElement: ['expectedRevision', 'kind', 'title', 'layout'],
+  DashboardsController_updateElement: ['expectedRevision', 'patch'],
+  DashboardsController_updateLayout: ['expectedRevision', 'elements'],
   CustomContextItemsController_update: [
     'name',
     'entityType',
