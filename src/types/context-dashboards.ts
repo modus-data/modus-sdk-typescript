@@ -22,3 +22,21 @@ export type CreateDashboardElementInput = components['schemas']['CreateDashboard
 export type UpdateDashboardElementInput = components['schemas']['UpdateDashboardElementDto']
 /** Input for `updateLayout()`. */
 export type UpdateDashboardLayoutInput = components['schemas']['UpdateDashboardLayoutDto']
+/** One published version or draft snapshot of a dashboard, with its full definition. */
+export type DashboardVersion = components['schemas']['DashboardVersionDto']
+/** One saved snapshot of a dashboard draft: its id, author and time. */
+export type DashboardDraftSnapshot = components['schemas']['DashboardDraftSnapshotDto']
+/** Result of `publish()`: the published dashboard and the new version. */
+export type DashboardPublishResult = components['schemas']['PublishDashboardResponseDto']
+/** `"active"` (the published version) or `"draft"` (the working draft). */
+export type DashboardView = components['schemas']['DashboardView']
+/** Input for `create()`. */
+export type CreateDashboardInput = components['schemas']['CreateDashboardDto']
+/** Input for `updateDraft()`. */
+export type UpdateDashboardDraftInput = components['schemas']['UpdateDashboardDraftDto']
+/** Input for `publish()`. */
+export type PublishDashboardInput = components['schemas']['PublishDashboardDto']
+/** Input for `updateAccess()`; all three settings replace the current ones. */
+export type UpdateDashboardAccessInput = components['schemas']['UpdateDashboardAccessDto']
+/** Input for `requestOwnershipTransfer()`. */
+export type TransferDashboardOwnershipInput = components['schemas']['TransferDashboardOwnershipDto']

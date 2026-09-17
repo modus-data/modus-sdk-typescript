@@ -70,7 +70,9 @@ export type {
 } from '../types/context-files.js'
 export type {
   CreateDashboardElementInput,
+  CreateDashboardInput,
   Dashboard,
+  DashboardDraftSnapshot,
   DashboardElementKind,
   DashboardElementLayout,
   DashboardElementPatch,
@@ -78,6 +80,13 @@ export type {
   DashboardElementsList,
   DashboardElementSummary,
   DashboardLayoutElement,
+  DashboardPublishResult,
+  DashboardVersion,
+  DashboardView,
+  PublishDashboardInput,
+  TransferDashboardOwnershipInput,
+  UpdateDashboardAccessInput,
+  UpdateDashboardDraftInput,
   UpdateDashboardElementInput,
   UpdateDashboardLayoutInput,
 } from '../types/context-dashboards.js'
