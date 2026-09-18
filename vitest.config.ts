@@ -5,6 +5,7 @@ export default defineConfig({
     __SDK_VERSION__: JSON.stringify('0.0.0-dev'),
   },
   test: {
+    clearMocks: false,
     include: ['tests/**/*.test.ts'],
     exclude: ['tests/integration/**'],
     setupFiles: ['./tests/vitest.setup.ts'],

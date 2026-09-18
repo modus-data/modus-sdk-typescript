@@ -18553,6 +18553,25 @@
           "sharedWith"
         ]
       },
+      "AgentDashboardAlertDto": {
+        "type": "object",
+        "properties": {
+          "dashboardId": {
+            "type": "string",
+            "description": "Id of the dashboard whose KPI alert generated this workflow.",
+            "example": "dash_01j9z3k2"
+          },
+          "tileId": {
+            "type": "string",
+            "description": "Id of the dashboard tile the alert watches.",
+            "example": "tile_revenue"
+          }
+        },
+        "required": [
+          "dashboardId",
+          "tileId"
+        ]
+      },
       "AgentDeployResponseDto": {
         "type": "object",
         "properties": {
@@ -22816,6 +22835,11 @@
                 "$ref": "#/components/schemas/AgentAccessConfigDto"
               }
             ]
+          },
+          "disconnectDashboardAlert": {
+            "type": "boolean",
+            "description": "Acknowledge that this change disconnects the workflow from its dashboard alert. Required when name, trigger or workflowStructure change on a workflow whose dashboardAlert is set.",
+            "example": true
           }
         }
       },
@@ -23418,6 +23442,16 @@
             "nullable": true,
             "description": "Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true. Derived server-side from the principal + accessConfig.",
             "example": "needs_group_manage"
+          },
+          "dashboardAlert": {
+            "nullable": true,
+            "description": "Set when a dashboard KPI alert generated this workflow. Changing its definition requires disconnectDashboardAlert.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentDashboardAlertDto"
+              }
+            ]
           }
         },
         "required": [
@@ -24202,12 +24236,6 @@
           "toolset": {
             "type": "object",
             "description": "Map of tool name to tool config."
-          },
-          "strategies": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "experimentalFeatures": {
             "type": "boolean"

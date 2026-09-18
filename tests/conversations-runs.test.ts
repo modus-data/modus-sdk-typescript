@@ -113,6 +113,34 @@ describe('scopes.conversations', () => {
     ).rejects.toThrow('beforeMessageIndex requires messageLimit')
   })
 
+  it('list sends source and sourceRef filters', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ conversations: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await client.scopes.conversations(42).list({ source: 'dashboard_copilot', sourceRef: 'dash-1' })
+    const url = new URL(String(fetch.mock.calls[0]?.[0]))
+    expect(url.searchParams.get('source')).toBe('dashboard_copilot')
+    expect(url.searchParams.get('sourceRef')).toBe('dash-1')
+  })
+
+  it('list omits source and sourceRef by default', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ conversations: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await client.scopes.conversations(42).list()
+    const url = new URL(String(fetch.mock.calls[0]?.[0]))
+    expect(url.searchParams.has('source')).toBe(false)
+    expect(url.searchParams.has('sourceRef')).toBe(false)
+  })
+
   it('conversationScopeId treats 0 as direct modus', () => {
     expect(conversationScopeId({ ...makeListItem(), scopeId: 0 } as never)).toBeUndefined()
     expect(conversationScopeId(makeListItem() as never)).toBe(42)
@@ -149,6 +177,20 @@ describe('modus.conversations', () => {
     await client.modus.conversations.list({ kind: 'scopes' })
     expect(String(fetch.mock.calls[0]?.[0])).toContain('kind=scopes')
     expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/modus/conversations')
+  })
+
+  it('list sends source and sourceRef filters', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ conversations: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await client.modus.conversations.list({ source: 'dashboard_copilot', sourceRef: 'dash-1' })
+    const url = new URL(String(fetch.mock.calls[0]?.[0]))
+    expect(url.searchParams.get('source')).toBe('dashboard_copilot')
+    expect(url.searchParams.get('sourceRef')).toBe('dash-1')
   })
 })
 

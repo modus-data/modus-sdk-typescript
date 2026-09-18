@@ -1952,6 +1952,18 @@ export interface components {
              */
             ownerEmail?: string | null;
         };
+        AgentDashboardAlertDto: {
+            /**
+             * @description Id of the dashboard whose KPI alert generated this workflow.
+             * @example dash_01j9z3k2
+             */
+            dashboardId: string;
+            /**
+             * @description Id of the dashboard tile the alert watches.
+             * @example tile_revenue
+             */
+            tileId: string;
+        };
         AgentDeployResponseDto: {
             /** @description The workflow after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
             workflow: components["schemas"]["WorkflowDto"];
@@ -4226,6 +4238,11 @@ export interface components {
             workflowStructure?: components["schemas"]["WorkflowStructureDto"];
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
+            /**
+             * @description Acknowledge that this change disconnects the workflow from its dashboard alert. Required when name, trigger or workflowStructure change on a workflow whose dashboardAlert is set.
+             * @example true
+             */
+            disconnectDashboardAlert?: boolean;
         };
         UpdateAgentInterfaceDto: {
             /**
@@ -4618,6 +4635,8 @@ export interface components {
              * @enum {string|null}
              */
             manageDenial: "not_owner" | "needs_group_manage" | null;
+            /** @description Set when a dashboard KPI alert generated this workflow. Changing its definition requires disconnectDashboardAlert. */
+            dashboardAlert?: components["schemas"]["AgentDashboardAlertDto"] | null;
         };
         WorkflowEdgeDto: {
             /**
@@ -4930,7 +4949,6 @@ export interface components {
             guardrails?: string[];
             /** @description Map of tool name to tool config. */
             toolset?: Record<string, never>;
-            strategies?: string[];
             experimentalFeatures?: boolean;
             debug?: boolean;
             /** @description Set false to keep composer output inline. */

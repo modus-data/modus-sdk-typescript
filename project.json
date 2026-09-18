@@ -31,7 +31,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "command": "pnpm --filter @getmodus/sdk exec vitest run",
+        "command": "vitest run --root distribution/clients/typescript/modus-sdk",
         "cwd": "{workspaceRoot}"
       },
       "inputs": [

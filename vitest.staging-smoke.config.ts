@@ -6,6 +6,7 @@ export default defineConfig({
     __SDK_VERSION__: JSON.stringify('0.0.0-dev'),
   },
   test: {
+    clearMocks: false,
     include: ['tests/integration/**/*.test.ts'],
     testTimeout: 180_000,
     hookTimeout: 60_000,
