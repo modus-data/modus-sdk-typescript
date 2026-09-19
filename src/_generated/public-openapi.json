@@ -23043,6 +23043,17 @@
             "description": "Context items the composer kept for this intent.",
             "example": 12
           },
+          "contextItemUids": {
+            "type": "array",
+            "description": "UIDs of the context items the composer kept, in selection order. Same length as `selectedCount`.",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "ctx_01HZY4M8",
+              "ctx_01HZY4M9"
+            ]
+          },
           "sessionId": {
             "type": "string",
             "description": "Session id used for this composition (for correlation).",
@@ -23054,6 +23065,7 @@
           "contextItems",
           "originalCount",
           "selectedCount",
+          "contextItemUids",
           "sessionId"
         ]
       },
@@ -26788,6 +26800,13 @@
             "type": "number",
             "description": "Context items the composer kept for this intent."
           },
+          "contextItemUids": {
+            "type": "array",
+            "description": "UIDs of the context items the composer kept, in selection order. Same length as `selectedCount`.",
+            "items": {
+              "type": "string"
+            }
+          },
           "sessionId": {
             "type": "string",
             "description": "Session id used for this composition."
@@ -26798,6 +26817,7 @@
           "contextItems",
           "originalCount",
           "selectedCount",
+          "contextItemUids",
           "sessionId"
         ]
       },

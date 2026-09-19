@@ -9,6 +9,14 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Added
+
+- **`contextItemUids` on composed context.** `POST /modus/context` and
+  `POST /scopes/{id}/context` now return the UIDs of the context items the composer
+  kept, in selection order. Previously the response reported `selectedCount` with no
+  way to learn which items it counted — `contextItems` has been an empty array for
+  some time and remains deprecated.
+
 ### Removed
 
 - **`RunConfigDto.strategies`.** The run API no longer publishes context-composer

@@ -2644,6 +2644,14 @@ export interface components {
              */
             selectedCount: number;
             /**
+             * @description UIDs of the context items the composer kept, in selection order. Same length as `selectedCount`.
+             * @example [
+             *       "ctx_01HZY4M8",
+             *       "ctx_01HZY4M9"
+             *     ]
+             */
+            contextItemUids: string[];
+            /**
              * @description Session id used for this composition (for correlation).
              * @example api-skill-42-550e8400-e29b-41d4-a716-446655440000
              */
@@ -4342,6 +4350,8 @@ export interface components {
             originalCount: number;
             /** @description Context items the composer kept for this intent. */
             selectedCount: number;
+            /** @description UIDs of the context items the composer kept, in selection order. Same length as `selectedCount`. */
+            contextItemUids: string[];
             /** @description Session id used for this composition. */
             sessionId: string;
         };
