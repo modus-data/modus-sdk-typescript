@@ -16,6 +16,8 @@ release, including pre-1.0 (`0.x`) releases.
   kept, in selection order. Previously the response reported `selectedCount` with no
   way to learn which items it counted — `contextItems` has been an empty array for
   some time and remains deprecated.
+- **`claude-opus-5.5` and `grok-4.7` models.** The chat request `model` union
+  accepts the two new models.
 
 ### Removed
 
