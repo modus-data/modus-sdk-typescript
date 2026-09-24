@@ -9746,6 +9746,7 @@
                 "teams",
                 "context_chat",
                 "dashboard_copilot",
+                "dashboard_assistant",
                 "other"
               ]
             }
@@ -9754,7 +9755,7 @@
             "name": "sourceRef",
             "required": false,
             "in": "query",
-            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422.",
+            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422.",
             "schema": {
               "maxLength": 200,
               "example": "a3f1c0de-1234-4a56-9b78-0123456789ab",
@@ -11831,6 +11832,7 @@
                 "teams",
                 "context_chat",
                 "dashboard_copilot",
+                "dashboard_assistant",
                 "other"
               ]
             }
@@ -11839,7 +11841,7 @@
             "name": "sourceRef",
             "required": false,
             "in": "query",
-            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422.",
+            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422.",
             "schema": {
               "maxLength": 200,
               "example": "a3f1c0de-1234-4a56-9b78-0123456789ab",
@@ -29433,6 +29435,7 @@
           "teams",
           "context_chat",
           "dashboard_copilot",
+          "dashboard_assistant",
           "other"
         ],
         "description": "Origin of the run."
