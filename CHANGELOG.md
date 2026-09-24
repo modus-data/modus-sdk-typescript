@@ -62,6 +62,13 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Changed
 
+- **Scope MCP: Get Answer works alone.** `management.scopes.patchMcpConfig` now
+  rejects a config that turns `coreTools.chat` (`get_answer`) on together with
+  `getContext`, `teachModus` or any tool exposure, with HTTP 422. The call replaces the
+  whole config and omitted keys take their defaults: `chat` off, `getContext` on,
+  `teachModus` off, every tool exposed. To turn Get Answer on, send `chat: true`,
+  `getContext: false` and an empty `subset` exposure in one call.
+
 - **Breaking (pre-1.0):** Ingested-data upload results now contain only `checksum`;
   object keys are internal storage details.
 

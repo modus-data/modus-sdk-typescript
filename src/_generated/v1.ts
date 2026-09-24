@@ -1231,7 +1231,7 @@ export interface paths {
         head?: never;
         /**
          * Update scope MCP config
-         * @description Writes coreTools and mcpToolExposure to the scope draft variation. Changes take effect for MCP clients on the next scope deploy — the active (published) variation is not mutated live. Requires manage permission; unpublished scopes return 404.
+         * @description Replaces coreTools and mcpToolExposure on the scope draft; omitted keys take their defaults. Get Answer works alone: it cannot be on with Get Context, Teach Modus or any tool exposure (422). Takes effect on the next deploy. Unpublished scopes return 404.
          *
          *     **Requires:** `scopes:write`
          */
@@ -4364,11 +4364,11 @@ export interface components {
             role: string;
         };
         PatchSkillMcpConfigDto: {
-            /** @description Full MCP interface config to apply live on the published scope (and mirrored to draft when forked). */
+            /** @description Full MCP interface config written to the scope draft; takes effect on the next deploy. */
             config: components["schemas"]["SkillMcpInterfaceConfigDto"];
         };
         PatchSkillMcpConfigResponseDto: {
-            /** @description Sanitized MCP config now stored on the published variation. */
+            /** @description Sanitized MCP config now stored on the scope draft. */
             config: components["schemas"]["SkillMcpInterfaceConfigDto"];
         };
         PendingOwnershipTransferDto: {
@@ -4608,11 +4608,11 @@ export interface components {
             runId: string;
         };
         SkillMcpInterfaceConfigDto: {
-            /** @description Built-in MCP tools (chat, get_context) exposed by this scope. */
+            /** @description Core MCP tools: chat (get_answer), getContext, teachModus. Omitted keys default to chat false, getContext true, teachModus false. chat cannot be true together with another tool. */
             coreTools?: {
                 [key: string]: unknown;
             };
-            /** @description Outbound tool exposure for MCP clients (subset or all). */
+            /** @description Integration tools exposed to MCP clients: mode discovery (all) or subset with allowedIntegrationKeys. Must be an empty subset when chat is true. */
             mcpToolExposure?: {
                 [key: string]: unknown;
             };
