@@ -13581,7 +13581,7 @@
     },
     "/api/v1/scopes/{id}/mcp-config": {
       "patch": {
-        "description": "Writes coreTools and mcpToolExposure to the scope draft variation. Changes take effect for MCP clients on the next scope deploy — the active (published) variation is not mutated live. Requires manage permission; unpublished scopes return 404.\n\n**Requires:** `scopes:write`",
+        "description": "Replaces coreTools and mcpToolExposure on the scope draft; omitted keys take their defaults. Get Answer works alone: it cannot be on with Get Context, Teach Modus or any tool exposure (422). Takes effect on the next deploy. Unpublished scopes return 404.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_patchMcpConfig",
         "parameters": [
           {
@@ -13603,19 +13603,36 @@
                 "$ref": "#/components/schemas/PatchSkillMcpConfigDto"
               },
               "examples": {
-                "exposeAll": {
+                "contextAndTools": {
+                  "summary": "Get Context and every tool (the default)",
                   "value": {
                     "config": {
                       "coreTools": {
-                        "chat": {
-                          "enabled": true
-                        },
-                        "get_context": {
-                          "enabled": true
-                        }
+                        "chat": false,
+                        "getContext": true,
+                        "teachModus": false
                       },
                       "mcpToolExposure": {
-                        "mode": "all"
+                        "version": 1,
+                        "mode": "discovery",
+                        "allowedIntegrationKeys": []
+                      }
+                    }
+                  }
+                },
+                "getAnswerAlone": {
+                  "summary": "Get Answer alone",
+                  "value": {
+                    "config": {
+                      "coreTools": {
+                        "chat": true,
+                        "getContext": false,
+                        "teachModus": false
+                      },
+                      "mcpToolExposure": {
+                        "version": 1,
+                        "mode": "subset",
+                        "allowedIntegrationKeys": []
                       }
                     }
                   }
@@ -26859,7 +26876,7 @@
         "type": "object",
         "properties": {
           "config": {
-            "description": "Full MCP interface config to apply live on the published scope (and mirrored to draft when forked).",
+            "description": "Full MCP interface config written to the scope draft; takes effect on the next deploy.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
@@ -26875,7 +26892,7 @@
         "type": "object",
         "properties": {
           "config": {
-            "description": "Sanitized MCP config now stored on the published variation.",
+            "description": "Sanitized MCP config now stored on the scope draft.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
@@ -27317,12 +27334,12 @@
         "properties": {
           "coreTools": {
             "type": "object",
-            "description": "Built-in MCP tools (chat, get_context) exposed by this scope.",
+            "description": "Core MCP tools: chat (get_answer), getContext, teachModus. Omitted keys default to chat false, getContext true, teachModus false. chat cannot be true together with another tool.",
             "additionalProperties": true
           },
           "mcpToolExposure": {
             "type": "object",
-            "description": "Outbound tool exposure for MCP clients (subset or all).",
+            "description": "Integration tools exposed to MCP clients: mode discovery (all) or subset with allowedIntegrationKeys. Must be an empty subset when chat is true.",
             "additionalProperties": true
           }
         }
