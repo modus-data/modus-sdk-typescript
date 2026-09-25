@@ -36,7 +36,7 @@ describe('@getmodus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(98)
+    expect(Object.keys(OPERATIONS).length).toBe(117)
     expect(OPERATIONS.IngestedDataController_upload).toMatchObject({
       method: 'POST',
       path: '/api/v1/ingested-data',

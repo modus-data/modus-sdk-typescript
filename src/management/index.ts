@@ -68,6 +68,28 @@ export type {
   UploadUrlSlot,
   WaitUntil,
 } from '../types/context-files.js'
+export type {
+  CreateDashboardElementInput,
+  CreateDashboardInput,
+  Dashboard,
+  DashboardDraftSnapshot,
+  DashboardElementKind,
+  DashboardElementLayout,
+  DashboardElementPatch,
+  DashboardElementResult,
+  DashboardElementsList,
+  DashboardElementSummary,
+  DashboardLayoutElement,
+  DashboardPublishResult,
+  DashboardVersion,
+  DashboardView,
+  PublishDashboardInput,
+  TransferDashboardOwnershipInput,
+  UpdateDashboardAccessInput,
+  UpdateDashboardDraftInput,
+  UpdateDashboardElementInput,
+  UpdateDashboardLayoutInput,
+} from '../types/context-dashboards.js'
 export type { ToolsetInput } from './types/toolset.js'
 export type {
   Memory,
