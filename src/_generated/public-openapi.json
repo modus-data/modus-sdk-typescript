@@ -23147,6 +23147,33 @@
           }
         }
       },
+      "ContextItemAncestorDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "Stable identifier of the ancestor.",
+            "example": "ancestor-123"
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Human-readable label. Generic path-token ancestry copies the same platform segment as uid. Null only when an explicit entry stored no name.",
+            "example": "acme"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional ancestor kind. Null when the source provides only platform path tokens.",
+            "example": "container"
+          }
+        },
+        "required": [
+          "uid",
+          "display_name",
+          "type"
+        ]
+      },
       "ContextItemDto": {
         "type": "object",
         "properties": {
@@ -23220,6 +23247,14 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "ancestry": {
+            "nullable": true,
+            "description": "Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array means the item has no ancestors. Each entry uses `uid`, `display_name`, and `type`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextItemAncestorDto"
             }
           },
           "createdAt": {
@@ -26547,6 +26582,14 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "ancestry": {
+            "nullable": true,
+            "description": "Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array is stored empty ancestry.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextItemAncestorDto"
             }
           },
           "content": {

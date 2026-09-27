@@ -2696,6 +2696,23 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        ContextItemAncestorDto: {
+            /**
+             * @description Stable identifier of the ancestor.
+             * @example ancestor-123
+             */
+            uid: string;
+            /**
+             * @description Human-readable label. Generic path-token ancestry copies the same platform segment as uid. Null only when an explicit entry stored no name.
+             * @example acme
+             */
+            display_name: string | null;
+            /**
+             * @description Optional ancestor kind. Null when the source provides only platform path tokens.
+             * @example container
+             */
+            type: string | null;
+        };
         ContextItemDto: {
             /**
              * @description Stable UUID for the context item. Use this on PATCH / DELETE / values endpoints.
@@ -2755,6 +2772,8 @@ export interface components {
              *     ]
              */
             dataPath: string[];
+            /** @description Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array means the item has no ancestors. Each entry uses `uid`, `display_name`, and `type`. */
+            ancestry?: components["schemas"]["ContextItemAncestorDto"][] | null;
             /**
              * @description Creation timestamp.
              * @example 2026-05-01T10:00:00.000Z
@@ -4213,6 +4232,8 @@ export interface components {
             contextType: string;
             /** @description Hierarchical data path of the row (same as the request). */
             dataPath: string[];
+            /** @description Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array is stored empty ancestry. */
+            ancestry?: components["schemas"]["ContextItemAncestorDto"][] | null;
             /** @description Item content. When the request supplied a `contentProjection` the JSONB is shaped accordingly; otherwise the full content blob is returned. */
             content: {
                 [key: string]: unknown;

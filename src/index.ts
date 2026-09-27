@@ -65,6 +65,7 @@ export type { Connection } from './types/connections.js'
 export type { VariationView } from './types/views.js'
 export type {
   ContextItem,
+  ContextItemAncestor,
   ContextItemLookupRow,
   ContextType,
 } from './types/context.js'
