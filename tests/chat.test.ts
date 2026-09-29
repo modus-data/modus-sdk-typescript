@@ -6,7 +6,7 @@ import { InternalServerError } from '../src/_exceptions.js'
 const TEST_KEY = 'modus_test_key_chat'
 const BASE = 'https://api.getmodus.com'
 const AGENT = 'https://agent.getmodus.com'
-const MODEL = 'claude-sonnet-5' as const
+const MODEL = 'claude-sonnet-5.5' as const
 
 describe('scopes.chat', () => {
   it('posts buffered chat on new thread', async () => {
