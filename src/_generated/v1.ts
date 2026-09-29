@@ -503,7 +503,7 @@ export interface paths {
         put?: never;
         /**
          * Finalize uploaded files in bulk
-         * @description Finalizes up to 100 uploaded files in one call, so a directory upload costs one request per 100 files. Always returns 200 — a file that has not been received only fails its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).
+         * @description Finalizes up to 100 uploaded files in one call, each checked as in the single finalize. Always returns 200: a file that has not been received, or is executable content, fails only its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).
          *
          *     **Requires:** `context:write`
          */
@@ -635,7 +635,7 @@ export interface paths {
         put?: never;
         /**
          * Finalize an uploaded file
-         * @description Turns a file already uploaded to a presigned URL into durable context. Call this once the PUT completes. Validates the size and type of the object actually stored. Safe to retry — a second call returns the same resource. 404 if the file has not been received.
+         * @description Makes an uploaded file durable context once its PUT completes. Checks the stored size and type: executable content returns 422, and a file whose bytes show another allowed type (a PNG named `.jpg`) is processed as that type, reported in `contentType`. Safe to retry. 404 if the file has not been received.
          *
          *     **Requires:** `context:write`
          */
