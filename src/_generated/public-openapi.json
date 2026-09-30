@@ -25757,7 +25757,7 @@
             "type": "string",
             "nullable": true,
             "example": "reports/2026/Q3",
-            "description": "Relative folder label supplied when the upload was finalized."
+            "description": "Relative folder path within Files. Null at the Files root."
           },
           "contentType": {
             "type": "string",

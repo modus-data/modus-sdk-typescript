@@ -3877,7 +3877,7 @@ export interface components {
             /** @example Q3-churn-report.pdf */
             fileName?: string | null;
             /**
-             * @description Relative folder label supplied when the upload was finalized.
+             * @description Relative folder path within Files. Null at the Files root.
              * @example reports/2026/Q3
              */
             folderPath?: string | null;
