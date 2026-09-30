@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-09-30
+
 ### Added
 
 - **`claude-sonnet-5.5` model.** The chat request `model` union accepts the new
