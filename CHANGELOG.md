@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-09-30
+
 ### Added
 
 - **`contextItemUids` on composed context.** `POST /modus/context` and
