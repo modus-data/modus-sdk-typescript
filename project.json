@@ -5,6 +5,7 @@
   "tags": ["scope:sdk", "type:lib", "lang:typescript"],
   "implicitDependencies": ["modus-api", "agent-service", "openapi-portal"],
   "targets": {
+    "typecheck": {},
     "generate": {
       "executor": "nx:run-commands",
       "dependsOn": [
@@ -50,15 +51,8 @@
       "cache": false
     },
     "lint": {
-      "executor": "nx:run-commands",
-      "dependsOn": [],
-      "options": {
-        "command": "eslint src tests --max-warnings=0 && pnpm exec tsc -p tsconfig.json --noEmit",
-        "cwd": "{projectRoot}"
-      },
-      "inputs": ["default", "{workspaceRoot}/eslint.config.js",
-        "{workspaceRoot}/scripts/eslint-rules/**/*.mjs"
-      ]
+      "dependsOn": ["typecheck"],
+      "options": { "args": "--no-quiet --max-warnings=0" }
     },
     "clean": {
       "executor": "nx:run-commands",
