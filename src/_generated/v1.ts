@@ -3219,7 +3219,7 @@ export interface components {
                 [key: string]: unknown;
             }[];
             /**
-             * @description Interface configuration (chat, API, webhook…). Shape is interface-specific.
+             * @description The scope's MCP interface configuration. Only entries with `type: "mcp"` are accepted; any other type is rejected with 400.
              * @example []
              */
             interfaces?: {
@@ -5149,7 +5149,7 @@ export interface components {
                 [key: string]: unknown;
             }[];
             /**
-             * @description Updated interface configuration.
+             * @description Updated MCP interface configuration. Only entries with `type: "mcp"` are accepted; any other type is rejected with 400.
              * @example []
              */
             interfaces?: {
