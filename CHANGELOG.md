@@ -13,6 +13,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **Scope Slack/Teams interfaces.** `scopes.interfaces(scopeId)` lists, adds, updates and
+  removes the Slack and Microsoft Teams interfaces of a scope.
 - **`claude-sonnet-5.5` model.** The chat request `model` union accepts the new
   Anthropic model.
 - **`deepseek-v4-pro`, `deepseek-v4-flash-latest`, and `kimi-k3` models.** The

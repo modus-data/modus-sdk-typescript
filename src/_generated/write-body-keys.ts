@@ -37,6 +37,8 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   RunLifecycleController_interrupt: [],
   ScopeChatController_chat: ["message", "model"],
   ScopeContextController_compose: ["message", "limit"],
+  ScopeInterfacesController_add: ["type", "name", "config"],
+  ScopeInterfacesController_update: ["name", "config"],
   ScopeMemoriesController_search: ["query", "userId", "limit"],
   ScopeMemoriesController_update: ["memory", "metadata"],
   ScopeRunsController_create: ["message", "sessionId", "organizationId", "version", "fileThreadId", "config", "attachments", "userContext", "source", "runId", "subordinateSkillIds"],

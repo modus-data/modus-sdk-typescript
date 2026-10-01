@@ -16,6 +16,7 @@ import type { JsonObjectListInput } from '../types/json-blob.js'
 import type { ToolsetInput } from '../types/toolset.js'
 import { ScopeMemoriesResource } from './memories.js'
 import { ScopeEvaluationsResource } from './evaluations.js'
+import { ScopeInterfacesResource } from './interfaces.js'
 import { ScopeSupervisionResource } from './supervision.js'
 
 /** The canonical `/api/v1/scopes` management operationIds. */
@@ -158,6 +159,16 @@ export class ManagementScopesResource {
    */
   supervision(scopeId: number | string): ScopeSupervisionResource {
     return new ScopeSupervisionResource(this.http, this.config, scopeId)
+  }
+
+  /**
+   * Slack and Microsoft Teams interfaces for a scope.
+   *
+   * @param scopeId - Scope id.
+   * @returns An interfaces resource scoped to the scope.
+   */
+  interfaces(scopeId: number | string): ScopeInterfacesResource {
+    return new ScopeInterfacesResource(this.http, this.config, scopeId)
   }
 
   /**

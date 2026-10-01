@@ -160,6 +160,8 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ScopeMemoriesController_update: ['memory', 'metadata'],
   ScopeSupervisionController_set: ['subordinateAgentIds'],
   ScopeSupervisionController_setActive: ['subordinateAgentIds'],
+  ScopeInterfacesController_add: ['type', 'name', 'config'],
+  ScopeInterfacesController_update: ['name', 'config'],
   ScopesController_requestOwnershipTransfer: ['newOwnerUserId'],
   ScopesController_patchMcpConfig: ['config'],
   ScopesController_deploy: [],
