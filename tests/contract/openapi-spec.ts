@@ -9,12 +9,8 @@ export const OPENAPI_PATH = join(
   '../../src/_generated/public-openapi.json',
 )
 
-export function loadOpenApi(): Record<string, unknown> | null {
-  try {
-    return JSON.parse(readFileSync(OPENAPI_PATH, 'utf8')) as Record<string, unknown>
-  } catch {
-    return null
-  }
+export function loadOpenApi(): Record<string, unknown> {
+  return JSON.parse(readFileSync(OPENAPI_PATH, 'utf8')) as Record<string, unknown>
 }
 
 export function resolveRef(openapi: Record<string, unknown>, node: Record<string, unknown>): Record<string, unknown> {

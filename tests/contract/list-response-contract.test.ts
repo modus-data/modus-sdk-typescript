@@ -11,18 +11,17 @@ import {
 } from './openapi-spec.js'
 
 const openapi = loadOpenApi()
-const describeIfOpenApi = openapi ? describe : describe.skip
 
-describeIfOpenApi('list response contract', () => {
+describe('list response contract', () => {
   for (const spec of SDK_AIP_LIST_OPERATIONS) {
     const id = `${spec.operationId}:${spec.clientKind}`
 
     it(`${id} itemsKey matches OpenAPI response DTO`, () => {
-      const schemaName = operationResponseSchemaName(openapi!, spec.operationId)
-      const arrayKeys = listResponseArrayKeys(openapi!, schemaName)
+      const schemaName = operationResponseSchemaName(openapi, spec.operationId)
+      const arrayKeys = listResponseArrayKeys(openapi, schemaName)
       expect([...arrayKeys]).toEqual([spec.itemsKey])
 
-      const schemas = (openapi!.components as { schemas: Record<string, Record<string, unknown>> })
+      const schemas = (openapi.components as { schemas: Record<string, Record<string, unknown>> })
         .schemas
       const schema = schemas[schemaName]!
       const props = schema.properties as Record<string, unknown>

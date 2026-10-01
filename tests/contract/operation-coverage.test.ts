@@ -24,23 +24,22 @@ function allOperationIds(openapi: Record<string, unknown>): Set<string> {
 }
 
 const openapi = loadOpenApi()
-const describeIfOpenApi = openapi ? describe : describe.skip
 
-describeIfOpenApi('OpenAPI operation coverage', () => {
+describe('OpenAPI operation coverage', () => {
   it('maps every spec operation', () => {
-    const specIds = allOperationIds(openapi!)
+    const specIds = allOperationIds(openapi)
     const unmapped = [...specIds].filter((id) => !(id in OPERATIONS))
     expect(unmapped).toEqual([])
   })
 
   it('has no stale mappings', () => {
-    const specIds = allOperationIds(openapi!)
+    const specIds = allOperationIds(openapi)
     const stale = Object.keys(OPERATIONS).filter((id) => !specIds.has(id))
     expect(stale).toEqual([])
   })
 
   it('covers the full spec', () => {
-    const specIds = allOperationIds(openapi!)
+    const specIds = allOperationIds(openapi)
     expect(Object.keys(OPERATIONS).length).toBe(specIds.size)
   })
 })
