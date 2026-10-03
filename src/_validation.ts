@@ -22,8 +22,10 @@ export function validateId(resourceId: number | string, name = 'id'): void {
 // Keep in sync with SkillChatRequestDto.model in the public API contract.
 const ALLOWED_CHAT_MODELS = new Set([
   'claude-sonnet-5',
+  'claude-sonnet-5.5',
   'claude-sonnet-4.6',
   'claude-opus-4.8',
+  'claude-opus-5.5',
   'gpt-5.2',
   'gpt-5.5',
   'gpt-5-mini',
@@ -43,6 +45,8 @@ const ALLOWED_CHAT_MODELS = new Set([
   'gemini-3-flash-preview',
   'grok-4.3-fast',
   'grok-4.3',
+  'grok-4.7',
+  'kimi-k3',
 ])
 
 export function validateChatModel(model: string): void {

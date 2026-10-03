@@ -503,7 +503,7 @@ export interface paths {
         put?: never;
         /**
          * Finalize uploaded files in bulk
-         * @description Finalizes up to 100 uploaded files in one call, so a directory upload costs one request per 100 files. Always returns 200 — a file that has not been received only fails its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).
+         * @description Finalizes up to 100 uploaded files in one call, each checked as in the single finalize. Always returns 200: a file that has not been received, or is executable content, fails only its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).
          *
          *     **Requires:** `context:write`
          */
@@ -635,7 +635,7 @@ export interface paths {
         put?: never;
         /**
          * Finalize an uploaded file
-         * @description Turns a file already uploaded to a presigned URL into durable context. Call this once the PUT completes. Validates the size and type of the object actually stored. Safe to retry — a second call returns the same resource. 404 if the file has not been received.
+         * @description Makes an uploaded file durable context once its PUT completes. Checks the stored size and type: executable content returns 422, and a file whose bytes show another allowed type (a PNG named `.jpg`) is processed as that type, reported in `contentType`. Safe to retry. 404 if the file has not been received.
          *
          *     **Requires:** `context:write`
          */
@@ -2696,6 +2696,23 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        ContextItemAncestorDto: {
+            /**
+             * @description Stable identifier of the ancestor.
+             * @example ancestor-123
+             */
+            uid: string;
+            /**
+             * @description Human-readable label. Generic path-token ancestry copies the same platform segment as uid. Null only when an explicit entry stored no name.
+             * @example acme
+             */
+            display_name: string | null;
+            /**
+             * @description Optional ancestor kind. Null when the source provides only platform path tokens.
+             * @example container
+             */
+            type: string | null;
+        };
         ContextItemDto: {
             /**
              * @description Stable UUID for the context item. Use this on PATCH / DELETE / values endpoints.
@@ -2755,6 +2772,8 @@ export interface components {
              *     ]
              */
             dataPath: string[];
+            /** @description Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array means the item has no ancestors. Each entry uses `uid`, `display_name`, and `type`. */
+            ancestry?: components["schemas"]["ContextItemAncestorDto"][] | null;
             /**
              * @description Creation timestamp.
              * @example 2026-05-01T10:00:00.000Z
@@ -3858,7 +3877,7 @@ export interface components {
             /** @example Q3-churn-report.pdf */
             fileName?: string | null;
             /**
-             * @description Relative folder label supplied when the upload was finalized.
+             * @description Relative folder path within Files. Null at the Files root.
              * @example reports/2026/Q3
              */
             folderPath?: string | null;
@@ -4213,6 +4232,8 @@ export interface components {
             contextType: string;
             /** @description Hierarchical data path of the row (same as the request). */
             dataPath: string[];
+            /** @description Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array is stored empty ancestry. */
+            ancestry?: components["schemas"]["ContextItemAncestorDto"][] | null;
             /** @description Item content. When the request supplied a `contentProjection` the JSONB is shaped accordingly; otherwise the full content blob is returned. */
             content: {
                 [key: string]: unknown;
@@ -4293,11 +4314,11 @@ export interface components {
              */
             message?: string;
             /**
-             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.
+             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.
              * @example claude-sonnet-4.6
              * @enum {string}
              */
-            model: "claude-sonnet-5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "claude-opus-5.5" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "deepseek-v4-pro" | "deepseek-v4-flash-latest" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3" | "grok-4.7" | "kimi-k3";
+            model: "claude-sonnet-5" | "claude-sonnet-5.5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "claude-opus-5.5" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "deepseek-v4-pro" | "deepseek-v4-flash-latest" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3" | "grok-4.7" | "kimi-k3";
             /** @description Continue a pending write-approval interrupt from a prior turn. When true, `message` is ignored. */
             approvalContinuation?: boolean;
             /**
@@ -4584,11 +4605,11 @@ export interface components {
              */
             message: string;
             /**
-             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.
+             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.
              * @example claude-sonnet-4.6
              * @enum {string}
              */
-            model: "claude-sonnet-5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "claude-opus-5.5" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "deepseek-v4-pro" | "deepseek-v4-flash-latest" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3" | "grok-4.7" | "kimi-k3";
+            model: "claude-sonnet-5" | "claude-sonnet-5.5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "claude-opus-5.5" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "deepseek-v4-pro" | "deepseek-v4-flash-latest" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3" | "grok-4.7" | "kimi-k3";
         };
         SkillChatResponseDto: {
             /**
@@ -5678,7 +5699,7 @@ export interface components {
          * @description Origin of the run.
          * @enum {string}
          */
-        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
+        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
         SkillRunDto: {
             /** @description The user message to send. */
             message: string;
@@ -13960,8 +13981,8 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
-                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422. */
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";
@@ -15609,8 +15630,8 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "other";
-                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422. */
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
                 timeframe?: "last_day" | "this_week" | "this_month" | "last_7_days" | "last_30_days";

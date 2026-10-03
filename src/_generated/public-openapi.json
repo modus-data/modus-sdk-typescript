@@ -5724,7 +5724,7 @@
     },
     "/api/v1/context/files/finalize": {
       "post": {
-        "description": "Finalizes up to 100 uploaded files in one call, so a directory upload costs one request per 100 files. Always returns 200 — a file that has not been received only fails its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).\n\n**Requires:** `context:write`",
+        "description": "Finalizes up to 100 uploaded files in one call, each checked as in the single finalize. Always returns 200: a file that has not been received, or is executable content, fails only its own entry (`failed[]`). Structural problems (empty `uploads`, over 100 entries) reject the whole request (422).\n\n**Requires:** `context:write`",
         "operationId": "ContextFilesController_finalizeMany",
         "parameters": [],
         "requestBody": {
@@ -6948,7 +6948,7 @@
     },
     "/api/v1/context/files/{uploadId}/finalize": {
       "post": {
-        "description": "Turns a file already uploaded to a presigned URL into durable context. Call this once the PUT completes. Validates the size and type of the object actually stored. Safe to retry — a second call returns the same resource. 404 if the file has not been received.\n\n**Requires:** `context:write`",
+        "description": "Makes an uploaded file durable context once its PUT completes. Checks the stored size and type: executable content returns 422, and a file whose bytes show another allowed type (a PNG named `.jpg`) is processed as that type, reported in `contentType`. Safe to retry. 404 if the file has not been received.\n\n**Requires:** `context:write`",
         "operationId": "ContextFilesController_finalize",
         "parameters": [
           {
@@ -9746,6 +9746,7 @@
                 "teams",
                 "context_chat",
                 "dashboard_copilot",
+                "dashboard_assistant",
                 "other"
               ]
             }
@@ -9754,7 +9755,7 @@
             "name": "sourceRef",
             "required": false,
             "in": "query",
-            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422.",
+            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422.",
             "schema": {
               "maxLength": 200,
               "example": "a3f1c0de-1234-4a56-9b78-0123456789ab",
@@ -11831,6 +11832,7 @@
                 "teams",
                 "context_chat",
                 "dashboard_copilot",
+                "dashboard_assistant",
                 "other"
               ]
             }
@@ -11839,7 +11841,7 @@
             "name": "sourceRef",
             "required": false,
             "in": "query",
-            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot`, a dashboard id. Requires `source`; sent alone it is a 422.",
+            "description": "Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422.",
             "schema": {
               "maxLength": 200,
               "example": "a3f1c0de-1234-4a56-9b78-0123456789ab",
@@ -23145,6 +23147,33 @@
           }
         }
       },
+      "ContextItemAncestorDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "Stable identifier of the ancestor.",
+            "example": "ancestor-123"
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Human-readable label. Generic path-token ancestry copies the same platform segment as uid. Null only when an explicit entry stored no name.",
+            "example": "acme"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional ancestor kind. Null when the source provides only platform path tokens.",
+            "example": "container"
+          }
+        },
+        "required": [
+          "uid",
+          "display_name",
+          "type"
+        ]
+      },
       "ContextItemDto": {
         "type": "object",
         "properties": {
@@ -23218,6 +23247,14 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "ancestry": {
+            "nullable": true,
+            "description": "Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array means the item has no ancestors. Each entry uses `uid`, `display_name`, and `type`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextItemAncestorDto"
             }
           },
           "createdAt": {
@@ -25720,7 +25757,7 @@
             "type": "string",
             "nullable": true,
             "example": "reports/2026/Q3",
-            "description": "Relative folder label supplied when the upload was finalized."
+            "description": "Relative folder path within Files. Null at the Files root."
           },
           "contentType": {
             "type": "string",
@@ -26547,6 +26584,14 @@
               "type": "string"
             }
           },
+          "ancestry": {
+            "nullable": true,
+            "description": "Ordered ancestors. Omitted on older responses that do not yet include the field. Null means stored ancestry is unknown. An empty array is stored empty ancestry.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextItemAncestorDto"
+            }
+          },
           "content": {
             "type": "object",
             "description": "Item content. When the request supplied a `contentProjection` the JSONB is shaped accordingly; otherwise the full content blob is returned.",
@@ -26701,9 +26746,10 @@
           },
           "model": {
             "type": "string",
-            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
+            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
             "enum": [
               "claude-sonnet-5",
+              "claude-sonnet-5.5",
               "claude-sonnet-4.6",
               "claude-opus-4.8",
               "claude-opus-5.5",
@@ -27268,9 +27314,10 @@
           },
           "model": {
             "type": "string",
-            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
+            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
             "enum": [
               "claude-sonnet-5",
+              "claude-sonnet-5.5",
               "claude-sonnet-4.6",
               "claude-opus-4.8",
               "claude-opus-5.5",
@@ -29450,6 +29497,7 @@
           "teams",
           "context_chat",
           "dashboard_copilot",
+          "dashboard_assistant",
           "other"
         ],
         "description": "Origin of the run."

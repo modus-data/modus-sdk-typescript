@@ -9,8 +9,18 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-09-30
+
 ### Added
 
+- **`claude-sonnet-5.5` model.** The chat request `model` union accepts the new
+  Anthropic model.
+- **`deepseek-v4-pro`, `deepseek-v4-flash-latest`, and `kimi-k3` models.** The
+  chat request `model` union accepts these models.
+- **Optional `ancestry` on context items.** List, get, lookup, and custom-item
+  responses may include ordered ancestors (`uid`, `display_name`, `type`). The
+  field is omitted on older responses, `null` when stored ancestry is unknown,
+  and `[]` when the item has no ancestors.
 - **`contextItemUids` on composed context.** `POST /modus/context` and
   `POST /scopes/{id}/context` now return the UIDs of the context items the composer
   kept, in selection order. Previously the response reported `selectedCount` with no
