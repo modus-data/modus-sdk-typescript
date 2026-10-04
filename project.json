@@ -51,8 +51,7 @@
       "cache": false
     },
     "lint": {
-      "dependsOn": ["typecheck"],
-      "options": { "args": "--no-quiet --max-warnings=0" }
+      "dependsOn": ["typecheck"]
     },
     "clean": {
       "executor": "nx:run-commands",
