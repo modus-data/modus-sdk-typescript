@@ -20,6 +20,11 @@ release, including pre-1.0 (`0.x`) releases.
 - **Upload destinations.** Upload helpers accept an optional `folderPath`
   prefix for single files, batches, and directories.
 
+### Changed
+
+- Deleting a Files folder through context items also deletes its contained files,
+  subfolders, and parsed file items.
+
 ## [0.7.0] — 2026-09-30
 
 ### Added

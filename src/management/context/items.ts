@@ -170,7 +170,7 @@ export class ManagementContextItemsResource {
   }
 
   /**
-   * Delete a context item.
+   * Delete a context item. Deleting a Files folder also deletes all its contents.
    *
    * @param uid - Context item uid.
    * @returns Deletion confirmation details.

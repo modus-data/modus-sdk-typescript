@@ -708,7 +708,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a context item
-         * @description Removes a context item created via the SPA / public API. Only items in the user-created allowlist (`note`, `link`, `saved_query`, `golden_query`, `file_upload`) can be deleted via this surface — integration-derived items are managed by their owning syncer and respond with 422. Returns 404 when the row is missing.
+         * @description Deletes a user-created context item. Deleting a Files folder also removes all files, subfolders and parsed file items it contains. Integration-owned items return 422; missing items return 404.
          *
          *     **Requires:** `context:write`
          */
