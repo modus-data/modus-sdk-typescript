@@ -655,7 +655,7 @@ export interface paths {
         };
         /**
          * List context items
-         * @description Returns a page of context items, optionally filtered by context type, verification status, topic, or free-text search. Pass `nextPageToken` as `pageToken` to fetch the next page.
+         * @description Returns a page of context items, optionally filtered by context type, verification status, topic, free-text search, connection, parent, or ancestor. Pass `nextPageToken` as `pageToken` to fetch the next page.
          *
          *     **Requires:** `context:read`
          */
@@ -2607,7 +2607,7 @@ export interface components {
              */
             fileName: string;
             /**
-             * @description Relative folder label to store with the upload.
+             * @description Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.
              * @example reports/2026/Q3
              */
             folderPath?: string;
@@ -2630,7 +2630,7 @@ export interface components {
              */
             fileName?: string;
             /**
-             * @description Relative folder label to store with the upload.
+             * @description Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.
              * @example reports/2026/Q3
              */
             folderPath?: string;
@@ -4007,7 +4007,7 @@ export interface components {
              */
             fileName: string;
             /**
-             * @description Relative folder label to store with the upload.
+             * @description Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.
              * @example reports/2026/Q3
              */
             folderPath?: string;
@@ -5332,7 +5332,7 @@ export interface components {
              */
             fileName?: string;
             /**
-             * @description Relative folder label to store with the upload.
+             * @description Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.
              * @example reports/2026/Q3
              */
             folderPath?: string;
@@ -12056,6 +12056,12 @@ export interface operations {
                 searchQuery?: string;
                 /** @description Filter by topic tag. */
                 topics?: string[];
+                /** @description Restrict to these connection ids, intersected with connections you can access. Repeat the query param. An empty list matches no rows. Omit for no extra connection restriction. */
+                connectionIds?: string[];
+                /** @description Exact ordered parent ancestry UID chain (repeat the query param). Omit for no parent restriction. Pass empty (`?parentUids=`) to list items with known empty ancestry. A nonempty chain matches cardinality and each stored ancestor UID by position, not the item's own UID. Display name and type are not identity. */
+                parentUids?: string[];
+                /** @description Ordered ancestry UID prefix for strict descendants (repeat the query param). Omit for no ancestor restriction. Pass empty (`?ancestorUids=`) for the virtual-root subtree (any non-null ancestry). A nonempty prefix matches descendants whose ancestry starts with that chain. Does not compare the item's own UID to a native ancestor UID. */
+                ancestorUids?: string[];
             };
             header?: never;
             path?: never;

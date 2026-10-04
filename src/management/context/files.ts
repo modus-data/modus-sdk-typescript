@@ -73,6 +73,24 @@ function chunked<T>(items: readonly T[], size: number): T[][] {
   return out
 }
 
+/** Join an optional destination prefix onto a walk-relative folder label. Empty prefix is a no-op. */
+function joinDestination(prefix: string | undefined, relative: string | undefined): string | undefined {
+  const head = prefix === undefined || prefix.length === 0 ? undefined : prefix
+  const tail =
+    relative === undefined || relative.length === 0
+      ? undefined
+      : relative
+  if (head !== undefined && tail !== undefined) return `${head}/${tail}`
+  return head ?? tail
+}
+
+type BatchUploadOptions = {
+  concurrency?: number
+  waitUntil?: WaitUntil
+  onProgress?: UploadProgressCallback
+  folderPath?: string
+}
+
 /** Bounded-concurrency map, preserving input order — the async twin of a thread pool. */
 async function mapWithConcurrency<T, R>(
   items: readonly T[],
@@ -186,6 +204,7 @@ function assignSlots(
  *
  * - `upload(path)` / `uploadDir(dirPath)` — presign + PUT + poll convenience helpers.
  * - `createUploadUrl(s)`, `uploadFromUrl(s)`, `get`, `list` — raw operations.
+ * Hierarchy browsing is available through `mgmt.context.items.list`.
  */
 export class ManagementContextFilesResource {
   /** @internal */
@@ -237,6 +256,7 @@ export class ManagementContextFilesResource {
    * @param url - Source URL to fetch (SSRF-guarded, 50MB cap, same MIME
    *   allow-list as `createUploadUrl`).
    * @param options.fileName - Override file name. Inferred from the URL path when omitted.
+   * @param options.folderPath - Root-relative folder to upload under.
    * @returns File upload resource with status `processing` — parsing continues async.
    */
   async uploadFromUrl(url: string, options: { fileName?: string; folderPath?: string } = {}): Promise<FileUpload> {
@@ -365,14 +385,20 @@ export class ManagementContextFilesResource {
    * @param options.concurrency - Max concurrent PUTs (default 10).
    * @param options.waitUntil - `"processing"` (default) or `"ready"`.
    * @param options.onProgress - Optional progress callback after each file.
+   * @param options.folderPath - Root-relative folder to upload under. Nested
+   *   files keep their existing relative folder labels under this prefix.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const result = await mgmt.context.files.uploadFiles(
+   *   ['./q3.pdf', './notes.md'],
+   *   { folderPath: 'reports/2026' },
+   * )
+   * ```
    */
   async uploadFiles(
     paths: readonly (string | UploadFileInput)[],
-    options: {
-      concurrency?: number
-      waitUntil?: WaitUntil
-      onProgress?: UploadProgressCallback
-    } = {},
+    options: BatchUploadOptions = {},
   ): Promise<UploadDirResult> {
     return this.uploadPaths(paths.map((input) => typeof input === 'string' ? { path: input } : input), options)
   }
@@ -380,20 +406,32 @@ export class ManagementContextFilesResource {
   /**
    * Upload a local file and wait for it to reach `"processing"` or `"ready"`.
    *
-   * Gets a presigned URL, PUTs the file bytes, then polls `get()` until the
-   * upload leaves `"pending"` (or reaches `"ready"`/`"failed"`).
+   * Gets a presigned URL, PUTs the file bytes, then polls `get()`
+   * until the upload leaves `"pending"` (or reaches `"ready"`/`"failed"`).
    *
    * @param path - Path to a local file.
    * @param options.waitUntil - `"processing"` (parsing started, default) or
    *   `"ready"` (parsing finished).
    * @param options.pollIntervalMs - Milliseconds between status polls.
    * @param options.timeoutMs - Max milliseconds to wait before raising.
+   * @param options.folderPath - Root-relative folder to upload under. Example:
+   *   `{ folderPath: 'reports/2026' }` places `./report.pdf` at `reports/2026`.
    * @returns The file upload resource once it reaches `waitUntil` (or `"failed"`).
    * @throws {ModusError} If the PUT fails, or polling times out.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const file = await mgmt.context.files.upload('./report.pdf', { folderPath: 'reports/2026' })
+   * ```
    */
   async upload(
     path: string,
-    options: { waitUntil?: WaitUntil; pollIntervalMs?: number; timeoutMs?: number } = {},
+    options: {
+      waitUntil?: WaitUntil
+      pollIntervalMs?: number
+      timeoutMs?: number
+      folderPath?: string
+    } = {},
   ): Promise<FileUpload> {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
@@ -410,7 +448,9 @@ export class ManagementContextFilesResource {
     // Finalize returns the resource already at `processing`, so it replaces the
     // first poll rather than adding a round trip. Only `waitUntil: 'ready'`
     // needs to keep polling afterwards.
-    const finalized = await this.finalize(slot.uploadId, slot.fileName)
+    const finalized = await this.finalize(slot.uploadId, slot.fileName, {
+      ...(options.folderPath !== undefined ? { folderPath: options.folderPath } : {}),
+    })
     if (statusSatisfies(finalized.status, waitUntil)) return finalized
     return this.pollUntil(
       slot.uploadId,
@@ -453,8 +493,17 @@ export class ManagementContextFilesResource {
    * @param options.concurrency - Max concurrent PUT+poll operations (default 10).
    * @param options.waitUntil - `"processing"` (default) or `"ready"` — same as `upload()`.
    * @param options.onProgress - Optional progress callback after each file.
+   * @param options.folderPath - Root-relative folder to upload under. Nested
+   *   files keep their path relative to `path` under this prefix. Example:
+   *   `uploadDir('./docs', { folderPath: 'reports' })` places `./docs/a.txt` at
+   *   `reports` and `./docs/nested/b.txt` at `reports/nested`.
    * @returns `UploadDirResult` with every successful `FileUpload` and every
    *   per-file failure (slot creation or PUT/poll), each tagged with its local path.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const result = await mgmt.context.files.uploadDir('./docs', { folderPath: 'reports' })
+   * ```
    */
   async uploadDir(
     path: string,
@@ -463,6 +512,7 @@ export class ManagementContextFilesResource {
       concurrency?: number
       waitUntil?: WaitUntil
       onProgress?: UploadProgressCallback
+      folderPath?: string
     } = {},
   ): Promise<UploadDirResult> {
     const waitUntil = options.waitUntil ?? 'processing'
@@ -483,12 +533,17 @@ export class ManagementContextFilesResource {
    * PUT with bounded concurrency, then bulk-finalize the batch. */
   private async uploadPaths(
     files: readonly UploadPath[],
-    options: { concurrency?: number; waitUntil?: WaitUntil; onProgress?: UploadProgressCallback },
+    options: BatchUploadOptions,
   ): Promise<UploadDirResult> {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
     const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY
     if (concurrency < 1) throw new Error(`concurrency must be >= 1, got ${concurrency}`)
+
+    const prefixed = files.map((file) => {
+      const folderPath = joinDestination(options.folderPath, file.folderPath)
+      return { path: file.path, ...(folderPath !== undefined ? { folderPath } : {}) }
+    })
 
     const uploaded: FileUpload[] = []
     const failed: UploadDirFailure[] = []
@@ -504,7 +559,7 @@ export class ManagementContextFilesResource {
       })
     }
 
-    for (const batch of chunked(files, MAX_BULK_UPLOAD_FILES)) {
+    for (const batch of chunked(prefixed, MAX_BULK_UPLOAD_FILES)) {
       const failedBefore = failed.length
       const slots = await this.createSlots(batch, failed)
       // createSlots can report several failures from one synchronous call, so tick

@@ -145,6 +145,23 @@ describe('ManagementContextFilesResource.upload', () => {
     expect(getCalls).toBe(0)
   })
 
+  it('passes folderPath through finalize', async () => {
+    const filePath = join(dir, 'report.txt')
+    await writeFile(filePath, 'hello world')
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrl')) return jsonResponse(slotFor('report.txt'))
+      if (url.endsWith('/finalize') && !url.endsWith('/context/files/finalize')) {
+        expect(JSON.parse(String(init?.body))).toEqual({ fileName: 'report.txt', folderPath: 'reports/2026' })
+        return jsonResponse({ uploadId: 'upload-report.txt', status: 'processing' })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await mgmt.context.files.upload(filePath, { folderPath: 'reports/2026' })
+  })
+
   it('rejects an invalid waitUntil before any request', async () => {
     const filePath = join(dir, 'report.txt')
     await writeFile(filePath, 'hi')
@@ -174,6 +191,14 @@ describe('ManagementContextFilesResource.uploadDir', () => {
   it('rejects concurrency < 1', async () => {
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch: vi.fn() })
     await expect(mgmt.context.files.uploadDir(dir, { concurrency: 0 })).rejects.toThrow(/concurrency must be/)
+  })
+
+  it('is a no-op when the directory has no files', async () => {
+    const fetch = vi.fn()
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const result = await mgmt.context.files.uploadDir(dir)
+    expect(result).toEqual({ uploaded: [], failed: [] })
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('sends each nested directory relative to the upload root at bulk finalize', async () => {
@@ -210,6 +235,177 @@ describe('ManagementContextFilesResource.uploadDir', () => {
     ]))
   })
 
+  it('prefixes destination folderPath onto relative subpaths', async () => {
+    await mkdir(join(dir, 'nested'))
+    await writeFile(join(dir, 'root.txt'), 'root')
+    await writeFile(join(dir, 'nested', 'child.txt'), 'child')
+
+    const finalizeBodies: Array<{ uploads: Array<{ uploadId: string; fileName: string; folderPath?: string }> }> = []
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        const body = JSON.parse(String(init?.body)) as { files: Array<{ fileName: string }> }
+        return jsonResponse({ uploaded: body.files.map((f) => slotFor(f.fileName)), failed: [] })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as typeof finalizeBodies[number]
+        finalizeBodies.push(body)
+        return jsonResponse({
+          finalized: body.uploads.map((upload) => ({ uploadId: upload.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+
+    await mgmt.context.files.uploadDir(dir, { folderPath: 'reports' })
+
+    expect(finalizeBodies[0]?.uploads).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fileName: 'root.txt', folderPath: 'reports' }),
+      expect.objectContaining({ fileName: 'child.txt', folderPath: 'reports/nested' }),
+    ]))
+  })
+
+  it('does not rewrite a leading-slash destination prefix', async () => {
+    await mkdir(join(dir, 'nested'))
+    await writeFile(join(dir, 'root.txt'), 'root')
+    await writeFile(join(dir, 'nested', 'child.txt'), 'child')
+
+    const finalizeBodies: Array<{ uploads: Array<{ uploadId: string; fileName: string; folderPath?: string }> }> = []
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        const body = JSON.parse(String(init?.body)) as { files: Array<{ fileName: string }> }
+        return jsonResponse({ uploaded: body.files.map((f) => slotFor(f.fileName)), failed: [] })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as typeof finalizeBodies[number]
+        finalizeBodies.push(body)
+        return jsonResponse({
+          finalized: body.uploads.map((upload) => ({ uploadId: upload.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+
+    await mgmt.context.files.uploadDir(dir, { folderPath: '/reports' })
+
+    expect(finalizeBodies[0]?.uploads).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fileName: 'root.txt', folderPath: '/reports' }),
+      expect.objectContaining({ fileName: 'child.txt', folderPath: '/reports/nested' }),
+    ]))
+  })
+
+  it('preserves a slash-only destination prefix instead of collapsing it to the Files root', async () => {
+    await writeFile(join(dir, 'root.txt'), 'root')
+
+    const finalizeBodies: Array<{ uploads: Array<{ uploadId: string; fileName: string; folderPath?: string }> }> = []
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        const body = JSON.parse(String(init?.body)) as { files: Array<{ fileName: string }> }
+        return jsonResponse({ uploaded: body.files.map((f) => slotFor(f.fileName)), failed: [] })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as typeof finalizeBodies[number]
+        finalizeBodies.push(body)
+        return jsonResponse({
+          finalized: body.uploads.map((upload) => ({ uploadId: upload.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+
+    await mgmt.context.files.uploadDir(dir, { folderPath: '/' })
+    await mgmt.context.files.uploadFiles([{ path: join(dir, 'root.txt') }], { folderPath: '///' })
+
+    expect(finalizeBodies[0]?.uploads).toEqual(
+      expect.arrayContaining([expect.objectContaining({ fileName: 'root.txt', folderPath: '/' })]),
+    )
+    expect(finalizeBodies[1]?.uploads).toEqual(
+      expect.arrayContaining([expect.objectContaining({ fileName: 'root.txt', folderPath: '///' })]),
+    )
+  })
+
+  it('prefixes CLI-style root-basename relative paths', async () => {
+    await mkdir(join(dir, 'docs'))
+    await mkdir(join(dir, 'docs', 'nested'))
+    await writeFile(join(dir, 'docs', 'a.txt'), 'a')
+    await writeFile(join(dir, 'docs', 'nested', 'b.txt'), 'b')
+
+    const finalizeBodies: Array<{ uploads: Array<{ uploadId: string; fileName: string; folderPath?: string }> }> = []
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        const body = JSON.parse(String(init?.body)) as { files: Array<{ fileName: string }> }
+        return jsonResponse({ uploaded: body.files.map((f) => slotFor(f.fileName)), failed: [] })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as typeof finalizeBodies[number]
+        finalizeBodies.push(body)
+        return jsonResponse({
+          finalized: body.uploads.map((upload) => ({ uploadId: upload.uploadId, status: 'processing' })),
+          failed: [],
+        })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+
+    await mgmt.context.files.uploadFiles(
+      [
+        { path: join(dir, 'docs', 'a.txt'), folderPath: 'docs' },
+        { path: join(dir, 'docs', 'nested', 'b.txt'), folderPath: 'docs/nested' },
+      ],
+      { folderPath: 'reports' },
+    )
+
+    expect(finalizeBodies[0]?.uploads).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fileName: 'a.txt', folderPath: 'reports/docs' }),
+      expect.objectContaining({ fileName: 'b.txt', folderPath: 'reports/docs/nested' }),
+    ]))
+  })
+
+  it.each([
+    { relative: '.', prefix: undefined, destination: '.' },
+    { relative: '.', prefix: 'reports', destination: 'reports/.' },
+    { relative: 'a\\b', prefix: 'reports\\2026', destination: 'reports\\2026/a\\b' },
+  ])('leaves $destination to server validation', async ({ relative, prefix, destination }) => {
+    const filePath = join(dir, 'a.txt')
+    await writeFile(filePath, 'a')
+    let sentDestination: string | undefined
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrls')) {
+        return jsonResponse({ uploaded: [slotFor('a.txt')], failed: [] })
+      }
+      if (url.includes('/context/files/finalize')) {
+        const body = JSON.parse(String(init?.body)) as { uploads: Array<{ folderPath?: string }> }
+        sentDestination = body.uploads[0]?.folderPath
+        return sentDestination?.split('/').includes('.')
+          ? jsonResponse({ finalized: [], failed: [{ uploadId: 'upload-a.txt', error: 'Invalid folder path' }] })
+          : jsonResponse({ finalized: [{ uploadId: 'upload-a.txt', status: 'processing' }], failed: [] })
+      }
+      if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const result = await mgmt.context.files.uploadFiles([{ path: filePath, folderPath: relative }], { folderPath: prefix })
+
+    expect(sentDestination).toBe(destination)
+    expect(result.failed).toHaveLength(relative === '.' ? 1 : 0)
+    expect(result.uploaded).toHaveLength(relative === '.' ? 0 : 1)
+  })
+
   it('skips hidden files/dirs and symlinks', async () => {
     await writeFile(join(dir, 'keep.txt'), 'a')
     await writeFile(join(dir, '.hidden.txt'), 'b')
@@ -242,7 +438,7 @@ describe('ManagementContextFilesResource.uploadDir', () => {
       if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
       if (url.includes('/context/files/upload-')) {
         const uploadId = url.split('/').pop() as string
-        return jsonResponse({ uploadId, status: 'processing' })
+        return jsonResponse({ uid: uploadId, contextType: 'file_upload', content: {}, ancestry: [] })
       }
       return new Response('not found', { status: 404 })
     })
@@ -282,7 +478,7 @@ describe('ManagementContextFilesResource.uploadDir', () => {
       if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
       if (url.includes('/context/files/upload-')) {
         const uploadId = url.split('/').pop() as string
-        return jsonResponse({ uploadId, status: 'processing' })
+        return jsonResponse({ uid: uploadId, contextType: 'file_upload', content: {}, ancestry: [] })
       }
       return new Response('not found', { status: 404 })
     })
@@ -327,7 +523,7 @@ describe('ManagementContextFilesResource.uploadDir', () => {
       }
       if (url.includes('/context/files/upload-')) {
         const uploadId = url.split('/').pop() as string
-        return jsonResponse({ uploadId, status: 'processing' })
+        return jsonResponse({ uid: uploadId, contextType: 'file_upload', content: {}, ancestry: [] })
       }
       return new Response('not found', { status: 404 })
     })
@@ -367,7 +563,7 @@ describe('ManagementContextFilesResource.uploadDir', () => {
       }
       if (url.includes('/context/files/upload-')) {
         const uploadId = url.split('/').pop() as string
-        return jsonResponse({ uploadId, status: 'processing' })
+        return jsonResponse({ uid: uploadId, contextType: 'file_upload', content: {}, ancestry: [] })
       }
       return new Response('not found', { status: 404 })
     })
@@ -409,7 +605,7 @@ describe('ManagementContextFilesResource.uploadDir', () => {
       if (url.startsWith(S3_HOST)) return new Response(null, { status: 200 })
       if (url.includes('/context/files/upload-')) {
         const uploadId = url.split('/').pop() as string
-        return jsonResponse({ uploadId, status: 'processing' })
+        return jsonResponse({ uid: uploadId, contextType: 'file_upload', content: {}, ancestry: [] })
       }
       return new Response('not found', { status: 404 })
     })

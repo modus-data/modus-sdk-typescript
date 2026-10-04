@@ -54,6 +54,66 @@ describe('ContextItemsResource', () => {
     expect(url).toContain('contextTypes=note')
   })
 
+  it('list sends empty parentUids as parentUids= and omits when unset', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const emptyPage = () =>
+      new Response(JSON.stringify({ contextItems: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    const fetch = vi.fn(async () => emptyPage())
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new ContextItemsResource(http, config)
+    await resource.list({
+      parentUids: [],
+      ancestorUids: ['native-folder'],
+      connectionIds: ['files', 'conn-a'],
+    })
+    const first = new URL(String(fetch.mock.calls[0]?.[0]))
+    expect(first.searchParams.getAll('parentUids')).toEqual([''])
+    expect(first.searchParams.getAll('ancestorUids')).toEqual(['native-folder'])
+    expect(first.searchParams.getAll('connectionIds')).toEqual(['files', 'conn-a'])
+    expect(first.searchParams.has('parentUid')).toBe(false)
+    expect(first.searchParams.has('ancestorUid')).toBe(false)
+
+    await resource.list({ contextType: 'note' })
+    const omitted = new URL(String(fetch.mock.calls[1]?.[0]))
+    expect(omitted.searchParams.has('parentUids')).toBe(false)
+    expect(omitted.searchParams.has('ancestorUids')).toBe(false)
+    expect(omitted.searchParams.has('connectionIds')).toBe(false)
+  })
+
+  it('list preserves native UID order, whitespace, and long tokens', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ contextItems: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new ContextItemsResource(http, config)
+    const longUid = `native ${'x'.repeat(260)}`
+    await resource.list({ parentUids: ['db-a', ' PUBLIC ', longUid] })
+    const params = new URL(String(fetch.mock.calls[0]?.[0])).searchParams.getAll('parentUids')
+    expect(params).toEqual(['db-a', ' PUBLIC ', longUid])
+  })
+
+  it('list omits unrelated empty arrays such as contextTypes', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ contextItems: [], nextPageToken: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new ContextItemsResource(http, config)
+    await resource.list()
+    const url = new URL(String(fetch.mock.calls[0]?.[0]))
+    expect(url.searchParams.has('contextTypes')).toBe(false)
+  })
+
   it('lookup returns undefined on 404', async () => {
     const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
     const fetch = vi.fn().mockResolvedValue(
