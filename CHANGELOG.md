@@ -9,6 +9,11 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Added
+
+- **`gpt-5.6-luna` model.** The chat request `model` union accepts the new
+  OpenAI model.
+
 ## [0.7.0] — 2026-09-30
 
 ### Added

@@ -9,7 +9,7 @@ import type { components } from '../_generated/v1.js'
  *
  * Allowed values:
  * - `claude-sonnet-5`, `claude-sonnet-5.5`, `claude-sonnet-4.6`, `claude-opus-4.8`, `claude-opus-5.5`
- * - `gpt-5.2`, `gpt-5.5`, `gpt-5-mini`, `gpt-oss-120b`, `gpt-oss-20b`
+ * - `gpt-5.2`, `gpt-5.5`, `gpt-5-mini`, `gpt-5.6-luna`, `gpt-oss-120b`, `gpt-oss-20b`
  * - `qwen3-235b-a22b-2507`, `qwen3-coder`, `qwen3-32b`
  * - `deepseek-chat-v3.1`, `deepseek-v4-pro`, `deepseek-v4-flash-latest`, `minimax-m2.7`
  * - `llama-4-maverick`, `llama-4-scout`, `llama-3.3-70b-instruct`
