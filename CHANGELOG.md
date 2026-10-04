@@ -11,6 +11,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`gpt-5.6-luna` model.** The chat request `model` union accepts the new
+  OpenAI model.
 - **Generic context item browse.** `client.context.items.list()` and
   `mgmt.context.items.list()` accept optional `connectionIds`, `parentUids`,
   and `ancestorUids` arrays. Omit a filter to leave it unrestricted; pass `[]`
