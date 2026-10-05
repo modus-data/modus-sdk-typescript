@@ -184,6 +184,16 @@ export const OPERATIONS = {
     requestSchema: "LookupContextItemDto",
     responseSchema: "LookupContextItemResponseDto",
   },
+  "ContextItemsController_move": {
+    method: "POST",
+    path: "/api/v1/context/items/{uid}/move",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: ["uid"],
+    queryParams: [],
+    requestSchema: "MoveContextItemDto",
+    responseSchema: "MoveContextItemResponseDto",
+  },
   "ContextItemsController_update": {
     method: "PATCH",
     path: "/api/v1/context/items/{uid}",

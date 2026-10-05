@@ -1,10 +1,11 @@
+import type { OperationId } from '../../_generated/operations.js'
 import type { ModusConfig } from '../../_config.js'
 import type { HttpClient } from '../../_http.js'
 import { updateMaskQuery } from '../../_query.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validatePageSize } from '../../_validation.js'
-import type { ContextItem, ContextItemDeletion } from '../../types/context.js'
+import type { ContextItem, ContextItemDeletion, ContextItemMove } from '../../types/context.js'
 import type { UserFeedback } from './_content-merge.js'
 
 function contextListParams(
@@ -180,5 +181,47 @@ export class ManagementContextItemsResource {
       pathParams: { uid },
     })
     return data as ContextItemDeletion
+  }
+
+  /**
+   * Move a live file or Files folder.
+   *
+   * Pass `destinationFolderUid: null` to move to the Files root. The
+   * destination folder must already exist. Same-parent moves succeed as a
+   * no-op. Does not rename or merge folders.
+   *
+   * @param uid - Stored context-item uid of the file or folder to move.
+   * @param options.destinationFolderUid - Stored context-item uid of the
+   *   destination folder, or `null` for the Files root.
+   * @returns How many items changed parent (`0` is a successful no-op).
+   * @throws {NotFoundError} The source is missing or not visible.
+   * @throws {ModusError} The destination is missing, not a Files folder, or
+   *   the move would create a cycle (HTTP 400).
+   * @throws {PermissionDeniedError} The destination exists but is not writable
+   *   for this caller.
+   * @throws {ConflictError} A sibling with the same name already exists.
+   *
+   * @example
+   * ```ts
+   * const moved = await mgmt.context.items.move('PLACEHOLDER_UID', {
+   *   destinationFolderUid: 'PLACEHOLDER_FOLDER_UID',
+   * })
+   * console.log(moved.movedItems)
+   * ```
+   */
+  async move(
+    uid: string,
+    options: { destinationFolderUid: string | null },
+  ): Promise<ContextItemMove> {
+    const data = await invokeWithRetry(
+      this.config,
+      this.http,
+      'ContextItemsController_move' as OperationId,
+      {
+        pathParams: { uid },
+        jsonBody: { destinationFolderUid: options.destinationFolderUid },
+      },
+    )
+    return data as ContextItemMove
   }
 }

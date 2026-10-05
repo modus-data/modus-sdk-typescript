@@ -13,6 +13,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'userFeedback',
     'topics',
   ],
+  ContextItemsController_move: ['destinationFolderUid'],
   ModusChatController_chat: ['message', 'model'],
   ModusContextController_compose: ['message', 'limit'],
   SuggestionsController_recordEvent: ['eventType', 'source', 'skillId', 'threadId', 'metadata'],

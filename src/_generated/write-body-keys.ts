@@ -12,6 +12,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ContextFilesController_uploadUrl: ["fileName", "contentType", "fileSize"],
   ContextFilesController_uploadUrls: ["files"],
   ContextItemsController_lookup: ["contextType", "dataPath", "contentProjection"],
+  ContextItemsController_move: ["destinationFolderUid"],
   ContextItemsController_update: ["contextType", "content", "description", "userFeedback", "topics"],
   CustomContextItemsController_batchCreate: ["items"],
   CustomContextItemsController_create: ["kind", "sourceId", "sourceName", "collectionId", "collectionName", "externalId", "fieldName", "name", "entityType", "description", "content", "url", "attributes", "dataType", "value", "samples", "raw", "topics", "idempotencyKey", "access"],

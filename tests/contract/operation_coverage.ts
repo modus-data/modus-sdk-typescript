@@ -87,6 +87,7 @@ export const OPERATIONS: Record<string, string> = {
   ContextItemsController_update:
     'mgmt.context.items.update(); convenience: updateNote, updateLink, updateSavedQuery',
   ContextItemsController_delete: 'mgmt.context.items.delete()',
+  ContextItemsController_move: 'mgmt.context.items.move()',
   ContextItemsController_lookup: 'client.context.items.lookup()',
   ContextItemsController_listValues: 'client.context.items.listValues() / listValuesFor()',
   ContextCreatorsController_createNote: 'mgmt.context.createNote()',

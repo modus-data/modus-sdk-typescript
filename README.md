@@ -184,6 +184,14 @@ const rootFolders = await mgmt.context.items.list({
   parentUids: [],
 })
 console.log(rootFolders.items.length)
+
+const destination = rootFolders.items[0]
+if (destination) {
+  const moved = await mgmt.context.items.move(upload.uploadId, {
+    destinationFolderUid: destination.uid,
+  })
+  console.log(moved.movedItems)
+}
 ```
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
