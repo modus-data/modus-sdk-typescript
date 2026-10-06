@@ -38,6 +38,11 @@ export interface ModusOptions {
   /** Retries on rate limits and server errors (default 2). */
   maxRetries?: number
   /**
+   * Headers sent on every request. They override the SDK's own defaults, except
+   * `Authorization`, which always comes from `apiKey`.
+   */
+  defaultHeaders?: Record<string, string>
+  /**
    * Custom fetch implementation.
    * @internal Test injection only.
    */
@@ -52,6 +57,7 @@ export interface ModusConfig {
   readonly baseUrls: Readonly<Record<string, string>>
   readonly timeoutMs: number
   readonly maxRetries: number
+  readonly defaultHeaders: Readonly<Record<string, string>>
   readonly fetch: typeof fetch
 }
 
@@ -97,6 +103,7 @@ export function createModusConfig(options: ModusOptions = {}): ModusConfig {
     }),
     timeoutMs: resolveTimeoutMs(options.timeoutMs) ?? DEFAULT_TIMEOUT_MS,
     maxRetries,
+    defaultHeaders: Object.freeze({ ...options.defaultHeaders }),
     fetch: options.fetch ?? globalThis.fetch.bind(globalThis),
   })
 }
