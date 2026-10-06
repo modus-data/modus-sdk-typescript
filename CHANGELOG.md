@@ -11,6 +11,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`gpt-6-luna` model.** The chat request `model` union accepts the new
+  OpenAI model.
 - **`gpt-5.6-luna` model.** The chat request `model` union accepts the new
   OpenAI model.
 - **Move Files items.** `mgmt.context.items.move(uid, { destinationFolderUid })`
