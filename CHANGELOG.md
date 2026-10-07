@@ -30,6 +30,12 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Changed
 
+- **Connected-integration toolset entries bind to a connection.** A scope toolset entry
+  given as `{ actions: [...], rules }` is bound on create/update to the organization's
+  newest workspace connection of that integration and returned as
+  `{ byConnection: { <connection id>: {...} } }`. A create or update whose entry has no
+  workspace connection to bind to returns `422`; re-sending an entry already stored
+  unchanged is accepted.
 - Deleting a Files folder through context items also deletes its contained files,
   subfolders, and parsed file items.
 

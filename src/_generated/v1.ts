@@ -3314,7 +3314,7 @@ export interface components {
              *     ]
              */
             instructions?: string[];
-            /** @description Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. */
+            /** @description Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`. */
             toolset?: components["schemas"]["ToolsetDto"];
             /**
              * @description Model identifier to use at run time (e.g. `claude-sonnet-4-5`). Falls back to org default when absent.
@@ -4940,7 +4940,7 @@ export interface components {
         };
         ToolCatalogActionDto: {
             /**
-             * @description Stable action id — the exact string to put in `toolset.<id>.actions`.
+             * @description Stable action id: the exact string to list in `toolset.<id>.byConnection.<connectionId>.actions` (or `toolset.<id>.actions`, which binds to the newest workspace connection).
              * @example list_dags
              */
             name: string;
@@ -5301,7 +5301,7 @@ export interface components {
              *     ]
              */
             instructions?: string[];
-            /** @description Updated toolset configuration. */
+            /** @description Updated toolset configuration. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`. */
             toolset?: components["schemas"]["ToolsetDto"];
             /**
              * @description Updated model id. Pass `null` (explicit) to clear and use the org default.

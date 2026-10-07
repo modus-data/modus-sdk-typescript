@@ -25134,7 +25134,7 @@
             }
           },
           "toolset": {
-            "description": "Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write.",
+            "description": "Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ToolsetDto"
@@ -28901,7 +28901,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Stable action id — the exact string to put in `toolset.<id>.actions`.",
+            "description": "Stable action id: the exact string to list in `toolset.<id>.byConnection.<connectionId>.actions` (or `toolset.<id>.actions`, which binds to the newest workspace connection).",
             "example": "list_dags"
           },
           "displayName": {
@@ -29554,7 +29554,7 @@
             }
           },
           "toolset": {
-            "description": "Updated toolset configuration.",
+            "description": "Updated toolset configuration. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ToolsetDto"
