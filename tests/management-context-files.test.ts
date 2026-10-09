@@ -23,6 +23,7 @@ function slotFor(fileName: string, uploadId = `upload-${fileName}`) {
     s3Key: `context_uploads/${uploadId}/${fileName}`,
     fileName,
     contentType: 'text/plain',
+    headers: { 'Content-Type': 'text/plain' },
     expiresAt: '2026-08-12T14:15:00.000Z',
   }
 }
@@ -143,6 +144,28 @@ describe('ManagementContextFilesResource.upload', () => {
     // Finalize already returns `processing`, so the default waitUntil is
     // satisfied without a poll — same request count as the old poll-based flow.
     expect(getCalls).toBe(0)
+  })
+
+  it.each([
+    ['the slot headers unchanged', { 'x-ms-blob-type': 'BlockBlob', 'Content-Type': 'text/plain' }, { 'x-ms-blob-type': 'BlockBlob', 'Content-Type': 'text/plain' }],
+    ['only the slot content type when an older server omits headers', undefined, { 'Content-Type': 'text/plain' }],
+  ])('PUTs with %s', async (_case, slotHeaders, expected) => {
+    const filePath = join(dir, 'report.txt')
+    await writeFile(filePath, 'hello world')
+    let putHeaders: HeadersInit | undefined
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('/uploadUrl')) return jsonResponse({ ...slotFor('report.txt'), headers: slotHeaders })
+      if (url.endsWith('/finalize')) return jsonResponse({ uploadId: 'upload-report.txt', status: 'processing' })
+      if (url.startsWith(S3_HOST)) {
+        putHeaders = init?.headers
+        return new Response(null, { status: 200 })
+      }
+      return new Response('not found', { status: 404 })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await mgmt.context.files.upload(filePath)
+    expect(putHeaders).toEqual(expected)
   })
 
   it('passes folderPath through finalize', async () => {

@@ -132,17 +132,14 @@ async function walkFiles(root: string, recursive: boolean): Promise<string[]> {
   return out
 }
 
-async function putBytes(
-  fetchImpl: typeof fetch,
-  url: string,
-  data: Uint8Array,
-  contentType: string,
-  timeoutMs: number,
-): Promise<void> {
-  const response = await fetchImpl(url, {
+// Servers released before `headers` existed omit it; their PUT needs only Content-Type.
+type PutSlot = Pick<UploadUrlSlot, 'uploadUrl' | 'contentType'> & { headers?: Record<string, string> }
+
+async function putBytes(fetchImpl: typeof fetch, slot: PutSlot, data: Uint8Array, timeoutMs: number): Promise<void> {
+  const response = await fetchImpl(slot.uploadUrl, {
     method: 'PUT',
     body: data,
-    headers: { 'Content-Type': contentType },
+    headers: { 'Content-Type': slot.contentType, ...slot.headers },
     signal: AbortSignal.timeout(timeoutMs),
   })
   if (!response.ok) {
@@ -221,7 +218,7 @@ export class ManagementContextFilesResource {
    *   Office/OpenDocument documents, audio, and video.
    * @param input.fileSize - File size in bytes. Rejected above 50MB.
    * @returns Presigned upload slot. PUT the raw bytes to `uploadUrl` within 15
-   *   minutes, then call `finalize(slot.uploadId, slot.fileName)`. Pass the
+   *   minutes, sending `headers` unchanged, then call `finalize(slot.uploadId, slot.fileName)`. Pass the
    *   slot's own `fileName` rather than your local basename — the server may
    *   sanitize the requested name when it mints the key, and finalization
    *   re-derives the key from `uploadId` and `fileName`.
@@ -444,7 +441,7 @@ export class ManagementContextFilesResource {
       fileSize: fileStat.size,
     })
     const data = await readFile(path)
-    await putBytes(this.config.fetch, slot.uploadUrl, data, slot.contentType, DEFAULT_PUT_TIMEOUT_MS)
+    await putBytes(this.config.fetch, slot, data, DEFAULT_PUT_TIMEOUT_MS)
     // Finalize returns the resource already at `processing`, so it replaces the
     // first poll rather than adding a round trip. Only `waitUntil: 'ready'`
     // needs to keep polling afterwards.
@@ -615,7 +612,7 @@ export class ManagementContextFilesResource {
       async ({ path, folderPath, slot }) => {
         try {
           const data = await readFile(path)
-          await putBytes(this.config.fetch, slot.uploadUrl, data, slot.contentType, DEFAULT_PUT_TIMEOUT_MS)
+          await putBytes(this.config.fetch, slot, data, DEFAULT_PUT_TIMEOUT_MS)
           return { landed: { path, ...(folderPath !== undefined ? { folderPath } : {}), slot } }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error)
