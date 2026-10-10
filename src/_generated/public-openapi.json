@@ -28,6 +28,10 @@
       "description": "Long-term memory stored per scope."
     },
     {
+      "name": "Scopes · Interfaces",
+      "description": "Chat platform access to a scope."
+    },
+    {
       "name": "Scopes · Chat",
       "description": "Chat with a published scope."
     },
@@ -7162,7 +7166,7 @@
     },
     "/api/v1/context/items": {
       "get": {
-        "description": "Returns a page of context items, optionally filtered by context type, verification status, topic, or free-text search. Pass `nextPageToken` as `pageToken` to fetch the next page.\n\n**Requires:** `context:read`",
+        "description": "Returns a page of context items, optionally filtered by context type, verification status, topic, free-text search, connection, parent, or ancestor. Pass `nextPageToken` as `pageToken` to fetch the next page.\n\n**Requires:** `context:read`",
         "operationId": "ContextItemsController_list",
         "parameters": [
           {
@@ -7237,6 +7241,54 @@
             "schema": {
               "example": [
                 "analytics"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "connectionIds",
+            "required": false,
+            "in": "query",
+            "description": "Restrict to these connection ids, intersected with connections you can access. Repeat the query param. An empty list matches no rows. Omit for no extra connection restriction.",
+            "allowEmptyValue": true,
+            "schema": {
+              "example": [
+                "00000000-0000-4000-a000-000000000111"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "parentUids",
+            "required": false,
+            "in": "query",
+            "description": "Exact ordered parent ancestry UID chain (repeat the query param). Omit for no parent restriction. Pass empty (`?parentUids=`) to list items with known empty ancestry. A nonempty chain matches cardinality and each stored ancestor UID by position, not the item's own UID. Display name and type are not identity.",
+            "allowEmptyValue": true,
+            "schema": {
+              "example": [
+                "native-platform-folder-uid"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "ancestorUids",
+            "required": false,
+            "in": "query",
+            "description": "Ordered ancestry UID prefix for strict descendants (repeat the query param). Omit for no ancestor restriction. Pass empty (`?ancestorUids=`) for the virtual-root subtree (any non-null ancestry). A nonempty prefix matches descendants whose ancestry starts with that chain. Does not compare the item's own UID to a native ancestor UID.",
+            "allowEmptyValue": true,
+            "schema": {
+              "example": [
+                "native-platform-folder-uid"
               ],
               "type": "array",
               "items": {
@@ -8001,7 +8053,7 @@
         ]
       },
       "delete": {
-        "description": "Removes a context item created via the SPA / public API. Only items in the user-created allowlist (`note`, `link`, `saved_query`, `golden_query`, `file_upload`) can be deleted via this surface — integration-derived items are managed by their owning syncer and respond with 422. Returns 404 when the row is missing.\n\n**Requires:** `context:write`",
+        "description": "Deletes a user-created context item. Deleting a Files folder also removes all files, subfolders and parsed file items it contains. Integration-owned items return 422; missing items return 404.\n\n**Requires:** `context:write`",
         "operationId": "ContextItemsController_delete",
         "parameters": [
           {
@@ -8177,6 +8229,225 @@
           }
         },
         "summary": "Delete a context item",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/context/items/{uid}/move": {
+      "post": {
+        "description": "Moves a live file or Files folder to an existing folder, or to the Files root when destinationFolderUid is null. Same-parent moves succeed as a no-op. Does not rename or merge folders.\n\n**Requires:** `context:write`",
+        "operationId": "ContextItemsController_move",
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "description": "Stored context-item uid of the live file or Files folder to move.",
+            "schema": {
+              "example": "7a3f9d2c-1111-4000-a000-000000000abc",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveContextItemDto"
+              },
+              "examples": {
+                "intoFolder": {
+                  "value": {
+                    "destinationFolderUid": "7a3f9d2c-1111-4000-a000-000000000def"
+                  }
+                },
+                "toRoot": {
+                  "value": {
+                    "destinationFolderUid": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MoveContextItemResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Move a Files item",
         "tags": [
           "Context"
         ],
@@ -13572,6 +13843,833 @@
         ],
         "x-required-scopes": [
           "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/scopes/{id}/interfaces": {
+      "get": {
+        "description": "Returns the chat interfaces (at most one per chat platform) that let people use this scope from chat. Requires manage permission on the scope, because the config lists allowed emails.\n\n**Requires:** `scopes:read`",
+        "operationId": "ScopeInterfacesController_list",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListScopeInterfacesResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List the chat interfaces of a scope",
+        "tags": [
+          "Scopes · Interfaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      },
+      "post": {
+        "description": "Lets people use a deployed scope from a chat platform. The organization needs a connection to that platform. One interface per type per scope. Takes effect immediately, without a deploy.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopeInterfacesController_add",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddScopeInterfaceDto"
+              },
+              "examples": {
+                "slack": {
+                  "value": {
+                    "type": "slack",
+                    "name": "Support",
+                    "config": {
+                      "accessMode": "allow-org",
+                      "availableChannelIds": [
+                        "C0ALH2JTRR9"
+                      ]
+                    }
+                  }
+                },
+                "teams": {
+                  "value": {
+                    "type": "teams"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeInterfaceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Add a chat interface to a scope",
+        "tags": [
+          "Scopes · Interfaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/scopes/{id}/interfaces/{interfaceId}": {
+      "patch": {
+        "description": "Changes the name and/or config (access mode, allowed emails, channels) of a chat interface. A new config replaces the old one. Pass `?updateMask=<csv>` to limit which fields are written.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopeInterfacesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "interfaceId",
+            "required": true,
+            "in": "path",
+            "description": "Interface id (UUID).",
+            "schema": {
+              "example": "00000000-0000-4000-a000-000000000500",
+              "type": "string"
+            }
+          },
+          {
+            "name": "updateMask",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated list of fields to update. Omit to update all provided fields.",
+            "schema": {
+              "example": "config",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScopeInterfaceDto"
+              },
+              "examples": {
+                "restrictChannels": {
+                  "value": {
+                    "config": {
+                      "accessMode": "all",
+                      "availableChannelIds": [
+                        "C0ALH2JTRR9"
+                      ]
+                    }
+                  }
+                },
+                "rename": {
+                  "value": {
+                    "name": "Support"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeInterfaceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update a scope interface",
+        "tags": [
+          "Scopes · Interfaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      },
+      "delete": {
+        "description": "Removes one chat interface from the scope. Mentions on that chat platform stop reaching this scope immediately.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopeInterfacesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "interfaceId",
+            "required": true,
+            "in": "path",
+            "description": "Interface id (UUID).",
+            "schema": {
+              "example": "00000000-0000-4000-a000-000000000500",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Remove a scope interface",
+        "tags": [
+          "Scopes · Interfaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
         ],
         "x-modus-service": "modus-api",
         "servers": [
@@ -22365,6 +23463,33 @@
           "name"
         ]
       },
+      "AddScopeInterfaceDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "Chat platform. One interface per type per scope.",
+            "example": "slack",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChatInterfaceType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name. Defaults to the chat platform name.",
+            "example": "Support",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "config": {
+            "$ref": "#/components/schemas/ChatInterfaceConfigDto"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "AgentAccessConfigDto": {
         "type": "object",
         "properties": {
@@ -22865,7 +23990,7 @@
           },
           "folderPath": {
             "type": "string",
-            "description": "Relative folder label to store with the upload.",
+            "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
           }
         },
@@ -22912,7 +24037,7 @@
           },
           "folderPath": {
             "type": "string",
-            "description": "Relative folder label to store with the upload.",
+            "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
           }
         }
@@ -23011,6 +24136,56 @@
         "required": [
           "uploaded",
           "failed"
+        ]
+      },
+      "ChatInterfaceAccessMode": {
+        "type": "string",
+        "enum": [
+          "all",
+          "allow-list",
+          "allow-org"
+        ],
+        "description": "Who may use the interface: `all` (anyone in the workspace), `allow-list` (only `allowedEmails`), `allow-org` (members of this organization)."
+      },
+      "ChatInterfaceConfigDto": {
+        "type": "object",
+        "properties": {
+          "accessMode": {
+            "description": "Who may use the interface: `all` (anyone in the workspace), `allow-list` (only `allowedEmails`), `allow-org` (members of this organization).",
+            "example": "allow-list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChatInterfaceAccessMode"
+              }
+            ]
+          },
+          "allowedEmails": {
+            "description": "Emails allowed to use the interface when `accessMode` is `allow-list`.",
+            "example": [
+              "ana@example.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availableChannelIds": {
+            "description": "Channels where the interface answers. Slack channel ids look like `C0ALH2JTRR9`. Empty or absent means every channel.",
+            "example": [
+              "C0ALH2JTRR9"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ChatInterfaceType": {
+        "type": "string",
+        "enum": [
+          "slack",
+          "teams"
         ]
       },
       "ComposeSkillContextRequestDto": {
@@ -23959,7 +25134,7 @@
             }
           },
           "toolset": {
-            "description": "Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write.",
+            "description": "Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ToolsetDto"
@@ -23999,7 +25174,7 @@
           },
           "interfaces": {
             "type": "array",
-            "description": "Interface configuration (chat, API, webhook…). Shape is interface-specific.",
+            "description": "The scope's MCP interface configuration. Only entries with `type: \"mcp\"` are accepted; any other type is rejected with 400.",
             "items": {
               "type": "object",
               "additionalProperties": true
@@ -25824,7 +26999,7 @@
           },
           "folderPath": {
             "type": "string",
-            "description": "Relative folder label to store with the upload.",
+            "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
           }
         },
@@ -26384,6 +27559,21 @@
           "members"
         ]
       },
+      "ListScopeInterfacesResponseDto": {
+        "type": "object",
+        "properties": {
+          "interfaces": {
+            "description": "Every chat interface on the scope (at most one per type).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScopeInterfaceDto"
+            }
+          }
+        },
+        "required": [
+          "interfaces"
+        ]
+      },
       "ListSkillsResponseDto": {
         "type": "object",
         "properties": {
@@ -26746,7 +27936,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
+            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
             "enum": [
               "claude-sonnet-5",
               "claude-sonnet-5.5",
@@ -26757,6 +27947,7 @@
               "gpt-5.5",
               "gpt-5-mini",
               "gpt-5.6-luna",
+              "gpt-6-luna",
               "gpt-oss-120b",
               "gpt-oss-20b",
               "qwen3-235b-a22b-2507",
@@ -26885,6 +28076,34 @@
           "selectedCount",
           "contextItemUids",
           "sessionId"
+        ]
+      },
+      "MoveContextItemDto": {
+        "type": "object",
+        "properties": {
+          "destinationFolderUid": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stored context-item uid of an existing Files folder, or null to move to the Files root. The destination must already exist. Move does not rename or merge folders.",
+            "example": null
+          }
+        },
+        "required": [
+          "destinationFolderUid"
+        ]
+      },
+      "MoveContextItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "movedItems": {
+            "type": "integer",
+            "description": "Number of context items whose parent changed. Zero is a successful same-parent no-op.",
+            "example": 3,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "movedItems"
         ]
       },
       "OrgMemberDto": {
@@ -27214,6 +28433,56 @@
           "manageDenial"
         ]
       },
+      "ScopeInterfaceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Interface id (UUID).",
+            "example": "00000000-0000-4000-a000-000000000500"
+          },
+          "scopeId": {
+            "type": "number",
+            "description": "Scope id.",
+            "example": 42
+          },
+          "type": {
+            "example": "slack",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChatInterfaceType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name.",
+            "example": "Slack"
+          },
+          "config": {
+            "$ref": "#/components/schemas/ChatInterfaceConfigDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Creation timestamp.",
+            "example": "2026-09-30T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Most recent update timestamp.",
+            "example": "2026-09-30T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "scopeId",
+          "type",
+          "name",
+          "config",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "SearchMemoriesRequestDto": {
         "type": "object",
         "properties": {
@@ -27315,7 +28584,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
+            "description": "Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.",
             "enum": [
               "claude-sonnet-5",
               "claude-sonnet-5.5",
@@ -27326,6 +28595,7 @@
               "gpt-5.5",
               "gpt-5-mini",
               "gpt-5.6-luna",
+              "gpt-6-luna",
               "gpt-oss-120b",
               "gpt-oss-20b",
               "qwen3-235b-a22b-2507",
@@ -27631,7 +28901,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Stable action id — the exact string to put in `toolset.<id>.actions`.",
+            "description": "Stable action id: the exact string to list in `toolset.<id>.byConnection.<connectionId>.actions` (or `toolset.<id>.actions`, which binds to the newest workspace connection).",
             "example": "list_dags"
           },
           "displayName": {
@@ -28233,6 +29503,26 @@
           }
         }
       },
+      "UpdateScopeInterfaceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New display name.",
+            "example": "Support",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "config": {
+            "description": "Replaces the whole config.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChatInterfaceConfigDto"
+              }
+            ]
+          }
+        }
+      },
       "UpdateSkillDto": {
         "type": "object",
         "properties": {
@@ -28264,7 +29554,7 @@
             }
           },
           "toolset": {
-            "description": "Updated toolset configuration.",
+            "description": "Updated toolset configuration. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ToolsetDto"
@@ -28307,7 +29597,7 @@
           },
           "interfaces": {
             "type": "array",
-            "description": "Updated interface configuration.",
+            "description": "Updated MCP interface configuration. Only entries with `type: \"mcp\"` are accepted; any other type is rejected with 400.",
             "items": {
               "type": "object",
               "additionalProperties": true
@@ -28365,7 +29655,7 @@
           },
           "folderPath": {
             "type": "string",
-            "description": "Relative folder label to store with the upload.",
+            "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
           }
         },

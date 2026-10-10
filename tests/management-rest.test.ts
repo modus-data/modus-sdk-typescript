@@ -69,6 +69,38 @@ describe('ModusManagement.context', () => {
     expect(result.uid).toBe('abc')
     expect(fetch.mock.calls[0]?.[1]?.method).toBe('DELETE')
   })
+
+  it('items.move posts destinationFolderUid', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ movedItems: 2 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const result = await mgmt.context.items.move('file-uid', { destinationFolderUid: 'folder-uid' })
+    expect(result.movedItems).toBe(2)
+    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/context/items/file-uid/move')
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe('POST')
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      destinationFolderUid: 'folder-uid',
+    })
+  })
+
+  it('items.move posts destinationFolderUid null for the Files root', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ movedItems: 0 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const result = await mgmt.context.items.move('file-uid', { destinationFolderUid: null })
+    expect(result.movedItems).toBe(0)
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      destinationFolderUid: null,
+    })
+  })
 })
 
 describe('ModusManagement.usage', () => {

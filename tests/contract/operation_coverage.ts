@@ -34,6 +34,10 @@ export const OPERATIONS: Record<string, string> = {
   ScopeSupervisionController_get: 'mgmt.scopes.supervision(id).get()',
   ScopeSupervisionController_set: 'mgmt.scopes.supervision(id).set()',
   ScopeSupervisionController_setActive: 'mgmt.scopes.supervision(id).setActive()',
+  ScopeInterfacesController_list: 'mgmt.scopes.interfaces(id).list()',
+  ScopeInterfacesController_add: 'mgmt.scopes.interfaces(id).create()',
+  ScopeInterfacesController_update: 'mgmt.scopes.interfaces(id).update()',
+  ScopeInterfacesController_delete: 'mgmt.scopes.interfaces(id).delete()',
   EvaluationsController_getConfig: 'mgmt.scopes.evaluations(id).getConfig()',
   EvaluationsController_updateConfig: 'mgmt.scopes.evaluations(id).updateConfig()',
   EvaluationsController_triggerRun: 'mgmt.scopes.evaluations(id).triggerRun()',
@@ -83,6 +87,7 @@ export const OPERATIONS: Record<string, string> = {
   ContextItemsController_update:
     'mgmt.context.items.update(); convenience: updateNote, updateLink, updateSavedQuery',
   ContextItemsController_delete: 'mgmt.context.items.delete()',
+  ContextItemsController_move: 'mgmt.context.items.move()',
   ContextItemsController_lookup: 'client.context.items.lookup()',
   ContextItemsController_listValues: 'client.context.items.listValues() / listValuesFor()',
   ContextCreatorsController_createNote: 'mgmt.context.createNote()',

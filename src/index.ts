@@ -66,7 +66,9 @@ export type { VariationView } from './types/views.js'
 export type {
   ContextItem,
   ContextItemAncestor,
+  ContextItemDeletion,
   ContextItemLookupRow,
+  ContextItemMove,
   ContextType,
 } from './types/context.js'
 export type { ContextValueRow } from './types/context-values.js'

@@ -11,13 +11,12 @@ import {
 } from './openapi-spec.js'
 
 const openapi = loadOpenApi()
-const describeIfOpenApi = openapi ? describe : describe.skip
 
-describeIfOpenApi('request body contract', () => {
+describe('request body contract', () => {
   for (const operationId of Object.keys(SDK_REQUEST_BODY_FIELDS).sort()) {
     it(`${operationId} SDK fields are subset of OpenAPI schema`, () => {
       const sdkFields = new Set(SDK_REQUEST_BODY_FIELDS[operationId])
-      const specFields = requestBodyProperties(openapi!, operationId)
+      const specFields = requestBodyProperties(openapi, operationId)
       const extra = [...sdkFields].filter((f) => !specFields.has(f))
       expect(extra).toEqual([])
     })
@@ -26,7 +25,7 @@ describeIfOpenApi('request body contract', () => {
   it('every mapped write endpoint with a body has a contract entry', () => {
     const missing = Object.keys(OPERATIONS).filter(
       (oid) =>
-        operationHasRequestBody(openapi!, oid) &&
+        operationHasRequestBody(openapi, oid) &&
         !(oid in SDK_REQUEST_BODY_FIELDS) &&
         !REUSES_BASE_REQUEST_BODY.has(oid),
     )

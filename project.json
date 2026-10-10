@@ -5,6 +5,7 @@
   "tags": ["scope:sdk", "type:lib", "lang:typescript"],
   "implicitDependencies": ["modus-api", "agent-service", "openapi-portal"],
   "targets": {
+    "typecheck": {},
     "generate": {
       "executor": "nx:run-commands",
       "dependsOn": [
@@ -28,7 +29,6 @@
       "outputs": ["{projectRoot}/dist"]
     },
     "test": {
-      "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
         "command": "vitest run --root distribution/clients/typescript/modus-sdk",
@@ -50,15 +50,7 @@
       "cache": false
     },
     "lint": {
-      "executor": "nx:run-commands",
-      "dependsOn": [],
-      "options": {
-        "command": "eslint src tests --max-warnings=0 && pnpm exec tsc -p tsconfig.json --noEmit",
-        "cwd": "{projectRoot}"
-      },
-      "inputs": ["default", "{workspaceRoot}/eslint.config.js",
-        "{workspaceRoot}/scripts/eslint-rules/**/*.mjs"
-      ]
+      "dependsOn": ["typecheck"]
     },
     "clean": {
       "executor": "nx:run-commands",
@@ -96,6 +88,25 @@
         "{projectRoot}/tests/contract/operation_coverage.ts",
         "{workspaceRoot}/distribution/clients/typescript/scripts/coverage-gaps.mjs"
       ]
+    },
+    "contract-check": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": ["openapi-portal"], "target": "build" }],
+      "options": {
+        "command": "bash distribution/clients/typescript/scripts/check-contract.sh",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": true,
+      "inputs": [
+        "default",
+        "{workspaceRoot}/apps/services/*/openapi/v1.json",
+        { "dependentTasksOutputFiles": "**/*.js" },
+        "{workspaceRoot}/distribution/clients/typescript/scripts/**"
+      ]
+    },
+    "sdk:check": {
+      "executor": "nx:noop",
+      "dependsOn": ["test", "lint", "check-docstrings", "coverage-gaps", "contract-check"]
     },
     "openapi-impact": {
       "executor": "nx:run-commands",

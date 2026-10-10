@@ -36,6 +36,19 @@ function buildUrl(baseUrl: string, path: string, params?: QueryParams): string {
   return url.toString()
 }
 
+/** Later layers win; header names compare case-insensitively, as HTTP defines them. */
+function mergeHeaders(
+  ...layers: (Readonly<Record<string, string>> | undefined)[]
+): Record<string, string> {
+  const merged = new Map<string, [string, string]>()
+  for (const layer of layers) {
+    for (const [name, value] of Object.entries(layer ?? {})) {
+      merged.set(name.toLowerCase(), [name, value])
+    }
+  }
+  return Object.fromEntries(merged.values())
+}
+
 function headersToRecord(headers: Headers): Record<string, string> {
   const out: Record<string, string> = {}
   headers.forEach((value, key) => {
@@ -156,12 +169,15 @@ export class HttpClient {
   }
 
   private defaultHeaders(): Record<string, string> {
-    return {
-      ...authHeaders(this.config.apiKey),
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': USER_AGENT,
-    }
+    return mergeHeaders(
+      {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': USER_AGENT,
+        'X-Modus-Client': 'sdk',
+      },
+      this.config.defaultHeaders,
+    )
   }
 
   private async request(
@@ -174,7 +190,7 @@ export class HttpClient {
     try {
       const response = await this.config.fetch(url, {
         method,
-        headers: { ...this.defaultHeaders(), ...options.headers },
+        headers: mergeHeaders(this.defaultHeaders(), options.headers, authHeaders(this.config.apiKey)),
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })
@@ -228,11 +244,12 @@ export class HttpClient {
         method,
         // Agent-service negotiates SSE vs JSON polling on Accept; JSON-only
         // Accept returns {"runId","status":"pending"} instead of token SSE.
-        headers: {
-          ...this.defaultHeaders(),
-          ...options.headers,
-          Accept: 'text/event-stream',
-        },
+        headers: mergeHeaders(
+          this.defaultHeaders(),
+          options.headers,
+          { Accept: 'text/event-stream' },
+          authHeaders(this.config.apiKey),
+        ),
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })

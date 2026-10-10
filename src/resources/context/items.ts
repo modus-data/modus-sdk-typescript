@@ -11,14 +11,30 @@ import type { ContentProjection, JsonObjectInput } from '../../types/json-blob.j
 function contextListParams(
   pageSize: number,
   pageToken: string | undefined,
-  contextType?: string,
+  filters: ListContextItemsFilters = {},
 ): Record<string, string | number | boolean | readonly string[] | undefined | null> {
   const extra: Record<string, string | readonly string[]> = {}
-  if (contextType !== undefined) extra.contextTypes = [contextType]
+  if (filters.contextType !== undefined) extra.contextTypes = [filters.contextType]
+  if (filters.parentUids !== undefined) {
+    extra.parentUids = filters.parentUids.length === 0 ? '' : [...filters.parentUids]
+  }
+  if (filters.ancestorUids !== undefined) {
+    extra.ancestorUids = filters.ancestorUids.length === 0 ? '' : [...filters.ancestorUids]
+  }
+  if (filters.connectionIds !== undefined) {
+    extra.connectionIds = filters.connectionIds.length === 0 ? '' : [...filters.connectionIds]
+  }
   return aipListParams(pageSize, pageToken, extra) as Record<
     string,
     string | number | boolean | readonly string[] | undefined | null
   >
+}
+
+type ListContextItemsFilters = {
+  contextType?: string
+  parentUids?: readonly string[]
+  ancestorUids?: readonly string[]
+  connectionIds?: readonly string[]
 }
 
 function parseContextItem(raw: unknown): ContextItem {
@@ -64,6 +80,17 @@ export class ContextItemsResource {
    * @param options.pageSize - Maximum items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
    * @param options.contextType - Filter to a single context type (e.g. `"note"`).
+   * @param options.parentUids - Exact ordered native ancestry chain for direct
+   *   children. Omit to leave parent unrestricted; pass `[]` for the known-empty
+   *   root. Native UIDs are exact tokens (including whitespace); do not use the
+   *   hashed context-item `uid`. For a folder's children, send that item's
+   *   `ancestry` UIDs plus its last `dataPath` token.
+   * @param options.ancestorUids - Ordered UID ancestry prefix for strict
+   *   descendants. Omit to leave unrestricted; pass `[]` for every item with
+   *   non-null ancestry.
+   * @param options.connectionIds - Restrict to these connection ids. Omit to
+   *   leave unfiltered; pass `[]` to match none. The Files root is
+   *   `connectionIds: ['files']` with `parentUids: []`.
    * @returns A page of context items — use `.autoPagingIter()` for all pages.
    *
    * @example
@@ -73,29 +100,56 @@ export class ContextItemsResource {
    *   console.log(item.description ?? item.uid, item.uid)
    * }
    * ```
+   *
+   * @example
+   * ```ts
+   * const rootFolders = await client.context.items.list({
+   *   connectionIds: ['files'],
+   *   contextType: 'file_folder_metadata',
+   *   parentUids: [],
+   * })
+   * const folder = rootFolders.items[0]
+   * const nativeUid = folder?.dataPath?.at(-1)
+   * // Known ancestry only — never treat null/omitted ancestry as a root chain.
+   * if (folder?.ancestry != null && nativeUid !== undefined) {
+   *   const filesInFolder = await client.context.items.list({
+   *     connectionIds: ['files'],
+   *     contextType: 'file_upload',
+   *     parentUids: [...folder.ancestry.map((a) => a.uid), nativeUid],
+   *   })
+   * }
+   * ```
    */
   list(options: {
     pageSize?: number
     pageToken?: string
     contextType?: string
+    parentUids?: readonly string[]
+    ancestorUids?: readonly string[]
+    connectionIds?: readonly string[]
   } = {}): Promise<Page<ContextItem>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
-    return this.listPage(pageSize, options.pageToken, options.contextType)
+    return this.listPage(pageSize, options.pageToken, {
+      contextType: options.contextType,
+      parentUids: options.parentUids,
+      ancestorUids: options.ancestorUids,
+      connectionIds: options.connectionIds,
+    })
   }
 
   private async listPage(
     pageSize: number,
     pageToken: string | undefined,
-    contextType?: string,
+    filters: ListContextItemsFilters,
   ): Promise<Page<ContextItem>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'ContextItemsController_list', {
-        query: contextListParams(pageSize, pageToken, contextType),
+        query: contextListParams(pageSize, pageToken, filters),
       }),
     )
     return buildAipPage(data, 'contextItems', parseContextItem, (token) =>
-      this.listPage(pageSize, token, contextType),
+      this.listPage(pageSize, token, filters),
     )
   }
 

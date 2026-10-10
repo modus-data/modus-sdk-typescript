@@ -167,12 +167,31 @@ const note = await mgmt.context.createNote('Title', 'Body')
 console.log(note.contextItemId, note.uid) // same UUID
 
 // Context file upload (presign → PUT → finalize; polls until processing by default)
-const upload = await mgmt.context.files.upload('report.pdf')
+const upload = await mgmt.context.files.upload('report.pdf', { folderPath: 'reports/2026' })
 console.log(upload.uploadId, upload.status)
 
 // Directory / many files — bulk uploadUrls + finalize (chunks of 100)
-const batch = await mgmt.context.files.uploadDir('./reports')
+const batch = await mgmt.context.files.uploadDir('./reports', { folderPath: 'archive' })
 console.log(batch.uploaded.length, batch.failed.length)
+
+const file = await mgmt.context.files.get(upload.uploadId)
+const files = await mgmt.context.files.list()
+console.log(file.status, files.items.length)
+
+const rootFolders = await mgmt.context.items.list({
+  connectionIds: ['files'],
+  contextType: 'file_folder_metadata',
+  parentUids: [],
+})
+console.log(rootFolders.items.length)
+
+const destination = rootFolders.items[0]
+if (destination) {
+  const moved = await mgmt.context.items.move(upload.uploadId, {
+    destinationFolderUid: destination.uid,
+  })
+  console.log(moved.movedItems)
+}
 ```
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
