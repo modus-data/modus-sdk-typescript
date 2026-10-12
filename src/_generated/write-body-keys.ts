@@ -44,7 +44,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ScopeMemoriesController_update: ["memory", "metadata"],
   ScopeRunsController_create: ["message", "sessionId", "organizationId", "version", "fileThreadId", "config", "attachments", "userContext", "source", "runId", "subordinateSkillIds"],
   ScopesController_acceptOwnershipTransfer: [],
-  ScopesController_create: ["name", "description", "expectedOutput", "instructions", "toolset", "model", "connectionSet", "contextSelections", "interfaces", "accessConfig"],
+  ScopesController_create: ["name", "description", "expectedOutput", "instructions", "toolset", "model", "connectionSet", "contextSelections", "includeOwnLearnings", "interfaces", "accessConfig"],
   ScopesController_deploy: [],
   ScopesController_patchMcpConfig: ["config"],
   ScopesController_requestOwnershipTransfer: ["newOwnerUserId"],

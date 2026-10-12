@@ -983,7 +983,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. Call POST /scopes/{id}/deploy to publish it.
+         * @description Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it.
          *
          *     **Requires:** `scopes:write`
          */
@@ -3331,12 +3331,17 @@ export interface components {
                 [key: string]: unknown;
             }[];
             /**
-             * @description Selected context items (sources / docs) the scope may read.
+             * @description Selected context items (sources / docs) the scope may read. The scope's own learnings are added unless `includeOwnLearnings` is false or these selections already mention learnings.
              * @example []
              */
             contextSelections?: {
                 [key: string]: unknown;
             }[];
+            /**
+             * @description Whether the scope reads what is taught while using it: learnings, facts, glossary terms and preferences. Defaults to true. Set false to create the scope without them; it can be included later in the scope's context selections.
+             * @default true
+             */
+            includeOwnLearnings: boolean;
             /**
              * @description The scope's MCP interface configuration. Only entries with `type: "mcp"` are accepted; any other type is rejected with 400.
              * @example []
@@ -5318,7 +5323,7 @@ export interface components {
                 [key: string]: unknown;
             }[];
             /**
-             * @description Updated context selections (sources / docs the scope may read).
+             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings.
              * @example []
              */
             contextSelections?: {

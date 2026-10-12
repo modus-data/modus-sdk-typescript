@@ -26,6 +26,20 @@ describe('ModusManagement.scopes', () => {
     const body = JSON.parse(String(init?.body))
     expect(body.name).toBe('Analyst')
     expect(body.accessConfig.guardrails).toEqual(['no-pii'])
+    expect(body).not.toHaveProperty('includeOwnLearnings')
+  })
+
+  it('create sends includeOwnLearnings when the caller opts out', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 99, name: 'Analyst', status: 'draft' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await mgmt.scopes.create({ name: 'Analyst', includeOwnLearnings: false })
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    expect(body.includeOwnLearnings).toBe(false)
   })
 
   it('deploy returns scope from deploy response', async () => {

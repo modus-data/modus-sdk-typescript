@@ -80,6 +80,7 @@ export interface CreateScopeOptions {
   model?: string
   connectionSet?: JsonObjectListInput
   contextSelections?: JsonObjectListInput
+  includeOwnLearnings?: boolean
   interfaces?: JsonObjectListInput
   guardrails?: string[]
 }
@@ -258,6 +259,7 @@ export class ManagementScopesResource {
    * @param options.instructions - Optional system instructions.
    * @param options.model - Optional model id.
    * @param options.toolset - Optional tool selection for the scope.
+   * @param options.includeOwnLearnings - Whether the scope reads what is taught while using it. Defaults to true.
    * @param options.guardrails - Runtime guardrail labels (for example `"no-pii"`). Omit to create with no guardrails.
    * @returns The created scope (draft).
    * @example
@@ -277,6 +279,7 @@ export class ManagementScopesResource {
       model: options.model,
       connectionSet: options.connectionSet,
       contextSelections: options.contextSelections,
+      includeOwnLearnings: options.includeOwnLearnings,
       interfaces: options.interfaces,
       accessConfig: accessConfigBodyForCreate(options.guardrails),
     })
