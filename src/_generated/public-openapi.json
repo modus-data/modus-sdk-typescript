@@ -31004,9 +31004,9 @@
     "securitySchemes": {
       "bearerAuth": {
         "scheme": "bearer",
-        "bearerFormat": "Modus PAT (modus_<orgUuid>_<prefix>_<secret>) or OAuth 2.1 access token",
+        "bearerFormat": "Modus PAT (modus_pat_<orgUuid>_<prefix>_<secret>), service account token (modus_sat_<orgUuid>_<prefix>_<secret>) or OAuth 2.1 access token",
         "type": "http",
-        "description": "A Modus personal access token (`modus_<orgUuid>_<prefix>_<secret>`) or an OAuth 2.1 access token, sent as `Authorization: Bearer <token>`."
+        "description": "A Modus personal access token (`modus_pat_…`) or service account token (`modus_sat_…`), or an OAuth 2.1 access token, sent as `Authorization: Bearer <token>`."
       },
       "oauth2": {
         "type": "oauth2",
