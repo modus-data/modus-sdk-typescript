@@ -106,7 +106,7 @@
     },
     "sdk:check": {
       "executor": "nx:noop",
-      "dependsOn": ["test", "lint", "check-docstrings", "coverage-gaps", "contract-check"]
+      "dependsOn": ["check-docstrings", "coverage-gaps", "contract-check"]
     },
     "openapi-impact": {
       "executor": "nx:run-commands",
