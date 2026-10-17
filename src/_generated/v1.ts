@@ -5426,6 +5426,15 @@ export interface components {
              * @example 2026-08-12T14:15:00.000Z
              */
             expiresAt: string;
+            /**
+             * @description Headers to send unchanged with the upload PUT request.
+             * @example {
+             *       "Content-Type": "application/pdf"
+             *     }
+             */
+            headers: {
+                [key: string]: string;
+            };
         };
         UsageBucketDto: {
             /** @description ISO8601 timestamp at the start of the bucket. */
