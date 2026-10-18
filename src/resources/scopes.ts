@@ -158,10 +158,13 @@ export class ScopesResource {
   /**
    * Compose context this scope would use for an intent, without running chat.
    *
+   * Large bodies are bounded inline previews. This REST method does not expose file references
+   * or a full-content fetch operation.
+   *
    * @param scopeId - Scope numeric id or slug.
    * @param message - Natural-language intent used to select context.
    * @param options.limit - Maximum context items to return. Omit to return all selected items.
-   * @returns Composition metadata. Use `chat` when you need an assistant reply.
+   * @returns Composed context text plus selection counts, item UIDs, and correlation session id.
    *
    * @example
    * ```ts
