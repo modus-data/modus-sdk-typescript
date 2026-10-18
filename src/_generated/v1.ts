@@ -1061,7 +1061,7 @@ export interface paths {
         put?: never;
         /**
          * Compose scope context
-         * @description Runs the published scope context composer (RAG / context-store) for the supplied user message without invoking the LLM. Returns composed context text for inspection or downstream use. Requires `scopes:invoke` and `use` access on the scope.
+         * @description Composes the published scope context for a user intent without invoking the LLM. Returns composed text with bounded inline previews; REST has no full-file read operation and requires `scopes:invoke` plus `use` access.
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -2736,7 +2736,7 @@ export interface components {
         };
         ComposeSkillContextResponseDto: {
             /**
-             * @description Composed context for the scope and intent (markdown from the context composer, or structured JSON fallback).
+             * @description Composed context text for the scope and intent. Usually Markdown; older or non-rendered results may use a JSON fallback. Large bodies are bounded inline previews and REST does not expose full-content access.
              * @example ## Retrieved Context
              *
              *     ### customers

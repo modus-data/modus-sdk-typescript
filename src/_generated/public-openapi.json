@@ -11797,7 +11797,7 @@
     },
     "/api/v1/scopes/{id}/context": {
       "post": {
-        "description": "Runs the published scope context composer (RAG / context-store) for the supplied user message without invoking the LLM. Returns composed context text for inspection or downstream use. Requires `scopes:invoke` and `use` access on the scope.\n\n**Requires:** `scopes:invoke`",
+        "description": "Composes the published scope context for a user intent without invoking the LLM. Returns composed text with bounded inline previews; REST has no full-file read operation and requires `scopes:invoke` plus `use` access.\n\n**Requires:** `scopes:invoke`",
         "operationId": "ScopeContextController_compose",
         "parameters": [
           {
@@ -24214,7 +24214,7 @@
         "properties": {
           "context": {
             "type": "string",
-            "description": "Composed context for the scope and intent (markdown from the context composer, or structured JSON fallback).",
+            "description": "Composed context text for the scope and intent. Usually Markdown; older or non-rendered results may use a JSON fallback. Large bodies are bounded inline previews and REST does not expose full-content access.",
             "example": "## Retrieved Context\n\n### customers\n\n..."
           },
           "contextItems": {

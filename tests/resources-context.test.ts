@@ -236,6 +236,34 @@ describe('getContext', () => {
     expect(JSON.parse(String(init?.body))).toEqual({ message: 'What is churn?', limit: 5 })
   })
 
+  it('preserves the bounded REST preview and sends no unsupported file-read options', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const preview = 'Summary: first 4,096 characters… [truncated]'
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          context: preview,
+          contextItems: [],
+          originalCount: 1,
+          selectedCount: 1,
+          contextItemUids: ['upload-1'],
+          sessionId: 's1',
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ),
+    )
+    const resource = new ScopesResource(new HttpClient({ ...config, fetch }), config)
+
+    const result = await resource.getContext(42, 'Summarize the upload')
+
+    expect(result.context).toBe(preview)
+    const [, init] = fetch.mock.calls[0] ?? []
+    expect(JSON.parse(String(init?.body))).toEqual({ message: 'Summarize the upload' })
+  })
+
   it('modus.getContext posts to modus compose endpoint', async () => {
     const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
     const fetch = vi.fn().mockResolvedValue(
