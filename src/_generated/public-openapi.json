@@ -26822,9 +26822,10 @@
       "EvaluationSlackChannelDto": {
         "type": "object",
         "properties": {
-          "nangoConnectionId": {
+          "connectionId": {
             "type": "string",
-            "description": "Nango connection ID for Slack"
+            "description": "Modus connection UUID for Slack",
+            "format": "uuid"
           },
           "slackUserIdByRecipient": {
             "type": "object",
@@ -26832,7 +26833,7 @@
           }
         },
         "required": [
-          "nangoConnectionId",
+          "connectionId",
           "slackUserIdByRecipient"
         ]
       },

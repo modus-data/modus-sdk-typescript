@@ -9,6 +9,13 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Removed
+
+- **Breaking: evaluation Slack `nangoConnectionId`.** Send `connectionId`, the
+  Slack connection's Modus UUID, in notification settings instead. The generated
+  `EvaluationSlackChannelDto` type uses `connectionId`. No deprecation window;
+  requires a major release.
+
 ### Added
 
 - **`includeOwnLearnings` on `scopes.create`.** A new scope reads what is taught while

@@ -3931,8 +3931,11 @@ export interface components {
             results: components["schemas"]["EvaluationResultDto"][];
         };
         EvaluationSlackChannelDto: {
-            /** @description Nango connection ID for Slack */
-            nangoConnectionId: string;
+            /**
+             * Format: uuid
+             * @description Modus connection UUID for Slack
+             */
+            connectionId: string;
             /** @description Mapping of Clerk user ID to Slack user ID */
             slackUserIdByRecipient: Record<string, never>;
         };
