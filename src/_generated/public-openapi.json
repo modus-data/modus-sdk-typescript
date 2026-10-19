@@ -30274,6 +30274,22 @@
           "sessionId"
         ]
       },
+      "ApprovalTargetDto": {
+        "type": "object",
+        "properties": {
+          "toolName": {
+            "type": "string"
+          },
+          "args": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "toolName",
+          "args"
+        ]
+      },
       "AttachmentsDto": {
         "type": "object",
         "properties": {
@@ -30690,6 +30706,14 @@
               "cancelled"
             ],
             "description": "Decision that resumes the interrupted run."
+          },
+          "approvalTarget": {
+            "description": "The paused call an approval decision answers. Only that call is resolved and any other paused write is rejected; without it the first pending approval is resolved.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalTargetDto"
+              }
+            ]
           }
         },
         "required": [

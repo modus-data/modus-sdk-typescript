@@ -5694,6 +5694,12 @@ export interface components {
             experimentalFeatures?: boolean;
             debug?: boolean;
         };
+        ApprovalTargetDto: {
+            toolName: string;
+            args: {
+                [key: string]: unknown;
+            };
+        };
         AttachmentsDto: {
             images?: components["schemas"]["ImageAttachmentDto"][];
             documents?: components["schemas"]["DocumentAttachmentDto"][];
@@ -5859,6 +5865,8 @@ export interface components {
              * @enum {string}
              */
             decision: "approve" | "deny" | "connected" | "cancelled";
+            /** @description The paused call an approval decision answers. Only that call is resolved and any other paused write is rejected; without it the first pending approval is resolved. */
+            approvalTarget?: components["schemas"]["ApprovalTargetDto"];
         };
         RunConfigDto: {
             /** @description Model id, e.g. anthropic/claude-sonnet-4.6. */
