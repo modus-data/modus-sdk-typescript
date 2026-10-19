@@ -9,6 +9,11 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Changed
+
+- **`searchQuery` documents word search.** `context.customItems.list({ searchQuery })` (`GET /context/custom-items`) describes
+  word search: it returns rows that contain every word of the query, case-insensitive.
+
 ## [0.8.0] — 2026-10-18
 
 ### Removed

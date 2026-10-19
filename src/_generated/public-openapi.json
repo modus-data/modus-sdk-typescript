@@ -332,7 +332,7 @@
             "name": "searchQuery",
             "required": false,
             "in": "query",
-            "description": "Case-insensitive substring search over content + description + topics.",
+            "description": "Word search: returns rows that contain every word of the query, case-insensitive.",
             "schema": {
               "example": "churn",
               "type": "string"
@@ -7227,7 +7227,7 @@
             "name": "searchQuery",
             "required": false,
             "in": "query",
-            "description": "Case-insensitive substring search over content + description + topics.",
+            "description": "Word search: returns rows that contain every word of the query, case-insensitive.",
             "schema": {
               "example": "churn",
               "type": "string"

@@ -105,7 +105,7 @@ export class CustomContextItemsResource {
    *
    * @param options.pageSize - Maximum items per page (default 25).
    * @param options.pageToken - Opaque token from a previous page.
-   * @param options.searchQuery - Free-text search filter.
+   * @param options.searchQuery - Word search: returns rows that contain every word of the query, case-insensitive.
    * @param options.topics - Filter to items tagged with any of these topics.
    * @returns A page of custom context items.
    * @example

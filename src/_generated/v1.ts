@@ -6131,7 +6131,7 @@ export interface operations {
                 contextTypes?: string[];
                 /** @description Filter by verification status (`negative` / `neutral` / `positive`). */
                 verificationStatuses?: string[];
-                /** @description Case-insensitive substring search over content + description + topics. */
+                /** @description Word search: returns rows that contain every word of the query, case-insensitive. */
                 searchQuery?: string;
                 /** @description Filter by topic tag. */
                 topics?: string[];
@@ -12115,7 +12115,7 @@ export interface operations {
                 contextTypes?: string[];
                 /** @description Filter by verification status (`negative` / `neutral` / `positive`). */
                 verificationStatuses?: string[];
-                /** @description Case-insensitive substring search over content + description + topics. */
+                /** @description Word search: returns rows that contain every word of the query, case-insensitive. */
                 searchQuery?: string;
                 /** @description Filter by topic tag. */
                 topics?: string[];
