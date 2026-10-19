@@ -5934,8 +5934,10 @@ export interface components {
             subordinateSkillIds?: number[];
         };
         SupplementalContextDto: {
-            /** @description Background context (e.g. Slack/Teams thread + channel history) to prepend to the system prompt. */
+            /** @description Background context (e.g. Slack/Teams thread + channel history) for a conversation with no saved history yet. */
             text: string;
+            /** @description Only the background that is new since the previous turn, used once the conversation has saved history. Empty when nothing is new. */
+            followUpText?: string;
             /** @description Producer that supplied the supplemental context. */
             source: components["schemas"]["SupplementalContextSource"];
         };

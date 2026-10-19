@@ -30917,7 +30917,11 @@
         "properties": {
           "text": {
             "type": "string",
-            "description": "Background context (e.g. Slack/Teams thread + channel history) to prepend to the system prompt."
+            "description": "Background context (e.g. Slack/Teams thread + channel history) for a conversation with no saved history yet."
+          },
+          "followUpText": {
+            "type": "string",
+            "description": "Only the background that is new since the previous turn, used once the conversation has saved history. Empty when nothing is new."
           },
           "source": {
             "description": "Producer that supplied the supplemental context.",
