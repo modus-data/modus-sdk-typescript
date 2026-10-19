@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-10-18
+
 ### Removed
 
 - **Breaking: evaluation Slack `nangoConnectionId`.** Send `connectionId`, the
