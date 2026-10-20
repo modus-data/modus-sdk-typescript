@@ -58,6 +58,11 @@ export interface CreatedCustomContextItem {
   /** Same value as ``contextItemId`` — prefer this in new code (list/get parity). */
   uid: string
   contextType: string
+  /**
+   * Canonical address of the represented object in the custom platform hierarchy.
+   * This is distinct from `uid`: multiple context representations of one object,
+   * such as `entity` and `entity_samples`, share a data path.
+   */
   dataPath: string[]
   title: string | null
 }
@@ -92,6 +97,28 @@ function parseDeletion(raw: unknown): CustomContextItemDeletion {
 
 /**
  * Create, update, and delete custom context items.
+ *
+ * The stable IDs supplied on create define each item's canonical `dataPath`:
+ *
+ * - `source`: `['custom', sourceId]`
+ * - `collection`: `['custom', sourceId, collectionId]`
+ * - `entity` and `entity_samples`:
+ *   `['custom', sourceId, collectionId, externalId]`
+ * - `field`: `['custom', sourceId, collectionId, externalId, fieldName]`
+ *
+ * A data path identifies the represented object in the custom platform; `uid`
+ * identifies a stored context row. Consequently, an entity and its samples row
+ * share a data path but have different UIDs.
+ *
+ * The API derives `dataPath` and `ancestry`; do not send either field. Ancestry is
+ * the ordered chain of parent platform IDs, excluding the virtual `custom` root
+ * and the item's own final path segment. For example, an entity's ancestry is
+ * `[sourceId, collectionId]`.
+ *
+ * Creating a child does not create its parent rows. To make the hierarchy
+ * traversable, create the `source`, then the `collection`, then the `entity`, and
+ * finally any `field` or `entity_samples` rows, repeating the same parent IDs at
+ * every level.
  */
 export class CustomContextItemsResource {
   /** @internal */
@@ -177,12 +204,16 @@ export class CustomContextItemsResource {
    * @example
    * ```ts
    * const client = new Modus()
+   * // Create the source and collection first, or use batchCreate as shown below.
    * const created = await client.context.customItems.create({
    *   kind: 'entity',
-   *   sourceId: 'my-source',
+   *   sourceId: 'billing-db',
+   *   collectionId: 'contracts',
+   *   externalId: 'contract-123',
    *   name: 'Q3 churn notes',
    *   content: { summary: 'Key findings…' },
    * })
+   * console.log(created.uid, created.dataPath)
    * ```
    */
   async create(input: CreateCustomContextItemInput): Promise<CreatedCustomContextItem> {
@@ -203,9 +234,22 @@ export class CustomContextItemsResource {
    * ```ts
    * const client = new Modus()
    * const created = await client.context.customItems.batchCreate([
-   *   { kind: 'field', sourceId: 'src', fieldName: 'region', dataType: 'string' },
-   *   { kind: 'field', sourceId: 'src', fieldName: 'amount', dataType: 'number' },
+   *   { kind: 'source', sourceId: 'billing-db', name: 'Billing database' },
+   *   {
+   *     kind: 'collection',
+   *     sourceId: 'billing-db',
+   *     collectionId: 'contracts',
+   *     name: 'Contracts',
+   *   },
+   *   {
+   *     kind: 'entity',
+   *     sourceId: 'billing-db',
+   *     collectionId: 'contracts',
+   *     externalId: 'contract-123',
+   *     name: 'Acme renewal',
+   *   },
    * ])
+   * console.log(created.map((item) => item.dataPath))
    * ```
    */
   async batchCreate(inputs: CreateCustomContextItemInput[]): Promise<CreatedCustomContextItem[]> {
