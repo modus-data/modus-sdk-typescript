@@ -2326,7 +2326,7 @@ export interface components {
              */
             name: string;
             /**
-             * @description Initial config payload (interface-type-specific). Free-form JSONB.
+             * @description Chat interface settings. `accessMode` is `all`, `allow-list`, or `allow-org`. `allowedEmails` lists email addresses. `availableChannelIds` lists channel ids; empty or absent means every channel. An MCP interface accepts no config keys.
              * @example {}
              */
             config?: {
@@ -2713,7 +2713,7 @@ export interface components {
              */
             allowedEmails?: string[];
             /**
-             * @description Channels where the interface answers. Slack channel ids look like `C0ALH2JTRR9`. Empty or absent means every channel.
+             * @description Channels where the interface answers. Channel ids look like `C0ALH2JTRR9`. Empty or absent means every channel.
              * @example [
              *       "C0ALH2JTRR9"
              *     ]
@@ -5128,7 +5128,7 @@ export interface components {
              */
             name?: string;
             /**
-             * @description New config payload (interface-type-specific). Free-form JSONB. Replaces the prior config.
+             * @description Replacement chat interface settings (`accessMode`, `allowedEmails`, `availableChannelIds`). An MCP interface accepts no config keys. Replaces the stored config.
              * @example {}
              */
             config?: {
