@@ -104,7 +104,8 @@
         "default",
         "{workspaceRoot}/apps/services/*/openapi/v1.json",
         { "dependentTasksOutputFiles": "**/*.js" },
-        "{workspaceRoot}/distribution/clients/typescript/scripts/**"
+        "{workspaceRoot}/distribution/clients/typescript/scripts/**",
+        "{workspaceRoot}/distribution/clients/sdk-surface.json"
       ]
     },
     "sdk:check": {

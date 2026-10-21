@@ -196,6 +196,22 @@ describe('sdk-surface.json schema', () => {
   })
 })
 
+describe('sdk-surface.json as a cache input', () => {
+  // Both contract-check targets regenerate from the hints and fail on drift, so a
+  // hints-only change must miss the cache rather than replay the previous success.
+  it.each([
+    ['modus-sdk-typescript', 'typescript/modus-sdk/project.json'],
+    ['modus-sdk-python', 'python/modus-sdk/project.json'],
+  ])('%s:contract-check takes the hints as an input', (_project, projectFile) => {
+    const project = JSON.parse(readFileSync(join(CLIENTS_DIR, projectFile), 'utf8')) as {
+      targets: Record<string, { inputs?: unknown[] }>
+    }
+    expect(project.targets['contract-check']?.inputs).toContain(
+      '{workspaceRoot}/distribution/clients/sdk-surface.json',
+    )
+  })
+})
+
 describe('sdk-surface.json exposures', () => {
   const roots: Record<Exposure['surface'], Record<string, unknown>> = {
     consumption: new Modus({ apiKey: 'modus_x' }) as unknown as Record<string, unknown>,

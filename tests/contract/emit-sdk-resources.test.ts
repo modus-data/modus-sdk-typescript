@@ -11,9 +11,18 @@ interface SpecParameter {
   name: string
   in: 'path' | 'query'
   description?: string
+  schema?: Record<string, unknown>
 }
 
 const THING_ID: SpecParameter = { name: 'thingId', in: 'path', description: 'Thing id.' }
+
+function queryParam(
+  name: string,
+  description?: string,
+  schema: Record<string, unknown> = { type: 'string' },
+): SpecParameter {
+  return { name, in: 'query', schema, ...(description ? { description } : {}) }
+}
 
 function updateSpec(parameters: SpecParameter[], responseDescription = '') {
   return {
@@ -64,12 +73,45 @@ function emitUpdate(
   return files[0].source
 }
 
+function listSpec(parameters: SpecParameter[]) {
+  return {
+    paths: {
+      '/api/v1/things': {
+        get: {
+          operationId: 'ThingsController_list',
+          summary: 'List things',
+          'x-modus-service': 'modus-api',
+          parameters,
+          responses: { 200: { description: '' } },
+        },
+      },
+    },
+  }
+}
+
+function listHints(query: string[]) {
+  return {
+    types: { Thing: { ts: 'src/types/things.ts', py: 'modus.types.things' } },
+    operations: {
+      ThingsController_list: {
+        mode: 'generated',
+        exposures: [
+          { surface: 'management', resource: ['things'], method: 'list', query, returns: 'Thing' },
+        ],
+        pagination: { items: 'things' },
+        cli: 'things list',
+      },
+    },
+  }
+}
+
+function emitList(query: string[], parameters: SpecParameter[]): string {
+  return emitResourceFiles(listHints(query), listSpec(parameters))[0].source
+}
+
 describe('emit-sdk-resources query templates', () => {
   it('forwards an ordinary optional query field under its wire name', () => {
-    const source = emitUpdate(
-      ['view'],
-      [THING_ID, { name: 'view', in: 'query', description: 'Which revision to read.' }],
-    )
+    const source = emitUpdate(['view'], [THING_ID, queryParam('view', 'Which revision to read.')])
 
     expect(source).toContain(
       ['  async update(', '    thingId: string,', '    options: { view?: string } = {},', '  ): Promise<Thing> {'].join('\n'),
@@ -83,7 +125,7 @@ describe('emit-sdk-resources query templates', () => {
   it('forwards several ordinary query fields in hint order', () => {
     const source = emitUpdate(
       ['view', 'search'],
-      [THING_ID, { name: 'view', in: 'query' }, { name: 'search', in: 'query' }],
+      [THING_ID, queryParam('view'), queryParam('search')],
     )
 
     expect(source).toContain('options: { view?: string; search?: string } = {}')
@@ -93,11 +135,7 @@ describe('emit-sdk-resources query templates', () => {
   it('mixes updateMask with ordinary query fields', () => {
     const source = emitUpdate(
       ['updateMask', 'view'],
-      [
-        THING_ID,
-        { name: 'updateMask', in: 'query', description: 'Fields to update.' },
-        { name: 'view', in: 'query' },
-      ],
+      [THING_ID, queryParam('updateMask', 'Fields to update.'), queryParam('view')],
     )
 
     expect(source).toContain('options: { updateMask?: string; view?: string } = {}')
@@ -110,7 +148,7 @@ describe('emit-sdk-resources query templates', () => {
   it('keeps updateMaskQuery bare when updateMask is the only query field', () => {
     const source = emitUpdate(
       ['updateMask'],
-      [THING_ID, { name: 'updateMask', in: 'query', description: 'Fields to update.' }],
+      [THING_ID, queryParam('updateMask', 'Fields to update.')],
     )
 
     expect(source).toContain('query: updateMaskQuery(options.updateMask),')
@@ -122,6 +160,62 @@ describe('emit-sdk-resources query templates', () => {
 
     expect(source).toContain('async update(thingId: string): Promise<Thing>')
     expect(source).not.toContain('query:')
+  })
+})
+
+describe('emit-sdk-resources query parameter types', () => {
+  it('types a plain method query field from its spec schema', () => {
+    const source = emitUpdate(
+      ['managerId', 'archived'],
+      [
+        THING_ID,
+        queryParam('managerId', 'Manager id.', { type: 'integer' }),
+        queryParam('archived', undefined, { type: 'boolean' }),
+      ],
+    )
+
+    expect(source).toContain('options: { managerId?: number; archived?: boolean } = {}')
+  })
+
+  it('types a paginated filter and the record it is collected into', () => {
+    const source = emitList(
+      ['managerId'],
+      [queryParam('managerId', 'Manager id.', { type: 'integer' })],
+    )
+
+    expect(source).toContain(['    pageToken?: string', '    managerId?: number'].join('\n'))
+    expect(source).toContain(
+      ['    pageToken: string | undefined,', '    managerId?: number,'].join('\n'),
+    )
+    expect(source).toContain('const extra: Record<string, number> = {}')
+  })
+
+  it('widens the filter record to every scalar the filters use', () => {
+    const source = emitList(
+      ['search', 'managerId'],
+      [queryParam('search'), queryParam('managerId', undefined, { type: 'integer' })],
+    )
+
+    expect(source).toContain('const extra: Record<string, string | number> = {}')
+  })
+
+  it('keeps a string enum a string', () => {
+    const source = emitList(
+      ['state'],
+      [queryParam('state', undefined, { type: 'string', enum: ['live', 'draft'] })],
+    )
+
+    expect(source).toContain('    state?: string')
+  })
+
+  it('refuses a query field no scalar describes', () => {
+    expect(() =>
+      emitList(['tags'], [queryParam('tags', undefined, { type: 'array', items: {} })]),
+    ).toThrow(/ThingsController_list \(things\.list\): query parameter "tags"/)
+  })
+
+  it('refuses a query field the spec does not declare', () => {
+    expect(() => emitUpdate(['ghost'], [THING_ID])).toThrow(/query parameter "ghost"/)
   })
 })
 
@@ -137,33 +231,8 @@ describe('emit-sdk-resources @returns', () => {
   })
 
   it('falls back to the page items on a paginated method', () => {
-    const listSpec = {
-      paths: {
-        '/api/v1/things': {
-          get: {
-            operationId: 'ThingsController_list',
-            summary: 'List things',
-            'x-modus-service': 'modus-api',
-            parameters: [{ name: 'pageSize', in: 'query', description: 'Items per page.' }],
-            responses: { 200: { description: '' } },
-          },
-        },
-      },
-    }
-    const listHints = {
-      types: { Thing: { ts: 'src/types/things.ts', py: 'modus.types.things' } },
-      operations: {
-        ThingsController_list: {
-          mode: 'generated',
-          exposures: [
-            { surface: 'management', resource: ['things'], method: 'list', returns: 'Thing' },
-          ],
-          pagination: { items: 'things' },
-          cli: 'things list',
-        },
-      },
-    }
+    const source = emitList([], [queryParam('pageSize', 'Items per page.')])
 
-    expect(emitResourceFiles(listHints, listSpec)[0].source).toContain('@returns A page of things.')
+    expect(source).toContain('@returns A page of things.')
   })
 })

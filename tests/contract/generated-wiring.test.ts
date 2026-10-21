@@ -15,6 +15,18 @@ const BOUND_ID = '1'
 const PATH_ARG = 'p-1'
 const QUERY_ARG = 'q'
 
+/**
+ * Minimal valid payloads for the body and return types a generated exposure names. A new
+ * generated type without an entry fails `every generated type has a sample`. Kept in step
+ * with the Python wiring test's `_SAMPLES`.
+ */
+const SAMPLES: Record<string, Record<string, unknown>> = {
+  Memory: { id: 'mem_01', memory: 'User prefers bullet points.' },
+  MemorySearchRequest: { query: 'revenue preferences' },
+  MemorySearchResult: { memories: [] },
+  MemoryUpdate: { memory: 'Updated text.' },
+}
+
 interface Exposure {
   surface: 'consumption' | 'management'
   resource: string[]
@@ -68,7 +80,9 @@ function jsonResponse(body: unknown): Response {
 }
 
 function responseBody(testCase: GeneratedCase): unknown {
-  return testCase.pagination ? { [testCase.pagination.items]: [], nextPageToken: '' } : {}
+  if (testCase.pagination) return { [testCase.pagination.items]: [], nextPageToken: '' }
+  const returns = testCase.exposure.returns
+  return returns ? SAMPLES[returns] : {}
 }
 
 type Resource = Record<string, (...args: unknown[]) => Promise<unknown>>
@@ -110,7 +124,8 @@ function queryOptions(testCase: GeneratedCase): Record<string, string> {
 function callArgs(testCase: GeneratedCase): unknown[] {
   if (testCase.pagination) return [queryOptions(testCase)]
   const args: unknown[] = positionalPathParams(testCase).map(() => PATH_ARG)
-  if (testCase.exposure.body) args.push({})
+  const body = testCase.exposure.body
+  if (body) args.push(structuredClone(SAMPLES[body.type]))
   if ((testCase.exposure.query ?? []).length > 0) args.push(queryOptions(testCase))
   return args
 }
@@ -122,20 +137,33 @@ function expectedPath(testCase: GeneratedCase): string {
   )
 }
 
-/** The single exposed filter of a paginated exposure, for the page-2 and omission checks. */
-function soleFilter(testCase: GeneratedCase): string {
-  const query = testCase.exposure.query ?? []
-  if (query.length !== 1) throw new Error(`${label(testCase)}: expected exactly one query param`)
-  return query[0]
+/** The exposed filters of a paginated exposure, for the page-2 and omission checks. */
+function filters(testCase: GeneratedCase): readonly string[] {
+  return testCase.exposure.query ?? []
 }
 
-const paginated = cases.filter(
-  (testCase) => testCase.pagination && (testCase.exposure.query ?? []).length === 1,
-)
+function requestQuery(fetch: ReturnType<typeof vi.fn>, index: number): URLSearchParams {
+  return new URL(String((fetch.mock.calls[index] as [string, RequestInit])[0])).searchParams
+}
+
+const paginated = cases.filter((testCase) => testCase.pagination)
 
 describe('generated resource wiring', () => {
   it('covers at least one generated exposure', () => {
     expect(cases.length).toBeGreaterThan(0)
+  })
+
+  it('every generated type has a sample', () => {
+    const needed = new Set(
+      cases.flatMap((testCase) =>
+        [
+          testCase.exposure.body?.type,
+          testCase.pagination ? undefined : testCase.exposure.returns,
+        ].filter((name): name is string => Boolean(name)),
+      ),
+    )
+    const missing = [...needed].filter((name) => !(name in SAMPLES)).sort()
+    expect(missing, `Add a sample payload for: ${missing.join(', ')}`).toEqual([])
   })
 
   it.each(named(cases))('%s is inherited from a generated base', (_name, testCase) => {
@@ -156,38 +184,50 @@ describe('generated resource wiring', () => {
     expect((init.method ?? '').toUpperCase()).toBe(spec.method)
     expect(new URL(url).pathname).toBe(expectedPath(testCase))
     const allowed = new Set<string>(spec.queryParams)
-    const unexpected = [...new URL(url).searchParams.keys()].filter((key) => !allowed.has(key))
+    const sent = new URL(url).searchParams
+    const unexpected = [...sent.keys()].filter((key) => !allowed.has(key))
     expect(unexpected, `query keys not in the spec: ${unexpected.join(', ')}`).toEqual([])
+    for (const name of filters(testCase)) {
+      expect(sent.get(name), `${name} not forwarded`).toBe(QUERY_ARG)
+    }
+    const body = testCase.exposure.body
+    if (body) {
+      expect(JSON.parse(String(init.body)), 'body not forwarded').toEqual(SAMPLES[body.type])
+    }
   })
 
-  it.each(named(paginated))('%s keeps its filter on page 2', async (_name, testCase) => {
+  it.each(named(paginated))('%s keeps every filter on page 2', async (_name, testCase) => {
     const items = testCase.pagination!.items
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse({ [items]: [], nextPageToken: 'tok-2' }))
       .mockResolvedValueOnce(jsonResponse({ [items]: [], nextPageToken: '' }))
     const resource = client(testCase, fetch as unknown as typeof globalThis.fetch)
-    const filter = soleFilter(testCase)
 
-    const page = (await resource[testCase.exposure.method]({
-      [filter]: QUERY_ARG,
-    })) as Page<unknown>
+    const page = (await resource[testCase.exposure.method](queryOptions(testCase))) as Page<unknown>
     await page.getNextPage()
 
-    const second = new URL(String((fetch.mock.calls[1] as [string, RequestInit])[0]))
-    expect(second.searchParams.get(filter)).toBe(QUERY_ARG)
-    expect(second.searchParams.get('pageToken')).toBe('tok-2')
+    for (const [index, where] of [
+      [0, 'page 1'],
+      [1, 'page 2'],
+    ] as const) {
+      for (const name of filters(testCase)) {
+        expect(requestQuery(fetch, index).get(name), `${name} missing on ${where}`).toBe(QUERY_ARG)
+      }
+    }
+    expect(requestQuery(fetch, 1).get('pageToken')).toBe('tok-2')
   })
 
-  it.each(named(paginated))('%s omits an unset optional filter', async (_name, testCase) => {
+  it.each(named(paginated))('%s omits unset optional filters', async (_name, testCase) => {
     const items = testCase.pagination!.items
     const fetch = vi.fn().mockResolvedValue(jsonResponse({ [items]: [], nextPageToken: '' }))
     const resource = client(testCase, fetch as unknown as typeof globalThis.fetch)
 
     await resource[testCase.exposure.method]()
 
-    const url = new URL(String((fetch.mock.calls[0] as [string, RequestInit])[0]))
-    expect(url.searchParams.has(soleFilter(testCase))).toBe(false)
-    expect(url.searchParams.get('pageSize')).toBe('25')
+    for (const name of filters(testCase)) {
+      expect(requestQuery(fetch, 0).has(name), `${name} sent while unset`).toBe(false)
+    }
+    expect(requestQuery(fetch, 0).get('pageSize')).toBe('25')
   })
 })
