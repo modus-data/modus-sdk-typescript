@@ -1,31 +1,12 @@
+import { WorkflowsResourceBase } from '../_generated/resources/consumption/workflows.js'
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
-import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
-import { asRecord, invokeWithRetry } from '../_request.js'
-import { validateId, validatePageSize } from '../_validation.js'
-import type { Workflow, WorkflowType } from '../types/workflows.js'
+import { invokeWithRetry } from '../_request.js'
+import { validateId } from '../_validation.js'
+import type { Workflow } from '../types/workflows.js'
 import type { VariationView } from '../types/views.js'
 import { WorkflowRunsResource } from './workflows/runs.js'
 import { AgentWorkflowActionsResource } from './workflows/workflow-actions.js'
-
-function workflowsListParams(
-  pageSize: number,
-  pageToken: string | undefined,
-  search?: string,
-  type?: WorkflowType,
-  view?: VariationView,
-  includeVariation?: boolean,
-): Record<string, string | number | boolean | undefined | null> {
-  const extra: Record<string, string | number | boolean | undefined | null> = {}
-  if (search !== undefined) extra.search = search
-  if (type !== undefined) extra.type = type
-  if (view !== undefined) extra.view = view
-  if (includeVariation !== undefined) extra.includeVariation = includeVariation
-  return aipListParams(pageSize, pageToken, extra) as Record<
-    string,
-    string | number | boolean | undefined | null
-  >
-}
 
 function parseWorkflow(raw: unknown): Workflow {
   return raw as Workflow
@@ -47,84 +28,18 @@ function parseWorkflow(raw: unknown): Workflow {
  * }
  * ```
  */
-export class WorkflowsResource {
+export class WorkflowsResource extends WorkflowsResourceBase {
   readonly runs: WorkflowRunsResource
   readonly workflowActions: AgentWorkflowActionsResource
 
   /** @internal */
   constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
+    http: HttpClient,
+    config: ModusConfig,
   ) {
+    super(http, config)
     this.runs = new WorkflowRunsResource(http, config)
     this.workflowActions = new AgentWorkflowActionsResource(http, config)
-  }
-
-  /**
-   * List workflows in the organisation.
-   *
-   * @param options.pageSize - Maximum items per page (default 25).
-   * @param options.pageToken - Opaque token from a previous page.
-   * @param options.search - Case-insensitive substring filter on the workflow name.
-   * @param options.type - Workflow kind: `"task"` or `"workflow"`.
-   * @param options.view - Which saved version to return (`active` or `draft`).
-   * @param options.includeVariation - Include variation metadata when supported.
-   * @returns A page of workflows — use `.autoPagingIter()` for all pages.
-   *
-   * @example
-   * ```ts
-   * for await (const wf of (await client.workflows.list({ search: 'digest' })).autoPagingIter()) {
-   *   console.log(wf.id, wf.name, wf.status)
-   * }
-   * ```
-   */
-  list(options: {
-    pageSize?: number
-    pageToken?: string
-    search?: string
-    type?: WorkflowType
-    view?: VariationView
-    includeVariation?: boolean
-  } = {}): Promise<Page<Workflow>> {
-    const pageSize = options.pageSize ?? 25
-    validatePageSize(pageSize)
-    return this.listPage(
-      pageSize,
-      options.pageToken,
-      options.search,
-      options.type,
-      options.view,
-      options.includeVariation,
-    )
-  }
-
-  private async listPage(
-    pageSize: number,
-    pageToken: string | undefined,
-    search?: string,
-    type?: WorkflowType,
-    view?: VariationView,
-    includeVariation?: boolean,
-  ): Promise<Page<Workflow>> {
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, 'WorkflowsController_list', {
-        query: workflowsListParams(
-          pageSize,
-          pageToken,
-          search,
-          type,
-          view,
-          includeVariation,
-        ),
-      }),
-    )
-    // List responses require the canonical `workflows` key (dual `agents` envelope removed).
-    return buildAipPage(
-      data,
-      'workflows',
-      parseWorkflow,
-      (token) => this.listPage(pageSize, token, search, type, view, includeVariation),
-    )
   }
 
   /**

@@ -24,7 +24,7 @@ export class ConnectionsResourceBase {
    *
    * **Requires:** `context:read`
    *
-   * @param options.pageSize - Max items per page. Defaults to 25, clamped to 100.
+   * @param options.pageSize - Items per page. Defaults to 25.
    * @param options.pageToken - Opaque page token from a previous response's `nextPageToken`. Omit
    *   for the first page.
    * @param options.type - Filter by effective integration category (case-sensitive exact match).

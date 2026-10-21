@@ -1,13 +1,10 @@
-import type { ModusConfig } from '../../_config.js'
+import { ScopesResourceBase } from '../../_generated/resources/management/scopes.js'
 import type { OperationId } from '../../_generated/operations.js'
-import type { HttpClient } from '../../_http.js'
 import { updateMaskQuery } from '../../_query.js'
-import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
-import { validateId, validatePageSize } from '../../_validation.js'
+import { validateId } from '../../_validation.js'
 import { ScopeConversationsResource } from '../../resources/scopes/conversations.js'
 import type { Scope } from '../../types/scopes.js'
-import type { VariationView } from '../../types/views.js'
 import {
   accessConfigBodyForCreate,
   accessConfigBodyForUpdate,
@@ -48,23 +45,6 @@ const MANAGEMENT_SCOPE_OPERATIONS: ManagementScopesOperations = {
   acceptOwnershipTransfer: 'ScopesController_acceptOwnershipTransfer',
   patchMcpConfig: 'ScopesController_patchMcpConfig',
   getVariation: 'ScopesController_getVariation',
-}
-
-function scopesListParams(
-  pageSize: number,
-  pageToken: string | undefined,
-  search?: string,
-  view?: VariationView,
-  managerId?: number,
-): Record<string, string | number | boolean | undefined | null> {
-  const extra: Record<string, string | number | boolean | undefined | null> = {}
-  if (search !== undefined) extra.search = search
-  if (view !== undefined) extra.view = view
-  if (managerId !== undefined) extra.managerId = managerId
-  return aipListParams(pageSize, pageToken, extra) as Record<
-    string,
-    string | number | boolean | undefined | null
-  >
 }
 
 function parseScope(raw: unknown): Scope {
@@ -113,14 +93,8 @@ export type UpdateSkillOptions = UpdateScopeOptions
  *
  * Call path: `mgmt.scopes` after `new ModusManagement(...)`.
  */
-export class ManagementScopesResource {
+export class ManagementScopesResource extends ScopesResourceBase {
   protected readonly ops: ManagementScopesOperations = MANAGEMENT_SCOPE_OPERATIONS
-
-  /** @internal */
-  constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
 
   /**
    * Conversations for a scope.
@@ -170,85 +144,6 @@ export class ManagementScopesResource {
    */
   interfaces(scopeId: number | string): ScopeInterfacesResource {
     return new ScopeInterfacesResource(this.http, this.config, scopeId)
-  }
-
-  /**
-   * List scopes in the organization.
-   *
-   * @param options.pageSize - Maximum items per page (default 25).
-   * @param options.pageToken - Token from a previous page's `nextPageToken`; omit for the first page.
-   * @param options.search - Case-insensitive substring filter on the scope name.
-   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
-   * @param options.managerId - Return only scopes supervised by this manager scope id.
-   * @returns A page of scopes — use `.autoPagingIter()` for all pages.
-   * @example
-   * ```ts
-   * const mgmt = new ModusManagement()
-   * for await (const scope of (await mgmt.scopes.list()).autoPagingIter()) {
-   *   console.log(scope.id, scope.name, scope.status)
-   * }
-   * ```
-   */
-  list(options: {
-    pageSize?: number
-    pageToken?: string
-    search?: string
-    view?: VariationView
-    managerId?: number
-  } = {}): Promise<Page<Scope>> {
-    const pageSize = options.pageSize ?? 25
-    validatePageSize(pageSize)
-    return this.listPage(
-      pageSize,
-      options.pageToken,
-      options.search,
-      options.view,
-      options.managerId,
-    )
-  }
-
-  private async listPage(
-    pageSize: number,
-    pageToken: string | undefined,
-    search?: string,
-    view?: VariationView,
-    managerId?: number,
-  ): Promise<Page<Scope>> {
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, this.ops.list, {
-        query: scopesListParams(pageSize, pageToken, search, view, managerId),
-      }),
-    )
-    // List envelope is `scopes` only (Release N+1).
-    return buildAipPage(
-      data,
-      'scopes',
-      parseScope,
-      (token) => this.listPage(pageSize, token, search, view, managerId),
-    )
-  }
-
-  /**
-   * Retrieve a scope with full configuration.
-   *
-   * @param scopeId - Scope id.
-   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
-   * @returns The scope.
-   * @example
-   * ```ts
-   * const mgmt = new ModusManagement()
-   * const scope = await mgmt.scopes.get('PLACEHOLDER_SCOPE_ID')
-   * console.log(scope.name, scope.status)
-   * ```
-   */
-  async get(scopeId: number | string, options: { view?: VariationView } = {}): Promise<Scope> {
-    validateId(scopeId, 'scope_id')
-    const query = options.view !== undefined ? { view: options.view } : undefined
-    const data = await invokeWithRetry(this.config, this.http, this.ops.get, {
-      pathParams: { id: scopeId },
-      query,
-    })
-    return parseScope(data)
   }
 
   /**
@@ -366,39 +261,6 @@ export class ManagementScopesResource {
   }
 
   /**
-   * Delete a scope.
-   *
-   * @param scopeId - Scope id.
-   * @returns Resolves when the scope is deleted.
-   * @example
-   * ```ts
-   * const mgmt = new ModusManagement()
-   * await mgmt.scopes.delete('PLACEHOLDER_SCOPE_ID')
-   * ```
-   */
-  async delete(scopeId: number | string): Promise<void> {
-    validateId(scopeId, 'scope_id')
-    await invokeWithRetry(this.config, this.http, this.ops.delete, {
-      pathParams: { id: scopeId },
-    })
-  }
-
-  /**
-   * Restore a previously deleted scope.
-   *
-   * @param scopeId - Scope id.
-   * @returns The restored scope.
-   */
-  async restore(scopeId: number | string): Promise<Scope> {
-    validateId(scopeId, 'scope_id')
-    const data = await invokeWithRetry(this.config, this.http, this.ops.restore, {
-      pathParams: { id: scopeId },
-      jsonBody: {},
-    })
-    return parseScope(data)
-  }
-
-  /**
    * Start transferring ownership of a scope to another organization member.
    *
    * @param scopeId - Scope id.
@@ -418,30 +280,6 @@ export class ManagementScopesResource {
         pathParams: { id: scopeId },
         jsonBody: omitUndefined({ newOwnerUserId: options.newOwnerUserId }),
       },
-    )
-    return parseScope(data)
-  }
-
-  /** Cancel a pending scope ownership transfer. */
-  async cancelOwnershipTransfer(scopeId: number | string): Promise<Scope> {
-    validateId(scopeId, 'scope_id')
-    const data = await invokeWithRetry(
-      this.config,
-      this.http,
-      this.ops.cancelOwnershipTransfer,
-      { pathParams: { id: scopeId } },
-    )
-    return parseScope(data)
-  }
-
-  /** Accept a pending scope ownership transfer. */
-  async acceptOwnershipTransfer(scopeId: number | string): Promise<Scope> {
-    validateId(scopeId, 'scope_id')
-    const data = await invokeWithRetry(
-      this.config,
-      this.http,
-      this.ops.acceptOwnershipTransfer,
-      { pathParams: { id: scopeId }, jsonBody: {} },
     )
     return parseScope(data)
   }

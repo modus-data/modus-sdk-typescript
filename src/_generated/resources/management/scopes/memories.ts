@@ -30,8 +30,7 @@ export class ScopesMemoriesResourceBase {
    *
    * **Requires:** `scopes:read`
    *
-   * @param options.pageSize - Items per page. Defaults to 100 when no pagination params are sent
-   *   (legacy); otherwise 25, clamped to 100.
+   * @param options.pageSize - Items per page. Defaults to 25.
    * @param options.pageToken - Opaque page token from a previous response's `nextPageToken`. Omit
    *   for the first page.
    * @param options.userId - Narrow results to memories tagged with this end-user id.
@@ -81,7 +80,7 @@ export class ScopesMemoriesResourceBase {
    *
    * **Requires:** `scopes:read`
    *
-   * @param request - Request body; see {@link MemorySearchRequest}.
+   * @param request - Request body; see `MemorySearchRequest`.
    */
   async search(request: MemorySearchRequest): Promise<MemorySearchResult> {
     validateId(this.scopeId, 'scope_id')
@@ -101,7 +100,7 @@ export class ScopesMemoriesResourceBase {
    * **Requires:** `scopes:write`
    *
    * @param memoryId - Opaque memory id as returned by the list / search endpoints.
-   * @param update - Request body; see {@link MemoryUpdate}.
+   * @param update - Request body; see `MemoryUpdate`.
    * @param options.updateMask - Comma-separated list of fields to update. Omit to update all
    *   provided fields.
    */

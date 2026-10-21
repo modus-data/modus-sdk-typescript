@@ -1,4 +1,6 @@
 import type { ModusConfig } from '../../_config.js'
+import { ContextDashboardsResourceBase } from '../../_generated/resources/management/context/dashboards.js'
+import { ContextDashboardsElementsResourceBase } from '../../_generated/resources/management/context/dashboards/elements.js'
 import type { HttpClient } from '../../_http.js'
 import { asRecord, invokeWithRetry } from '../../_request.js'
 import { validateId } from '../../_validation.js'
@@ -6,11 +8,8 @@ import type {
   CreateDashboardElementInput,
   CreateDashboardInput,
   Dashboard,
-  DashboardDraftSnapshot,
   DashboardElementResult,
-  DashboardElementsList,
   DashboardPublishResult,
-  DashboardVersion,
   DashboardView,
   PublishDashboardInput,
   TransferDashboardOwnershipInput,
@@ -28,54 +27,14 @@ import type {
  * Every change takes the `draftRevision` it is based on as `expectedRevision`;
  * a stale value is rejected with a `ConflictError`.
  */
-export class ManagementDashboardElementsResource {
+export class ManagementDashboardElementsResource extends ContextDashboardsElementsResourceBase {
   /** @internal */
   constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-    private readonly dashboardId: string,
-  ) {}
-
-  /**
-   * List every tile and filter on the dashboard draft.
-   *
-   * @returns Each element's id, kind, title and grid position, plus the current
-   *   `draftRevision` to pass as `expectedRevision` on the next change.
-   * @throws NotFoundError - The dashboard does not exist or you cannot edit it.
-   * @example
-   * ```ts
-   * const listed = await mgmt.context.dashboards.elements('DASHBOARD_ID').list()
-   * listed.elements.map((element) => element.id)
-   * ```
-   */
-  async list(): Promise<DashboardElementsList> {
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_listElements', {
-        pathParams: { dashboardId: this.dashboardId },
-      }),
-    ) as unknown as DashboardElementsList
-  }
-
-  /**
-   * Get the full draft settings of one tile or filter.
-   *
-   * @param elementId - Id of the tile or filter, as returned by `list()`.
-   * @returns The element's settings and the current `draftRevision`.
-   * @throws NotFoundError - The dashboard or the element does not exist, or you cannot
-   *   edit the dashboard.
-   * @example
-   * ```ts
-   * const result = await mgmt.context.dashboards.elements('DASHBOARD_ID').get('ELEMENT_ID')
-   * result.element.title
-   * ```
-   */
-  async get(elementId: string): Promise<DashboardElementResult> {
-    validateId(elementId, 'elementId')
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_getElement', {
-        pathParams: { dashboardId: this.dashboardId, elementId },
-      }),
-    ) as unknown as DashboardElementResult
+    http: HttpClient,
+    config: ModusConfig,
+    dashboardId: string,
+  ) {
+    super(http, config, dashboardId)
   }
 
   /**
@@ -155,12 +114,14 @@ export class ManagementDashboardElementsResource {
  * - `elements(dashboardId)` — list, get, create and update tiles and filters.
  * - `updateLayout(dashboardId, input)` — move or resize several elements at once.
  */
-export class ManagementDashboardsResource {
+export class ManagementDashboardsResource extends ContextDashboardsResourceBase {
   /** @internal */
   constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
+    http: HttpClient,
+    config: ModusConfig,
+  ) {
+    super(http, config)
+  }
 
   /**
    * List dashboards with their full definitions.
@@ -307,122 +268,6 @@ export class ManagementDashboardsResource {
   }
 
   /**
-   * Delete a dashboard and the alert workflows defined on it.
-   *
-   * A deleted dashboard cannot be restored.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @throws NotFoundError - The dashboard does not exist or you cannot edit it.
-   * @example
-   * ```ts
-   * await mgmt.context.dashboards.delete('DASHBOARD_ID')
-   * ```
-   */
-  async delete(dashboardId: string): Promise<void> {
-    validateId(dashboardId, 'dashboardId')
-    await invokeWithRetry(this.config, this.http, 'DashboardsController_delete', {
-      pathParams: { dashboardId },
-    })
-  }
-
-  /**
-   * List the published versions of a dashboard, newest first.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @returns Every published version with its full definition. Definitions are
-   *   returned as stored, so older versions may lack newer fields. The list is
-   *   not paginated.
-   * @throws NotFoundError - The dashboard does not exist or you cannot open it.
-   * @example
-   * ```ts
-   * const versions = await mgmt.context.dashboards.listVersions('DASHBOARD_ID')
-   * versions.map((version) => [version.uid, version.versionNumber])
-   * ```
-   */
-  async listVersions(dashboardId: string): Promise<DashboardVersion[]> {
-    validateId(dashboardId, 'dashboardId')
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_listVersions', {
-        pathParams: { dashboardId },
-      }),
-    )
-    return data.versions as DashboardVersion[]
-  }
-
-  /**
-   * Get a dashboard as it was in one version.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @param versionId - Id of the version, as returned by `listVersions()`.
-   * @returns The dashboard with that version's definition.
-   * @throws NotFoundError - The dashboard or the version does not exist, or you cannot
-   *   open the dashboard.
-   * @example
-   * ```ts
-   * const old = await mgmt.context.dashboards.getVersion('DASHBOARD_ID', 'VERSION_ID')
-   * old.selectedVersion.versionNumber
-   * ```
-   */
-  async getVersion(dashboardId: string, versionId: string): Promise<Dashboard> {
-    validateId(dashboardId, 'dashboardId')
-    validateId(versionId, 'versionId')
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_getVersion', {
-        pathParams: { dashboardId, versionId },
-      }),
-    ) as unknown as Dashboard
-  }
-
-  /**
-   * Replace the draft with the content of an earlier version.
-   *
-   * The draft being replaced is kept as a draft snapshot. Call `publish()`
-   * afterwards to make the restored content visible.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @param versionId - Id of the version or draft snapshot to restore.
-   * @returns The dashboard draft after the restore.
-   * @throws NotFoundError - The dashboard or the version does not exist, or you cannot
-   *   edit the dashboard.
-   * @example
-   * ```ts
-   * await mgmt.context.dashboards.restoreVersion('DASHBOARD_ID', 'VERSION_ID')
-   * ```
-   */
-  async restoreVersion(dashboardId: string, versionId: string): Promise<Dashboard> {
-    validateId(dashboardId, 'dashboardId')
-    validateId(versionId, 'versionId')
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_restore', {
-        pathParams: { dashboardId, versionId },
-      }),
-    ) as unknown as Dashboard
-  }
-
-  /**
-   * List recent snapshots of the dashboard draft, newest first.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @returns Up to 100 snapshots with their id, author and time. Pass an id to
-   *   `restoreVersion()` to bring that draft back.
-   * @throws NotFoundError - The dashboard does not exist or you cannot edit it.
-   * @example
-   * ```ts
-   * const snapshots = await mgmt.context.dashboards.listDraftSnapshots('DASHBOARD_ID')
-   * snapshots.map((snapshot) => snapshot.uid)
-   * ```
-   */
-  async listDraftSnapshots(dashboardId: string): Promise<DashboardDraftSnapshot[]> {
-    validateId(dashboardId, 'dashboardId')
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_listDraftSnapshots', {
-        pathParams: { dashboardId },
-      }),
-    )
-    return data.snapshots as DashboardDraftSnapshot[]
-  }
-
-  /**
    * Replace who can open and edit a dashboard.
    *
    * All three settings are required and replace the current ones.
@@ -487,52 +332,6 @@ export class ManagementDashboardsResource {
       await invokeWithRetry(this.config, this.http, 'DashboardsController_transferOwnership', {
         pathParams: { dashboardId },
         jsonBody: { newOwnerUserId: input.newOwnerUserId },
-      }),
-    ) as unknown as Dashboard
-  }
-
-  /**
-   * Accept a pending ownership transfer and become the dashboard owner.
-   *
-   * Only the requested recipient can accept.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @returns The dashboard with you as its owner.
-   * @throws NotFoundError - The dashboard does not exist, or it has no pending transfer
-   *   addressed to you.
-   * @example
-   * ```ts
-   * await mgmt.context.dashboards.acceptOwnershipTransfer('DASHBOARD_ID')
-   * ```
-   */
-  async acceptOwnershipTransfer(dashboardId: string): Promise<Dashboard> {
-    validateId(dashboardId, 'dashboardId')
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_acceptOwnership', {
-        pathParams: { dashboardId },
-      }),
-    ) as unknown as Dashboard
-  }
-
-  /**
-   * Cancel a pending ownership transfer.
-   *
-   * Only the owner can cancel.
-   *
-   * @param dashboardId - Id of the dashboard.
-   * @returns The dashboard with no pending transfer.
-   * @throws NotFoundError - The dashboard does not exist, you cannot open it, or you are
-   *   not the owner.
-   * @example
-   * ```ts
-   * await mgmt.context.dashboards.cancelOwnershipTransfer('DASHBOARD_ID')
-   * ```
-   */
-  async cancelOwnershipTransfer(dashboardId: string): Promise<Dashboard> {
-    validateId(dashboardId, 'dashboardId')
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'DashboardsController_cancelOwnership', {
-        pathParams: { dashboardId },
       }),
     ) as unknown as Dashboard
   }

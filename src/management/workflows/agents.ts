@@ -1,10 +1,8 @@
-import type { ModusConfig } from '../../_config.js'
+import { WorkflowsResourceBase } from '../../_generated/resources/management/workflows.js'
 import type { OperationId } from '../../_generated/operations.js'
-import type { HttpClient } from '../../_http.js'
 import { updateMaskQuery } from '../../_query.js'
-import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
-import { validateId, validatePageSize } from '../../_validation.js'
+import { validateId } from '../../_validation.js'
 import type { Workflow, WorkflowType } from '../../types/workflows.js'
 import type { VariationView } from '../../types/views.js'
 import {
@@ -46,25 +44,6 @@ const MANAGEMENT_WORKFLOW_OPERATIONS: ManagementWorkflowsOperations = {
   toggle: 'WorkflowsController_toggle',
 }
 
-function workflowsListParams(
-  pageSize: number,
-  pageToken: string | undefined,
-  search?: string,
-  type?: WorkflowType,
-  view?: VariationView,
-  includeVariation?: boolean,
-): Record<string, string | number | boolean | undefined | null> {
-  const extra: Record<string, string | number | boolean | undefined | null> = {}
-  if (search !== undefined) extra.search = search
-  if (type !== undefined) extra.type = type
-  if (view !== undefined) extra.view = view
-  if (includeVariation !== undefined) extra.includeVariation = includeVariation
-  return aipListParams(pageSize, pageToken, extra) as Record<
-    string,
-    string | number | boolean | undefined | null
-  >
-}
-
 function parseWorkflow(raw: unknown): Workflow {
   return raw as Workflow
 }
@@ -96,73 +75,8 @@ export interface UpdateWorkflowOptions {
 /** @deprecated Use `UpdateWorkflowOptions` instead. */
 export type UpdateAgentOptions = UpdateWorkflowOptions
 
-export class ManagementWorkflowsResource {
+export class ManagementWorkflowsResource extends WorkflowsResourceBase {
   protected readonly ops: ManagementWorkflowsOperations = MANAGEMENT_WORKFLOW_OPERATIONS
-
-  constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
-
-  /**
-   * List workflows in the organization.
-   *
-   * @param options.pageSize - Maximum items per page (default 25).
-   * @param options.pageToken - Token from a previous page's `nextPageToken`; omit for the first page.
-   * @param options.search - Case-insensitive substring filter on the workflow name.
-   * @param options.type - Filter by workflow type: `"task"` or `"workflow"`.
-   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
-   * @param options.includeVariation - Include variation payload on each list row.
-   * @returns A page of workflows.
-   * @example
-   * ```ts
-   * const mgmt = new ModusManagement()
-   * for await (const wf of (await mgmt.workflows.list({ search: 'digest' })).autoPagingIter()) {
-   *   console.log(wf.id, wf.name, wf.status)
-   * }
-   * ```
-   */
-  list(options: {
-    pageSize?: number
-    pageToken?: string
-    search?: string
-    type?: WorkflowType
-    view?: VariationView
-    includeVariation?: boolean
-  } = {}): Promise<Page<Workflow>> {
-    const pageSize = options.pageSize ?? 25
-    validatePageSize(pageSize)
-    return this.listPage(
-      pageSize,
-      options.pageToken,
-      options.search,
-      options.type,
-      options.view,
-      options.includeVariation,
-    )
-  }
-
-  private async listPage(
-    pageSize: number,
-    pageToken: string | undefined,
-    search?: string,
-    type?: WorkflowType,
-    view?: VariationView,
-    includeVariation?: boolean,
-  ): Promise<Page<Workflow>> {
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, this.ops.list, {
-        query: workflowsListParams(pageSize, pageToken, search, type, view, includeVariation),
-      }),
-    )
-    // List envelope is `workflows` only (Release N+1).
-    return buildAipPage(
-      data,
-      'workflows',
-      parseWorkflow,
-      (token) => this.listPage(pageSize, token, search, type, view, includeVariation),
-    )
-  }
 
   /**
    * Retrieve a workflow with full configuration.
@@ -310,39 +224,6 @@ export class ManagementWorkflowsResource {
   }
 
   /**
-   * Delete a workflow.
-   *
-   * @param workflowId - Workflow id.
-   * @returns Resolves when the workflow is deleted.
-   * @example
-   * ```ts
-   * const mgmt = new ModusManagement()
-   * await mgmt.workflows.delete('PLACEHOLDER_WORKFLOW_ID')
-   * ```
-   */
-  async delete(workflowId: number | string): Promise<void> {
-    validateId(workflowId, 'workflow_id')
-    await invokeWithRetry(this.config, this.http, this.ops.delete, {
-      pathParams: { id: workflowId },
-    })
-  }
-
-  /**
-   * Restore a previously deleted workflow.
-   *
-   * @param workflowId - Workflow id.
-   * @returns The restored workflow.
-   */
-  async restore(workflowId: number | string): Promise<Workflow> {
-    validateId(workflowId, 'workflow_id')
-    const data = await invokeWithRetry(this.config, this.http, this.ops.restore, {
-      pathParams: { id: workflowId },
-      jsonBody: {},
-    })
-    return parseWorkflow(data)
-  }
-
-  /**
    * Start transferring ownership of a workflow to another organization member.
    *
    * @param workflowId - Workflow id.
@@ -362,30 +243,6 @@ export class ManagementWorkflowsResource {
         pathParams: { id: workflowId },
         jsonBody: omitUndefined({ newOwnerUserId: options.newOwnerUserId }),
       },
-    )
-    return parseWorkflow(data)
-  }
-
-  /** Cancel a pending workflow ownership transfer. */
-  async cancelOwnershipTransfer(workflowId: number | string): Promise<Workflow> {
-    validateId(workflowId, 'workflow_id')
-    const data = await invokeWithRetry(
-      this.config,
-      this.http,
-      this.ops.cancelOwnershipTransfer,
-      { pathParams: { id: workflowId } },
-    )
-    return parseWorkflow(data)
-  }
-
-  /** Accept a pending workflow ownership transfer. */
-  async acceptOwnershipTransfer(workflowId: number | string): Promise<Workflow> {
-    validateId(workflowId, 'workflow_id')
-    const data = await invokeWithRetry(
-      this.config,
-      this.http,
-      this.ops.acceptOwnershipTransfer,
-      { pathParams: { id: workflowId }, jsonBody: {} },
     )
     return parseWorkflow(data)
   }

@@ -1,5 +1,4 @@
-import type { ModusConfig } from '../../_config.js'
-import type { HttpClient } from '../../_http.js'
+import { WorkflowsInterfacesResourceBase } from '../../_generated/resources/management/workflows/interfaces.js'
 import { updateMaskQuery } from '../../_query.js'
 import { invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId } from '../../_validation.js'
@@ -9,21 +8,7 @@ export type AgentInterface = components['schemas']['AgentInterfaceDto']
 export type AddAgentInterface = components['schemas']['AddAgentInterfaceDto']
 export type UpdateAgentInterface = components['schemas']['UpdateAgentInterfaceDto']
 
-export class WorkflowInterfacesResource {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-    private readonly workflowId: number | string,
-  ) {}
-
-  /** List interfaces attached to this workflow. */
-  async list(): Promise<AgentInterface[]> {
-    validateId(this.workflowId, 'workflow_id')
-    const data = await invokeWithRetry(this.config, this.http, 'WorkflowInterfacesController_list', {
-      pathParams: { id: this.workflowId },
-    }) as { interfaces: AgentInterface[] }
-    return data.interfaces
-  }
+export class WorkflowInterfacesResource extends WorkflowsInterfacesResourceBase {
 
   /**
    * Add an interface to this workflow.
@@ -55,26 +40,5 @@ export class WorkflowInterfacesResource {
       query: updateMaskQuery(updateMask),
       jsonBody: updateMask === undefined ? omitUndefined(options) : options,
     }) as AgentInterface
-  }
-
-  /**
-   * Delete an interface from this workflow.
-   *
-   * @param interfaceId - Interface id.
-   */
-  async delete(interfaceId: string): Promise<void> {
-    validateId(this.workflowId, 'workflow_id')
-    validateId(interfaceId, 'interface_id')
-    await invokeWithRetry(this.config, this.http, 'WorkflowInterfacesController_delete', {
-      pathParams: { id: this.workflowId, interfaceId },
-    })
-  }
-
-  /** Delete every interface from this workflow. */
-  async deleteAll(): Promise<void> {
-    validateId(this.workflowId, 'workflow_id')
-    await invokeWithRetry(this.config, this.http, 'WorkflowInterfacesController_deleteAll', {
-      pathParams: { id: this.workflowId },
-    })
   }
 }

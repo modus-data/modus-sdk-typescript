@@ -6,14 +6,25 @@
   "implicitDependencies": ["modus-api", "agent-service", "openapi-portal"],
   "targets": {
     "typecheck": {},
-    "generate": {
+    "generate-spec": {
       "executor": "nx:run-commands",
       "dependsOn": [
         { "projects": ["modus-api", "agent-service"], "target": "openapi:generate" },
         { "projects": ["openapi-portal"], "target": "build" }
       ],
       "options": {
-        "command": "node distribution/clients/typescript/scripts/generate-sdk-from-openapi.mjs",
+        "command": "node distribution/clients/typescript/scripts/generate-sdk-from-openapi.mjs --spec-only",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": ["default", "{workspaceRoot}/distribution/clients/sdk-surface.json"],
+      "outputs": ["{projectRoot}/src/_generated/public-openapi.json"],
+      "cache": false
+    },
+    "generate": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate-spec"],
+      "options": {
+        "command": "node distribution/clients/typescript/scripts/generate-sdk-from-openapi.mjs --from-spec",
         "cwd": "{workspaceRoot}"
       },
       "inputs": ["default", "{workspaceRoot}/distribution/clients/sdk-surface.json"],
@@ -39,6 +50,7 @@
         "default",
         "{workspaceRoot}/apps/services/*/openapi/v1.json",
         "{workspaceRoot}/packages/openapi-portal/src/**/*.ts",
+        "{workspaceRoot}/distribution/clients/typescript/scripts/**",
         "{workspaceRoot}/distribution/clients/sdk-surface.json",
         "{workspaceRoot}/distribution/clients/sdk-surface.schema.json"
       ]
@@ -119,6 +131,14 @@
         "cwd": "{workspaceRoot}"
       },
       "outputs": ["{projectRoot}/tests/snapshots/public-surface.json"],
+      "cache": false
+    },
+    "public-surface-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node distribution/clients/typescript/scripts/emit-public-surface.mjs --check",
+        "cwd": "{workspaceRoot}"
+      },
       "cache": false
     },
     "openapi-impact": {

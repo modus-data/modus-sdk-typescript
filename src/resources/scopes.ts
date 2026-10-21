@@ -1,35 +1,10 @@
+import { ScopesResourceBase } from '../_generated/resources/consumption/scopes.js'
 import { chatBuffered, chatStreamSession, type ChatStream } from '../_chat.js'
-import type { ModusConfig } from '../_config.js'
-import type { HttpClient } from '../_http.js'
-import { aipListParams, buildAipPage, type Page } from '../_pagination.js'
-import { asRecord, invokeWithRetry, omitUndefined } from '../_request.js'
-import { validateId, validatePageSize } from '../_validation.js'
+import { invokeWithRetry, omitUndefined } from '../_request.js'
+import { validateId } from '../_validation.js'
 import type { ChatModel, ChatResult } from '../types/chat.js'
 import type { SkillContextComposition } from '../types/context-compose.js'
-import type { Scope } from '../types/scopes.js'
-import type { VariationView } from '../types/views.js'
 import { ScopeConversationsResource } from './scopes/conversations.js'
-
-function scopesListParams(
-  pageSize: number,
-  pageToken: string | undefined,
-  search?: string,
-  view?: VariationView,
-  managerId?: number,
-): Record<string, string | number | boolean | undefined | null> {
-  const extra: Record<string, string | number | boolean | undefined | null> = {}
-  if (search !== undefined) extra.search = search
-  if (view !== undefined) extra.view = view
-  if (managerId !== undefined) extra.managerId = managerId
-  return aipListParams(pageSize, pageToken, extra) as Record<
-    string,
-    string | number | boolean | undefined | null
-  >
-}
-
-function parseScope(raw: unknown): Scope {
-  return raw as Scope
-}
 
 /**
  * Read / chat with published scopes.
@@ -46,12 +21,7 @@ function parseScope(raw: unknown): Scope {
  * console.log(result.content, result.threadId)
  * ```
  */
-export class ScopesResource {
-  /** @internal */
-  constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
+export class ScopesResource extends ScopesResourceBase {
 
   /**
    * Return the conversations sub-resource scoped to `scopeId`.
@@ -70,89 +40,6 @@ export class ScopesResource {
    */
   conversations(scopeId: number | string): ScopeConversationsResource {
     return new ScopeConversationsResource(this.http, this.config, scopeId)
-  }
-
-  /**
-   * List scopes in the organisation.
-   *
-   * @param options.pageSize - Items per page (default 25).
-   * @param options.pageToken - Opaque token from a previous page.
-   * @param options.search - Case-insensitive substring filter on the scope name.
-   * @param options.view - `"active"` (deployed) or `"draft"`.
-   * @param options.managerId - Only scopes supervised by this manager scope id.
-   * @returns Page of scopes — use `.autoPagingIter()` for all pages.
-   *
-   * @example
-   * ```ts
-   * for await (const scope of (await client.scopes.list()).autoPagingIter()) {
-   *   console.log(scope.id, scope.name, scope.status)
-   * }
-   * ```
-   */
-  list(options: {
-    pageSize?: number
-    pageToken?: string
-    search?: string
-    view?: VariationView
-    managerId?: number
-  } = {}): Promise<Page<Scope>> {
-    const pageSize = options.pageSize ?? 25
-    validatePageSize(pageSize)
-    return this.listPage(
-      pageSize,
-      options.pageToken,
-      options.search,
-      options.view,
-      options.managerId,
-    )
-  }
-
-  private async listPage(
-    pageSize: number,
-    pageToken: string | undefined,
-    search?: string,
-    view?: VariationView,
-    managerId?: number,
-  ): Promise<Page<Scope>> {
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, 'ScopesController_list', {
-        query: scopesListParams(pageSize, pageToken, search, view, managerId),
-      }),
-    )
-    // List responses require the canonical `scopes` key (dual `skills` envelope removed).
-    return buildAipPage(
-      data,
-      'scopes',
-      parseScope,
-      (token) => this.listPage(pageSize, token, search, view, managerId),
-    )
-  }
-
-  /**
-   * Retrieve a scope by ID or slug.
-   *
-   * @param scopeId - Scope numeric id or slug.
-   * @param options.view - `"active"` (deployed) or `"draft"`.
-   * @throws {NotFoundError} When no scope matches the id or slug.
-   * @returns Scope (`id`, `name`, `status`, …).
-   *
-   * @example
-   * ```ts
-   * const scope = await client.scopes.get('revenue-analysis')
-   * console.log(scope.name, scope.status)
-   * ```
-   */
-  async get(
-    scopeId: number | string,
-    options: { view?: VariationView } = {},
-  ): Promise<Scope> {
-    validateId(scopeId, 'scope_id')
-    const query = options.view !== undefined ? { view: options.view } : undefined
-    const data = await invokeWithRetry(this.config, this.http, 'ScopesController_get', {
-      pathParams: { id: scopeId },
-      query,
-    })
-    return parseScope(data)
   }
 
   /**
