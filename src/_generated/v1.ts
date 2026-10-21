@@ -26,6 +26,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/connections/{connectionId}/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List selectable units of a connection
+         * @description Returns a page of selectable units on a connection you can use. An unknown or inaccessible connection returns 404. Pass `nextPageToken` as `pageToken` for the next page.
+         *
+         *     **Requires:** `context:read`
+         */
+        get: operations["ConnectionsController_listSelections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/context/custom-items": {
         parameters: {
             query?: never;
@@ -983,7 +1005,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it.
+         * @description Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it. List the units with `GET /connections/{id}/selections`.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1021,7 +1043,7 @@ export interface paths {
         head?: never;
         /**
          * Update a scope
-         * @description Updates the scope’s draft and returns it. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected.
+         * @description Updates the scope’s draft. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected. List the units with `GET /connections/{id}/selections`.
          *
          *     **Requires:** `scopes:write`
          */
@@ -2792,6 +2814,27 @@ export interface components {
              * @example postgresql
              */
             type: string | null;
+            /** @description How a scope selects units on this connection. Omitted when the connection has none. */
+            selectionModel?: components["schemas"]["SelectionModelDto"];
+        };
+        ConnectionSelectionDto: {
+            /**
+             * @description Path of the unit, from the connection down to the unit itself.
+             * @example [
+             *       "acme/widgets"
+             *     ]
+             */
+            path: string[];
+            /**
+             * @description Kind of unit, such as repository or schema.
+             * @example repository
+             */
+            objectType: string;
+            /**
+             * @description Human-readable name, when the connection has one.
+             * @example widgets
+             */
+            displayName: string | null;
         };
         ContentProjectionDto: {
             /**
@@ -4190,6 +4233,12 @@ export interface components {
                 [key: string]: number;
             };
         };
+        ListConnectionSelectionsResponseDto: {
+            /** @description Page of selectable units on this connection. */
+            selections: components["schemas"]["ConnectionSelectionDto"][];
+            /** @description Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request. */
+            nextPageToken: string | null;
+        };
         ListConnectionsResponseDto: {
             /** @description Page of integration connections the caller can `use`. Connections the caller cannot access are filtered out (not enumerated). */
             connections: components["schemas"]["ConnectionDto"][];
@@ -4729,6 +4778,33 @@ export interface components {
              * @example 10
              */
             limit?: number;
+        };
+        SelectionModelDto: {
+            /**
+             * @description What one selectable unit is called.
+             * @example Repository
+             */
+            unitTerm: string;
+            /** @description The kinds of unit a scope may select on this connection. */
+            roots: components["schemas"]["SelectionModelRootDto"][];
+            /**
+             * @description How many levels below a unit a scope may still name. 0 means the unit itself only.
+             * @example 0
+             * @enum {number}
+             */
+            depthBelowRoot: 0 | 1;
+        };
+        SelectionModelRootDto: {
+            /**
+             * @description Kind of unit, such as repository or schema.
+             * @example repository
+             */
+            objectType: string;
+            /**
+             * @description Number of path segments in a unit of this kind.
+             * @example 1
+             */
+            arity: number;
         };
         SetSupervisionRequestDto: {
             /**
@@ -6074,6 +6150,152 @@ export interface operations {
                      *             "<required-scope>"
                      *           ]
                      *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ConnectionsController_listSelections: {
+        parameters: {
+            query?: {
+                /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
+                pageToken?: string;
+                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Integration connection UUID. */
+                connectionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListConnectionSelectionsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */

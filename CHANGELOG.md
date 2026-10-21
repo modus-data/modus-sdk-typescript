@@ -9,6 +9,13 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Added
+
+- **List selectable units.** `client.connections.listSelections(connectionId)` and
+  `iterSelections(connectionId)` page the units a scope can select on a connection
+  (`GET /connections/{id}/selections`). `client.connections.list()` items may include
+  `selectionModel`.
+
 ### Changed
 
 - **Scope `connectionSet` rows must be a selectable unit.** `scopes.create` and `scopes.update` reject a new row whose path is neither the whole connection nor one selectable unit of it, with 422 `root.not_a_root`. A row already stored can stay, and removing it still succeeds.

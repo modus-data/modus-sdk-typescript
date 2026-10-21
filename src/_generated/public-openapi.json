@@ -269,6 +269,188 @@
         ]
       }
     },
+    "/api/v1/connections/{connectionId}/selections": {
+      "get": {
+        "description": "Returns a page of selectable units on a connection you can use. An unknown or inaccessible connection returns 404. Pass `nextPageToken` as `pageToken` for the next page.\n\n**Requires:** `context:read`",
+        "operationId": "ConnectionsController_listSelections",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "description": "Integration connection UUID.",
+            "schema": {
+              "example": "7a3f9d2c-1111-4000-a000-000000000abc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageToken",
+            "required": false,
+            "in": "query",
+            "description": "Opaque page token from a previous response's `nextPageToken`. Omit for the first page.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListConnectionSelectionsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List selectable units of a connection",
+        "tags": [
+          "Connections"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:read"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/context/custom-items": {
       "get": {
         "description": "Returns a page of customer-created custom context items. Pass `nextPageToken` as `pageToken` to fetch the next page.\n\n**Requires:** `context:read`",
@@ -10777,7 +10959,7 @@
         ]
       },
       "post": {
-        "description": "Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it.\n\n**Requires:** `scopes:write`",
+        "description": "Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it. List the units with `GET /connections/{id}/selections`.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_create",
         "parameters": [],
         "requestBody": {
@@ -11161,7 +11343,7 @@
         ]
       },
       "patch": {
-        "description": "Updates the scope’s draft and returns it. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected.\n\n**Requires:** `scopes:write`",
+        "description": "Updates the scope’s draft. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected. List the units with `GET /connections/{id}/selections`.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_update",
         "parameters": [
           {
@@ -24282,12 +24464,51 @@
             "nullable": true,
             "description": "Effective integration category for the connection (e.g. postgresql, bigquery).",
             "example": "postgresql"
+          },
+          "selectionModel": {
+            "description": "How a scope selects units on this connection. Omitted when the connection has none.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SelectionModelDto"
+              }
+            ]
           }
         },
         "required": [
           "id",
           "name",
           "type"
+        ]
+      },
+      "ConnectionSelectionDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "description": "Path of the unit, from the connection down to the unit itself.",
+            "example": [
+              "acme/widgets"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objectType": {
+            "type": "string",
+            "description": "Kind of unit, such as repository or schema.",
+            "example": "repository"
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Human-readable name, when the connection has one.",
+            "example": "widgets"
+          }
+        },
+        "required": [
+          "path",
+          "objectType",
+          "displayName"
         ]
       },
       "ContentProjectionDto": {
@@ -27293,6 +27514,27 @@
           "counts"
         ]
       },
+      "ListConnectionSelectionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "selections": {
+            "description": "Page of selectable units on this connection.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectionSelectionDto"
+            }
+          },
+          "nextPageToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Opaque token for the next page; `null` when this was the last page. Pass as `pageToken` on the next request."
+          }
+        },
+        "required": [
+          "selections",
+          "nextPageToken"
+        ]
+      },
       "ListConnectionsResponseDto": {
         "type": "object",
         "properties": {
@@ -28512,6 +28754,56 @@
         },
         "required": [
           "query"
+        ]
+      },
+      "SelectionModelDto": {
+        "type": "object",
+        "properties": {
+          "unitTerm": {
+            "type": "string",
+            "description": "What one selectable unit is called.",
+            "example": "Repository"
+          },
+          "roots": {
+            "description": "The kinds of unit a scope may select on this connection.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectionModelRootDto"
+            }
+          },
+          "depthBelowRoot": {
+            "type": "number",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "How many levels below a unit a scope may still name. 0 means the unit itself only.",
+            "example": 0
+          }
+        },
+        "required": [
+          "unitTerm",
+          "roots",
+          "depthBelowRoot"
+        ]
+      },
+      "SelectionModelRootDto": {
+        "type": "object",
+        "properties": {
+          "objectType": {
+            "type": "string",
+            "description": "Kind of unit, such as repository or schema.",
+            "example": "repository"
+          },
+          "arity": {
+            "type": "number",
+            "description": "Number of path segments in a unit of this kind.",
+            "example": 1
+          }
+        },
+        "required": [
+          "objectType",
+          "arity"
         ]
       },
       "SetSupervisionRequestDto": {
