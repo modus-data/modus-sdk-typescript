@@ -81,6 +81,15 @@ describe('ModusManagement.scopes.memories', () => {
       query: 'user preferences',
     })
   })
+
+  it('list rejects a blank scope id before any request', async () => {
+    const fetch = vi.fn()
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await expect(mgmt.scopes.memories('').list()).rejects.toThrow(
+      'scope_id must be a non-empty string or int',
+    )
+    expect(fetch).not.toHaveBeenCalled()
+  })
 })
 
 describe('ModusManagement.scopes.interfaces', () => {

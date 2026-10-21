@@ -16,6 +16,7 @@
         "command": "node distribution/clients/typescript/scripts/generate-sdk-from-openapi.mjs",
         "cwd": "{workspaceRoot}"
       },
+      "inputs": ["default", "{workspaceRoot}/distribution/clients/sdk-surface.json"],
       "outputs": ["{projectRoot}/src/_generated/**"],
       "cache": false
     },
