@@ -108,6 +108,15 @@
       "executor": "nx:noop",
       "dependsOn": ["check-docstrings", "coverage-gaps", "contract-check"]
     },
+    "public-surface": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node distribution/clients/typescript/scripts/emit-public-surface.mjs --write",
+        "cwd": "{workspaceRoot}"
+      },
+      "outputs": ["{projectRoot}/tests/snapshots/public-surface.json"],
+      "cache": false
+    },
     "openapi-impact": {
       "executor": "nx:run-commands",
       "dependsOn": ["generate"],
