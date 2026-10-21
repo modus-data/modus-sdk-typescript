@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { emitPublicSurface, walkPublicSurface } from '../../../scripts/emit-public-surface.mjs'
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url))
@@ -25,19 +25,27 @@ function fixtureProgram(fileNames: string[]): ts.Program {
 }
 
 describe('public surface snapshot', () => {
+  let surface: Record<string, string>
+
+  // One full type-checked program of the SDK; seconds on a loaded runner, so it is
+  // built once with its own budget rather than per test under the 5s default.
+  beforeAll(() => {
+    surface = emitPublicSurface()
+  }, 60_000)
+
   it('matches the committed snapshot', () => {
     const committed = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8')) as Record<string, string>
-    expect(emitPublicSurface()).toEqual(committed)
+    expect(surface).toEqual(committed)
   })
 
   it('reaches bound sub-resources', () => {
-    const keys = Object.keys(emitPublicSurface())
+    const keys = Object.keys(surface)
     expect(keys).toContain('ScopeMemoriesResource.list')
     expect(keys).toContain('ConnectionsResource.find')
   })
 
   it('leaks no absolute filesystem paths (deterministic across machines)', () => {
-    const values = Object.values(emitPublicSurface())
+    const values = Object.values(surface)
     const leaked = values.filter((v) => /\/Users\/|\/home\/|[A-Za-z]:\\|import\("(?:\/|[A-Za-z]:[\\/])/.test(v))
     expect(leaked).toEqual([])
   })
