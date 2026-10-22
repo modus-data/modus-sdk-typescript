@@ -149,6 +149,8 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'evaluations',
     'supervisionSubordinateDescriptions',
   ],
+  ScopesController_addEvaluationCase: ['id', 'task', 'expectedOutput'],
+  ScopesController_updateEvaluationCase: ['task', 'expectedOutput'],
   ScopeChatController_chat: ['message', 'model'],
   ScopeContextController_compose: ['message', 'limit'],
   EvaluationsController_updateConfig: [

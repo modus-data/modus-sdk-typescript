@@ -5,3 +5,6 @@ export type UpdateEvaluationConfig = components['schemas']['UpdateEvaluationConf
 export type EvaluationRun = components['schemas']['EvaluationRunDto']
 export type EvaluationRunWithResults = components['schemas']['EvaluationRunWithResultsDto']
 export type TriggerEvaluationRunResponse = components['schemas']['TriggerEvaluationRunResponseDto']
+export type EvaluationCase = components['schemas']['EvaluationCaseDto']
+export type AddEvaluationCase = components['schemas']['EvaluationCaseInputDto']
+export type UpdateEvaluationCase = components['schemas']['UpdateEvaluationCaseDto']

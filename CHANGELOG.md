@@ -15,14 +15,31 @@ release, including pre-1.0 (`0.x`) releases.
   `iterSelections(connectionId)` page the units a scope can select on a connection
   (`GET /connections/{id}/selections`). `client.connections.list()` items may include
   `selectionModel`.
+- **Evaluation case methods.** `scopes.evaluations(id).addCase()`, `.updateCase(caseId)`, and `.deleteCase(caseId)` add, change, or remove one evaluation case. Omit `id` on add and the client assigns one, so a retry sends the same id. A retry whose id is already stored returns a conflict; an identical body is not treated as success. An empty `task` is allowed. An update with neither field is rejected.
 
 ### Changed
 
+- **MCP config is checked on write.** `scopes.create`, `scopes.update`, and `PATCH /scopes/{id}/mcp-config` return the effective core tools and tool exposure. A changed value must use true or false for each core tool, and version 1 with mode subset or discovery for tool exposure. A newly added exposure key must be one the scope can expose. A key already stored can be sent again or removed.
+- **Breaking (pre-1.0): typed evaluation cases.** `scopes.update` `evaluations` items are `{ id?, task, expectedOutput }`. `task` and `expectedOutput` are required, and any other key, such as `createdAt` or `updatedAt`, is rejected with 400. Omit `id` on a new case and one is assigned. A repeated `id` is rejected. An empty `task` is allowed.
 - **Breaking (pre-1.0): scope `interfaces` have one shape.** `scopes.create` and `scopes.update` (`POST /api/v1/scopes` and `PATCH /api/v1/scopes/{id}`) accept only MCP interface rows. `type` must be `mcp`. Each row has an optional id and name and a config of core tools and exposed integrations. A row without an id or name is assigned one. Responses return only id, type, name, and config; extra stored keys such as `enabled` are no longer returned.
+- **Workflow responses declare their shapes.** `Workflow` variation fields `trigger`, `workflowStructure`, and `agentSelection` are `WorkflowTriggerResponseDto`, `WorkflowStructureResponseDto`, and `AgentSelectionResponseDto` instead of open objects. A non-schedule trigger has `schedule: null`, and a schedule leaves unused cadence fields null. A workflow interface `config` describes Slack and Teams (`accessMode`, `allowedEmails`, `availableChannelIds`) and an empty object for MCP.
+- **Scope create and update describe `connectionSet`.** An entry selects a whole connection (`path: []`) or one selectable unit of it, never anything below. Lists replace the stored list.
 - **Scope `connectionSet` rows must be a selectable unit.** `scopes.create` and `scopes.update` reject a new row whose path is neither the whole connection nor one selectable unit of it, with 422 `root.not_a_root`. A row already stored can stay, and removing it still succeeds.
 - **Workflow interface config.** Slack and Teams `config` on a workflow interface is `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. An MCP interface accepts no config keys. An unknown key or invalid value in a changed config returns 422 with violations; `config: null` returns 400. Unchanged stored values are accepted.
 - **`searchQuery` documents word search.** `context.customItems.list({ searchQuery })` (`GET /context/custom-items`) describes
   word search: it returns rows that contain every word of the query, case-insensitive.
+- **Known toolset values are validated.** A new or edited scope `toolset` value must match that tool's shape.
+  Most tools take an array of strings. `file_publish` takes `{ actions: string[], rules?: { nameMode: "any" | "restricted", allowedNames: string[] } }`.
+  Coding tools take an array of `{ connectionUid, repoOwner, repoName, branch }`.
+  `sql_runner` entries are `VERB:connectionId:`, optionally followed by `database:schema`, where `VERB` is `SELECT`, `INSERT`, `UPDATE`, `DELETE`, or `CREATE`.
+  A value that does not match is `422`
+  with rule `toolset.bad_value`; an unknown key stays `toolset.unknown_key`. Sending the same stored value again succeeds,
+  including a historical value the new check would reject, and removing that value succeeds.
+
+### Removed
+
+- **Breaking: `ToolsetDto` and `ToolsetToolDto`.** Both are removed from `components["schemas"]`. Scope create and update `toolset` is a map of tool key to its configuration; type it with `ToolsetInput` from `@getmodus/sdk/management`. The generated `{ tools: [{ id, enabled, config }] }` models are gone. Unknown keys are rejected.
+- **Breaking (pre-1.0): evaluation case timestamps.** Scope evaluation cases no longer include `createdAt` or `updatedAt`.
 
 ## [0.8.0] — 2026-10-18
 

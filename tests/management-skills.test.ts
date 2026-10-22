@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
+import { ConflictError } from '../src/_exceptions.js'
 import { ModusManagement } from '../src/management/index.js'
+
+const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const TEST_KEY = 'modus_test_key_mgmt'
 const BASE = 'https://api.getmodus.com'
@@ -121,5 +124,47 @@ describe('ModusManagement.scopes.interfaces', () => {
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ type: 'slack', config: { accessMode: 'all' } })
     expect(String(fetch.mock.calls[1]?.[0])).toContain(`/api/v1/scopes/42/interfaces/${IFACE_ID}?updateMask=name`)
     expect(fetch.mock.calls[2]?.[1]?.method).toBe('DELETE')
+  })
+})
+
+describe('ModusManagement.scopes.evaluations cases', () => {
+  const stored = { id: 'generated', task: 't', expectedOutput: 'o' }
+
+  it('addCase without an id sends a generated id', async () => {
+    const fetch = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      const sent = JSON.parse(String(init?.body)) as { id?: string }
+      return new Response(JSON.stringify({ ...stored, id: sent.id }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const added = await mgmt.scopes.evaluations(42).addCase({ task: 't', expectedOutput: 'o' })
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)) as { id: string; task: string; expectedOutput: string }
+    expect(body.id).toMatch(UUID_V4)
+    expect(body.task).toBe('t')
+    expect(body.expectedOutput).toBe('o')
+    expect(added.id).toBe(body.id)
+  })
+
+  it('a retried add sends the same body and surfaces 409', async () => {
+    const bodies: { id: string; task: string; expectedOutput: string }[] = []
+    const fetch = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body)))
+      if (bodies.length === 1) {
+        return new Response(JSON.stringify({ error: { message: 'upstream' } }), { status: 500 })
+      }
+      return new Response(
+        JSON.stringify({ error: { message: 'An evaluation case with this id already exists.' } }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } },
+      )
+    })
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 1, fetch })
+    await expect(
+      mgmt.scopes.evaluations(42).addCase({ task: 't', expectedOutput: 'o' }),
+    ).rejects.toBeInstanceOf(ConflictError)
+    expect(bodies).toHaveLength(2)
+    expect(bodies[0]?.id).toMatch(UUID_V4)
+    expect(bodies[1]).toEqual(bodies[0])
   })
 })

@@ -10959,7 +10959,7 @@
         ]
       },
       "post": {
-        "description": "Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it. List the units with `GET /connections/{id}/selections`.\n\n**Requires:** `scopes:write`",
+        "description": "Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_create",
         "parameters": [],
         "requestBody": {
@@ -11343,7 +11343,7 @@
         ]
       },
       "patch": {
-        "description": "Updates the scope’s draft. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected. List the units with `GET /connections/{id}/selections`.\n\n**Requires:** `scopes:write`",
+        "description": "Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper. Lists replace the stored list. Cannot remove your own access.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_update",
         "parameters": [
           {
@@ -13090,6 +13090,626 @@
           }
         },
         "summary": "Deploy a scope",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/scopes/{id}/evaluations/cases": {
+      "post": {
+        "description": "Adds one evaluation case to the scope draft and returns the stored case. Omit id and one is assigned. An id that is already on the list is rejected.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopesController_addEvaluationCase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationCaseInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationCaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Add an evaluation case",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
+    "/api/v1/scopes/{id}/evaluations/cases/{caseId}": {
+      "patch": {
+        "description": "Changes the task, the expected output, or both, for one evaluation case on the scope draft and returns the case. Fields you omit stay as they are; a body with neither field is rejected.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopesController_updateEvaluationCase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "path",
+            "description": "Id of the evaluation case.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEvaluationCaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationCaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update an evaluation case",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      },
+      "delete": {
+        "description": "Removes one evaluation case from the scope draft. The other cases on the list stay as they are.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopesController_deleteEvaluationCase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "example": 42,
+              "type": "number"
+            }
+          },
+          {
+            "name": "caseId",
+            "required": true,
+            "in": "path",
+            "description": "Id of the evaluation case.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete an evaluation case",
         "tags": [
           "Scopes"
         ],
@@ -23724,7 +24344,7 @@
           "sharedWith"
         ]
       },
-      "AgentDashboardAlertDto": {
+      "AgentDashboardAlertResponseDto": {
         "type": "object",
         "properties": {
           "dashboardId": {
@@ -23741,7 +24361,8 @@
         "required": [
           "dashboardId",
           "tileId"
-        ]
+        ],
+        "nullable": true
       },
       "AgentDeployResponseDto": {
         "type": "object",
@@ -23813,9 +24434,11 @@
           },
           "config": {
             "type": "object",
-            "description": "Interface-type-specific configuration (e.g. webhook url, MCP token references). Free-form JSONB.",
+            "description": "Shape depends on `type`. Chat interfaces use optional `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. `mcp` uses an empty object.",
             "additionalProperties": true,
-            "example": {}
+            "example": {
+              "accessMode": "allow-org"
+            }
           },
           "createdAt": {
             "type": "string",
@@ -23863,7 +24486,7 @@
             ]
           },
           "agents": {
-            "description": "Ordered list of scopes to invoke. Must contain at least one entry.",
+            "description": "Ordered list of scopes to invoke. Writes must contain at least one entry; a GET response may contain an empty list when the selection is cleared.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AgentSelectionEntryDto"
@@ -23912,6 +24535,34 @@
           "priority_order"
         ]
       },
+      "AgentSelectionResponseDto": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Override model name for the orchestration step."
+          },
+          "modelSettings": {
+            "description": "Model-specific runtime controls such as reasoning effort and context window.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModelSettingsDto"
+              }
+            ]
+          },
+          "agents": {
+            "description": "Ordered list of scopes to invoke. Writes must contain at least one entry; a GET response may contain an empty list when the selection is cleared.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentSelectionEntryDto"
+            }
+          }
+        },
+        "required": [
+          "agents"
+        ],
+        "nullable": true
+      },
       "AgentSharedUserDto": {
         "type": "object",
         "properties": {
@@ -23952,22 +24603,34 @@
         "type": "object",
         "properties": {
           "trigger": {
+            "description": "`trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved.",
+            "nullable": true,
             "type": "object",
-            "description": "`{trigger_type, schedule?}` blob. `trigger_type` is one of `schedule | webhook | api | slack | manual`.",
-            "additionalProperties": true,
-            "nullable": true
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerResponseDto"
+              }
+            ]
           },
           "workflowStructure": {
+            "description": "Workflow graph (`nodes` and `edges`) when `type` is `workflow`. Null when `type` is `task`.",
+            "nullable": true,
             "type": "object",
-            "description": "Workflow graph (`{nodes, edges}`) when `type` is `workflow`. Null when `type` is `task`.",
-            "additionalProperties": true,
-            "nullable": true
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStructureResponseDto"
+              }
+            ]
           },
           "agentSelection": {
+            "description": "Selected scopes and per-step config (`agents`, optional `model`) when `type` is `task`. Null when `type` is `workflow`.",
+            "nullable": true,
             "type": "object",
-            "description": "Selected scopes + per-step config (`{agents, model?}`) when `type` is `task`. Null when `type` is `workflow`.",
-            "additionalProperties": true,
-            "nullable": true
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentSelectionResponseDto"
+              }
+            ]
           }
         }
       },
@@ -25355,12 +26018,21 @@
             }
           },
           "toolset": {
-            "description": "Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ToolsetDto"
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {\"byConnection\": {\"<connectionId>\": config}} to pick one.",
+            "example": {
+              "slack": {
+                "actions": [
+                  "SendMessage"
+                ],
+                "rules": {
+                  "allowedChannelIds": [
+                    "C1"
+                  ]
+                }
               }
-            ]
+            }
           },
           "model": {
             "type": "string",
@@ -26703,6 +27375,51 @@
           "custom"
         ],
         "description": "Schedule frequency"
+      },
+      "EvaluationCaseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id of the evaluation case.",
+            "minLength": 1
+          },
+          "task": {
+            "type": "string",
+            "description": "What the scope should do for this case."
+          },
+          "expectedOutput": {
+            "type": "string",
+            "description": "What a correct result looks like."
+          }
+        },
+        "required": [
+          "id",
+          "task",
+          "expectedOutput"
+        ]
+      },
+      "EvaluationCaseInputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id of the case. Omit it on a new case and one is assigned.",
+            "minLength": 1
+          },
+          "task": {
+            "type": "string",
+            "description": "What the scope should do for this case. An empty string is allowed."
+          },
+          "expectedOutput": {
+            "type": "string",
+            "description": "What a correct result looks like. An empty string is allowed."
+          }
+        },
+        "required": [
+          "task",
+          "expectedOutput"
+        ]
       },
       "EvaluationChannelsDto": {
         "type": "object",
@@ -28053,6 +28770,82 @@
           "selectionId"
         ]
       },
+      "McpCoreToolsConfigDto": {
+        "type": "object",
+        "properties": {
+          "chat": {
+            "type": "boolean",
+            "description": "Whether Get Answer is on.",
+            "example": false
+          },
+          "getContext": {
+            "type": "boolean",
+            "description": "Whether Get Context is on.",
+            "example": true
+          },
+          "teachModus": {
+            "type": "boolean",
+            "description": "Whether Teach Modus is on.",
+            "example": false
+          }
+        },
+        "required": [
+          "chat",
+          "getContext",
+          "teachModus"
+        ]
+      },
+      "McpToolExposureConfigDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "Exposure format. Always 1.",
+            "example": 1,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/McpToolExposureVersion"
+              }
+            ]
+          },
+          "mode": {
+            "description": "subset lists keys. discovery exposes every tool this scope can call.",
+            "example": "discovery",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/McpToolExposureMode"
+              }
+            ]
+          },
+          "allowedIntegrationKeys": {
+            "description": "Exposure keys when mode is subset. Empty for discovery.",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "version",
+          "mode",
+          "allowedIntegrationKeys"
+        ]
+      },
+      "McpToolExposureMode": {
+        "type": "string",
+        "enum": [
+          "subset",
+          "discovery"
+        ],
+        "description": "subset lists keys. discovery exposes every tool this scope can call."
+      },
+      "McpToolExposureVersion": {
+        "type": "number",
+        "enum": [
+          1
+        ],
+        "description": "Exposure format. Always 1."
+      },
       "MemberGroupDto": {
         "type": "object",
         "properties": {
@@ -28388,7 +29181,7 @@
         "type": "object",
         "properties": {
           "config": {
-            "description": "Full MCP interface config written to the scope draft; takes effect on the next deploy.",
+            "description": "MCP interface config written to the scope draft. Takes effect on the next deploy.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
@@ -28404,10 +29197,10 @@
         "type": "object",
         "properties": {
           "config": {
-            "description": "Sanitized MCP config now stored on the scope draft.",
+            "description": "MCP config in effect on the scope draft.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
+                "$ref": "#/components/schemas/SkillMcpInterfaceConfigResponseDto"
               }
             ]
           }
@@ -28752,10 +29545,10 @@
             "example": "MCP Server"
           },
           "config": {
-            "description": "Core tools and the integrations this interface exposes.",
+            "description": "Core tools and tool exposure as they take effect.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
+                "$ref": "#/components/schemas/SkillMcpInterfaceConfigResponseDto"
               }
             ]
           }
@@ -29029,13 +29822,36 @@
         "properties": {
           "coreTools": {
             "type": "object",
-            "description": "Core MCP tools: chat (get_answer), getContext, teachModus. Omitted keys default to chat false, getContext true, teachModus false. chat cannot be true together with another tool.",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "nullable": true,
+            "description": "Get Answer, Get Context, and Teach Modus. A changed value uses true or false for each key. Omitted keys default to Get Answer off, Get Context on, and Teach Modus off."
           },
           "mcpToolExposure": {
             "type": "object",
-            "description": "Integration tools exposed to MCP clients: mode discovery (all) or subset with allowedIntegrationKeys. Must be an empty subset when chat is true.",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "nullable": true,
+            "description": "Tools MCP clients can call. A changed value is version 1, mode subset or discovery, and a list of keys. A new key must be one this scope can expose."
+          }
+        }
+      },
+      "SkillMcpInterfaceConfigResponseDto": {
+        "type": "object",
+        "properties": {
+          "coreTools": {
+            "description": "Get Answer, Get Context, and Teach Modus as they take effect.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/McpCoreToolsConfigDto"
+              }
+            ]
+          },
+          "mcpToolExposure": {
+            "description": "Tools MCP clients can call, as they take effect.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/McpToolExposureConfigDto"
+              }
+            ]
           }
         }
       },
@@ -29101,11 +29917,10 @@
             }
           },
           "evaluations": {
+            "description": "Evaluation cases saved for this variation.",
             "type": "array",
-            "description": "Evaluation entries (task + expected-output pairs) saved for this variation.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
+              "$ref": "#/components/schemas/EvaluationCaseDto"
             }
           },
           "interfaces": {
@@ -29333,50 +30148,6 @@
           "requiresConnection"
         ]
       },
-      "ToolsetDto": {
-        "type": "object",
-        "properties": {
-          "tools": {
-            "description": "List of tools the scope may invoke.",
-            "example": [
-              {
-                "id": "web_search",
-                "enabled": true
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ToolsetToolDto"
-            }
-          }
-        }
-      },
-      "ToolsetToolDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Stable id of the tool (matches the registry key on the workflow runtime).",
-            "example": "web_search"
-          },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether this tool is enabled for the scope. Defaults to true when absent.",
-            "example": true
-          },
-          "config": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Free-form tool-specific configuration (e.g. allowlists). Schema varies per tool.",
-            "example": {
-              "max_results": 5
-            }
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
       "TransferDashboardOwnershipDto": {
         "type": "object",
         "properties": {
@@ -29420,7 +30191,9 @@
             "example": "schedule"
           },
           "schedule": {
-            "description": "Schedule details. Required when trigger_type=schedule.",
+            "description": "Schedule details. Required when trigger_type=schedule. Null for every other trigger.",
+            "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/TriggerScheduleDto"
@@ -29467,7 +30240,8 @@
             "type": "string",
             "description": "Time of day in 24-hour HH:MM format. Required for hourly/daily/weekly/monthly; ignored for custom.",
             "example": "09:00",
-            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "nullable": true
           },
           "timezone": {
             "type": "string",
@@ -29482,6 +30256,7 @@
               "wednesday",
               "friday"
             ],
+            "nullable": true,
             "items": {
               "type": "string",
               "enum": [
@@ -29500,13 +30275,15 @@
             "description": "Required for monthly schedules. Calendar day 1-31.",
             "example": 15,
             "minimum": 1,
-            "maximum": 31
+            "maximum": 31,
+            "nullable": true
           },
           "cron_expressions": {
             "description": "Required for custom schedules. Each entry is a 5-field POSIX cron expression.",
             "example": [
               "0 9 * * 1-5"
             ],
+            "nullable": true,
             "type": "array",
             "items": {
               "type": "string"
@@ -29515,7 +30292,8 @@
           "cron_description": {
             "type": "string",
             "description": "Human-readable description of the custom schedule. Required when frequency=custom.",
-            "example": "Weekdays at 9am"
+            "example": "Weekdays at 9am",
+            "nullable": true
           }
         },
         "required": [
@@ -29824,6 +30602,19 @@
           "elements"
         ]
       },
+      "UpdateEvaluationCaseDto": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Replacement for what the scope should do. An empty string is allowed."
+          },
+          "expectedOutput": {
+            "type": "string",
+            "description": "Replacement for what a correct result looks like. An empty string is allowed."
+          }
+        }
+      },
       "UpdateEvaluationConfigDto": {
         "type": "object",
         "properties": {
@@ -29929,12 +30720,21 @@
             }
           },
           "toolset": {
-            "description": "Updated toolset configuration. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ToolsetDto"
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {\"byConnection\": {\"<connectionId>\": config}} to pick one.",
+            "example": {
+              "slack": {
+                "actions": [
+                  "SendMessage"
+                ],
+                "rules": {
+                  "allowedChannelIds": [
+                    "C1"
+                  ]
+                }
               }
-            ]
+            }
           },
           "model": {
             "type": "string",
@@ -29978,13 +30778,11 @@
             }
           },
           "evaluations": {
+            "description": "Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases.",
             "type": "array",
-            "description": "Updated evaluation entries (task + expected-output pairs) saved for the draft variation. Replaces the prior list when present.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "example": []
+              "$ref": "#/components/schemas/EvaluationCaseInputDto"
+            }
           },
           "supervisionSubordinateDescriptions": {
             "type": "object",
@@ -30318,7 +31116,8 @@
             "type": "string",
             "enum": [
               "not_owner",
-              "needs_group_manage"
+              "needs_group_manage",
+              null
             ],
             "nullable": true,
             "description": "Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true. Derived server-side from the principal + accessConfig.",
@@ -30330,7 +31129,7 @@
             "type": "object",
             "allOf": [
               {
-                "$ref": "#/components/schemas/AgentDashboardAlertDto"
+                "$ref": "#/components/schemas/AgentDashboardAlertResponseDto"
               }
             ]
           }
@@ -30465,6 +31264,138 @@
             }
           }
         }
+      },
+      "WorkflowStructureResponseDto": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "description": "Workflow nodes. Defaults to `[]`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeDto"
+            }
+          },
+          "edges": {
+            "description": "Directed edges connecting the nodes. Defaults to `[]`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdgeDto"
+            }
+          }
+        },
+        "nullable": true
+      },
+      "WorkflowTriggerResponseDto": {
+        "type": "object",
+        "properties": {
+          "trigger_type": {
+            "type": "string",
+            "enum": [
+              "schedule",
+              "webhook",
+              "api",
+              "slack",
+              "manual"
+            ],
+            "description": "Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.",
+            "example": "schedule"
+          },
+          "schedule": {
+            "description": "Schedule details. Required when trigger_type=schedule. Null for every other trigger.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerScheduleResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "trigger_type"
+        ],
+        "nullable": true
+      },
+      "WorkflowTriggerScheduleResponseDto": {
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "hourly",
+              "daily",
+              "weekly",
+              "monthly",
+              "custom"
+            ],
+            "description": "Cadence of the schedule.",
+            "example": "daily"
+          },
+          "time_of_day": {
+            "type": "string",
+            "description": "Time of day in 24-hour HH:MM format. Required for hourly/daily/weekly/monthly; ignored for custom.",
+            "example": "09:00",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone identifier.",
+            "example": "UTC"
+          },
+          "weekdays": {
+            "type": "array",
+            "description": "Required for weekly schedules. Lowercase day names.",
+            "example": [
+              "monday",
+              "wednesday",
+              "friday"
+            ],
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday"
+              ]
+            }
+          },
+          "day_of_month": {
+            "type": "number",
+            "description": "Required for monthly schedules. Calendar day 1-31.",
+            "example": 15,
+            "minimum": 1,
+            "maximum": 31,
+            "nullable": true
+          },
+          "cron_expressions": {
+            "description": "Required for custom schedules. Each entry is a 5-field POSIX cron expression.",
+            "example": [
+              "0 9 * * 1-5"
+            ],
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cron_description": {
+            "type": "string",
+            "description": "Human-readable description of the custom schedule. Required when frequency=custom.",
+            "example": "Weekdays at 9am",
+            "nullable": true
+          }
+        },
+        "required": [
+          "frequency",
+          "timezone"
+        ],
+        "nullable": true
       },
       "ActiveConversationRunDto": {
         "type": "object",

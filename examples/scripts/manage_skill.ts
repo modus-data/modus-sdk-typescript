@@ -20,10 +20,11 @@ function exampleName(): string {
 }
 
 function toolsetForExample(): Record<string, unknown> {
+  // A SQL action key such as SELECT:<connection-id>: names a connection most orgs lack, so the SQL tool is opt-in.
   const sqlSelector = process.env.MODUS_SQL_SELECTOR
   if (sqlSelector) {
     return {
-      sql_runner: { enabled: true, selectors: [sqlSelector] },
+      sql_runner: [sqlSelector],
       memory: { enabled: true },
     }
   }

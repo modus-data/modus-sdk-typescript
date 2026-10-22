@@ -1005,7 +1005,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it. List the units with `GET /connections/{id}/selections`.
+         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1043,7 +1043,7 @@ export interface paths {
         head?: never;
         /**
          * Update a scope
-         * @description Updates the scope’s draft. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected. List the units with `GET /connections/{id}/selections`.
+         * @description Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper. Lists replace the stored list. Cannot remove your own access.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1180,6 +1180,56 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/evaluations/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add an evaluation case
+         * @description Adds one evaluation case to the scope draft and returns the stored case. Omit id and one is assigned. An id that is already on the list is rejected.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["ScopesController_addEvaluationCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/evaluations/cases/{caseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an evaluation case
+         * @description Removes one evaluation case from the scope draft. The other cases on the list stay as they are.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        delete: operations["ScopesController_deleteEvaluationCase"];
+        options?: never;
+        head?: never;
+        /**
+         * Update an evaluation case
+         * @description Changes the task, the expected output, or both, for one evaluation case on the scope draft and returns the case. Fields you omit stay as they are; a body with neither field is rejected.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        patch: operations["ScopesController_updateEvaluationCase"];
         trace?: never;
     };
     "/api/v1/scopes/{id}/evaluations/config": {
@@ -2403,7 +2453,7 @@ export interface components {
              */
             ownerEmail?: string | null;
         };
-        AgentDashboardAlertDto: {
+        AgentDashboardAlertResponseDto: {
             /**
              * @description Id of the dashboard whose KPI alert generated this workflow.
              * @example dash_01j9z3k2
@@ -2414,7 +2464,7 @@ export interface components {
              * @example tile_revenue
              */
             tileId: string;
-        };
+        } | null;
         AgentDeployResponseDto: {
             /** @description The workflow after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
             workflow: components["schemas"]["WorkflowDto"];
@@ -2458,8 +2508,10 @@ export interface components {
              */
             name: string;
             /**
-             * @description Interface-type-specific configuration (e.g. webhook url, MCP token references). Free-form JSONB.
-             * @example {}
+             * @description Shape depends on `type`. Chat interfaces use optional `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. `mcp` uses an empty object.
+             * @example {
+             *       "accessMode": "allow-org"
+             *     }
              */
             config: {
                 [key: string]: unknown;
@@ -2485,7 +2537,7 @@ export interface components {
             model?: string;
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
-            /** @description Ordered list of scopes to invoke. Must contain at least one entry. */
+            /** @description Ordered list of scopes to invoke. Writes must contain at least one entry; a GET response may contain an empty list when the selection is cleared. */
             agents: components["schemas"]["AgentSelectionEntryDto"][];
         };
         AgentSelectionEntryDto: {
@@ -2512,6 +2564,14 @@ export interface components {
             /** @description Optional allowlist of tools the step may call. */
             tool_restrictions?: string[];
         };
+        AgentSelectionResponseDto: {
+            /** @description Override model name for the orchestration step. */
+            model?: string;
+            /** @description Model-specific runtime controls such as reasoning effort and context window. */
+            modelSettings?: components["schemas"]["ModelSettingsDto"];
+            /** @description Ordered list of scopes to invoke. Writes must contain at least one entry; a GET response may contain an empty list when the selection is cleared. */
+            agents: components["schemas"]["AgentSelectionEntryDto"][];
+        } | null;
         AgentSharedUserDto: {
             /**
              * @description Lowercased email of a user explicitly granted access to a private workflow.
@@ -2540,18 +2600,12 @@ export interface components {
          */
         AgentType: "task" | "workflow";
         AgentVariationDto: {
-            /** @description `{trigger_type, schedule?}` blob. `trigger_type` is one of `schedule | webhook | api | slack | manual`. */
-            trigger?: {
-                [key: string]: unknown;
-            } | null;
-            /** @description Workflow graph (`{nodes, edges}`) when `type` is `workflow`. Null when `type` is `task`. */
-            workflowStructure?: {
-                [key: string]: unknown;
-            } | null;
-            /** @description Selected scopes + per-step config (`{agents, model?}`) when `type` is `task`. Null when `type` is `workflow`. */
-            agentSelection?: {
-                [key: string]: unknown;
-            } | null;
+            /** @description `trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved. */
+            trigger?: components["schemas"]["WorkflowTriggerResponseDto"] | null;
+            /** @description Workflow graph (`nodes` and `edges`) when `type` is `workflow`. Null when `type` is `task`. */
+            workflowStructure?: components["schemas"]["WorkflowStructureResponseDto"] | null;
+            /** @description Selected scopes and per-step config (`agents`, optional `model`) when `type` is `task`. Null when `type` is `workflow`. */
+            agentSelection?: components["schemas"]["AgentSelectionResponseDto"] | null;
         };
         /**
          * @description Modus-specific machine code.
@@ -3357,8 +3411,24 @@ export interface components {
              *     ]
              */
             instructions?: string[];
-            /** @description Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`. */
-            toolset?: components["schemas"]["ToolsetDto"];
+            /**
+             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @example {
+             *       "slack": {
+             *         "actions": [
+             *           "SendMessage"
+             *         ],
+             *         "rules": {
+             *           "allowedChannelIds": [
+             *             "C1"
+             *           ]
+             *         }
+             *       }
+             *     }
+             */
+            toolset?: {
+                [key: string]: unknown;
+            };
             /**
              * @description Model identifier to use at run time (e.g. `claude-sonnet-4-5`). Falls back to org default when absent.
              * @example claude-sonnet-4-5
@@ -3845,6 +3915,22 @@ export interface components {
          * @enum {string}
          */
         EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom";
+        EvaluationCaseDto: {
+            /** @description Stable id of the evaluation case. */
+            id: string;
+            /** @description What the scope should do for this case. */
+            task: string;
+            /** @description What a correct result looks like. */
+            expectedOutput: string;
+        };
+        EvaluationCaseInputDto: {
+            /** @description Stable id of the case. Omit it on a new case and one is assigned. */
+            id?: string;
+            /** @description What the scope should do for this case. An empty string is allowed. */
+            task: string;
+            /** @description What a correct result looks like. An empty string is allowed. */
+            expectedOutput: string;
+        };
         EvaluationChannelsDto: {
             /** @description Enable email notifications */
             email: boolean;
@@ -4418,6 +4504,50 @@ export interface components {
             /** @description Selection (per-connection subset) id when the row scopes to a selection, otherwise null. */
             selectionId: string | null;
         };
+        McpCoreToolsConfigDto: {
+            /**
+             * @description Whether Get Answer is on.
+             * @example false
+             */
+            chat: boolean;
+            /**
+             * @description Whether Get Context is on.
+             * @example true
+             */
+            getContext: boolean;
+            /**
+             * @description Whether Teach Modus is on.
+             * @example false
+             */
+            teachModus: boolean;
+        };
+        McpToolExposureConfigDto: {
+            /**
+             * @description Exposure format. Always 1.
+             * @example 1
+             */
+            version: components["schemas"]["McpToolExposureVersion"];
+            /**
+             * @description subset lists keys. discovery exposes every tool this scope can call.
+             * @example discovery
+             */
+            mode: components["schemas"]["McpToolExposureMode"];
+            /**
+             * @description Exposure keys when mode is subset. Empty for discovery.
+             * @example []
+             */
+            allowedIntegrationKeys: string[];
+        };
+        /**
+         * @description subset lists keys. discovery exposes every tool this scope can call.
+         * @enum {string}
+         */
+        McpToolExposureMode: "subset" | "discovery";
+        /**
+         * @description Exposure format. Always 1.
+         * @enum {number}
+         */
+        McpToolExposureVersion: 1;
         MemberGroupDto: {
             uid: string;
             name: string;
@@ -4574,12 +4704,12 @@ export interface components {
             role: string;
         };
         PatchSkillMcpConfigDto: {
-            /** @description Full MCP interface config written to the scope draft; takes effect on the next deploy. */
+            /** @description MCP interface config written to the scope draft. Takes effect on the next deploy. */
             config: components["schemas"]["SkillMcpInterfaceConfigDto"];
         };
         PatchSkillMcpConfigResponseDto: {
-            /** @description Sanitized MCP config now stored on the scope draft. */
-            config: components["schemas"]["SkillMcpInterfaceConfigDto"];
+            /** @description MCP config in effect on the scope draft. */
+            config: components["schemas"]["SkillMcpInterfaceConfigResponseDto"];
         };
         PendingOwnershipTransferDto: {
             /**
@@ -4773,8 +4903,8 @@ export interface components {
              * @example MCP Server
              */
             name: string;
-            /** @description Core tools and the integrations this interface exposes. */
-            config: components["schemas"]["SkillMcpInterfaceConfigDto"];
+            /** @description Core tools and tool exposure as they take effect. */
+            config: components["schemas"]["SkillMcpInterfaceConfigResponseDto"];
         };
         ScopeMcpInterfaceInputDto: {
             /**
@@ -4918,14 +5048,20 @@ export interface components {
             runId: string;
         };
         SkillMcpInterfaceConfigDto: {
-            /** @description Core MCP tools: chat (get_answer), getContext, teachModus. Omitted keys default to chat false, getContext true, teachModus false. chat cannot be true together with another tool. */
+            /** @description Get Answer, Get Context, and Teach Modus. A changed value uses true or false for each key. Omitted keys default to Get Answer off, Get Context on, and Teach Modus off. */
             coreTools?: {
                 [key: string]: unknown;
-            };
-            /** @description Integration tools exposed to MCP clients: mode discovery (all) or subset with allowedIntegrationKeys. Must be an empty subset when chat is true. */
+            } | null;
+            /** @description Tools MCP clients can call. A changed value is version 1, mode subset or discovery, and a list of keys. A new key must be one this scope can expose. */
             mcpToolExposure?: {
                 [key: string]: unknown;
-            };
+            } | null;
+        };
+        SkillMcpInterfaceConfigResponseDto: {
+            /** @description Get Answer, Get Context, and Teach Modus as they take effect. */
+            coreTools?: components["schemas"]["McpCoreToolsConfigDto"];
+            /** @description Tools MCP clients can call, as they take effect. */
+            mcpToolExposure?: components["schemas"]["McpToolExposureConfigDto"];
         };
         SkillVariationDto: {
             /**
@@ -4970,10 +5106,8 @@ export interface components {
             contextSelections: {
                 [key: string]: unknown;
             }[];
-            /** @description Evaluation entries (task + expected-output pairs) saved for this variation. */
-            evaluations: {
-                [key: string]: unknown;
-            }[];
+            /** @description Evaluation cases saved for this variation. */
+            evaluations: components["schemas"]["EvaluationCaseDto"][];
             /** @description MCP interface for this scope. Each row has an id, type mcp, a name, and a config. */
             interfaces: components["schemas"]["ScopeMcpInterfaceDto"][];
             /**
@@ -5099,39 +5233,6 @@ export interface components {
             /** @description Fixed set of actions this tool exposes. Present only when the action list does not depend on a live connection (built-in tools). Connected integrations expose connection-specific actions not listed here. */
             actions?: components["schemas"]["ToolCatalogActionDto"][];
         };
-        ToolsetDto: {
-            /**
-             * @description List of tools the scope may invoke.
-             * @example [
-             *       {
-             *         "id": "web_search",
-             *         "enabled": true
-             *       }
-             *     ]
-             */
-            tools?: components["schemas"]["ToolsetToolDto"][];
-        };
-        ToolsetToolDto: {
-            /**
-             * @description Stable id of the tool (matches the registry key on the workflow runtime).
-             * @example web_search
-             */
-            id: string;
-            /**
-             * @description Whether this tool is enabled for the scope. Defaults to true when absent.
-             * @example true
-             */
-            enabled?: boolean;
-            /**
-             * @description Free-form tool-specific configuration (e.g. allowlists). Schema varies per tool.
-             * @example {
-             *       "max_results": 5
-             *     }
-             */
-            config?: {
-                [key: string]: unknown;
-            };
-        };
         TransferDashboardOwnershipDto: {
             /** @description User id of the new owner; must be a member of the organization. */
             newOwnerUserId: string;
@@ -5150,8 +5251,8 @@ export interface components {
              * @enum {string}
              */
             trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
-            /** @description Schedule details. Required when trigger_type=schedule. */
-            schedule?: components["schemas"]["TriggerScheduleDto"];
+            /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
+            schedule?: components["schemas"]["TriggerScheduleDto"] | null;
         };
         TriggerEvaluationRunResponseDto: {
             /** @description The created run ID */
@@ -5170,7 +5271,7 @@ export interface components {
              * @description Time of day in 24-hour HH:MM format. Required for hourly/daily/weekly/monthly; ignored for custom.
              * @example 09:00
              */
-            time_of_day?: string;
+            time_of_day?: string | null;
             /**
              * @description IANA timezone identifier.
              * @example UTC
@@ -5184,24 +5285,24 @@ export interface components {
              *       "friday"
              *     ]
              */
-            weekdays?: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+            weekdays?: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[] | null;
             /**
              * @description Required for monthly schedules. Calendar day 1-31.
              * @example 15
              */
-            day_of_month?: number;
+            day_of_month?: number | null;
             /**
              * @description Required for custom schedules. Each entry is a 5-field POSIX cron expression.
              * @example [
              *       "0 9 * * 1-5"
              *     ]
              */
-            cron_expressions?: string[];
+            cron_expressions?: string[] | null;
             /**
              * @description Human-readable description of the custom schedule. Required when frequency=custom.
              * @example Weekdays at 9am
              */
-            cron_description?: string;
+            cron_description?: string | null;
         };
         UpdateAgentDto: {
             /**
@@ -5360,6 +5461,12 @@ export interface components {
             /** @description Every affected item with its final x, y, width, and height. */
             elements: components["schemas"]["DashboardLayoutElementDto"][];
         };
+        UpdateEvaluationCaseDto: {
+            /** @description Replacement for what the scope should do. An empty string is allowed. */
+            task?: string;
+            /** @description Replacement for what a correct result looks like. An empty string is allowed. */
+            expectedOutput?: string;
+        };
         UpdateEvaluationConfigDto: {
             /** @description Whether scheduled evaluations are enabled */
             enabled?: boolean;
@@ -5421,8 +5528,24 @@ export interface components {
              *     ]
              */
             instructions?: string[];
-            /** @description Updated toolset configuration. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`. */
-            toolset?: components["schemas"]["ToolsetDto"];
+            /**
+             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @example {
+             *       "slack": {
+             *         "actions": [
+             *           "SendMessage"
+             *         ],
+             *         "rules": {
+             *           "allowedChannelIds": [
+             *             "C1"
+             *           ]
+             *         }
+             *       }
+             *     }
+             */
+            toolset?: {
+                [key: string]: unknown;
+            };
             /**
              * @description Updated model id. Pass `null` (explicit) to clear and use the org default.
              * @example claude-sonnet-4-5
@@ -5446,13 +5569,8 @@ export interface components {
             }[];
             /** @description Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list. */
             interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
-            /**
-             * @description Updated evaluation entries (task + expected-output pairs) saved for the draft variation. Replaces the prior list when present.
-             * @example []
-             */
-            evaluations?: {
-                [key: string]: unknown;
-            }[];
+            /** @description Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases. */
+            evaluations?: components["schemas"]["EvaluationCaseInputDto"][];
             /**
              * @description Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present.
              * @example {
@@ -5670,7 +5788,7 @@ export interface components {
              */
             manageDenial: "not_owner" | "needs_group_manage" | null;
             /** @description Set when a dashboard KPI alert generated this workflow. Changing its definition requires disconnectDashboardAlert. */
-            dashboardAlert?: components["schemas"]["AgentDashboardAlertDto"] | null;
+            dashboardAlert?: components["schemas"]["AgentDashboardAlertResponseDto"] | null;
         };
         WorkflowEdgeDto: {
             /**
@@ -5732,6 +5850,66 @@ export interface components {
             /** @description Directed edges connecting the nodes. Defaults to `[]`. */
             edges?: components["schemas"]["WorkflowEdgeDto"][];
         };
+        WorkflowStructureResponseDto: {
+            /** @description Workflow nodes. Defaults to `[]`. */
+            nodes?: components["schemas"]["WorkflowNodeDto"][];
+            /** @description Directed edges connecting the nodes. Defaults to `[]`. */
+            edges?: components["schemas"]["WorkflowEdgeDto"][];
+        } | null;
+        WorkflowTriggerResponseDto: {
+            /**
+             * @description Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.
+             * @example schedule
+             * @enum {string}
+             */
+            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
+            /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
+            schedule?: components["schemas"]["WorkflowTriggerScheduleResponseDto"] | null;
+        } | null;
+        WorkflowTriggerScheduleResponseDto: {
+            /**
+             * @description Cadence of the schedule.
+             * @example daily
+             * @enum {string}
+             */
+            frequency: "hourly" | "daily" | "weekly" | "monthly" | "custom";
+            /**
+             * @description Time of day in 24-hour HH:MM format. Required for hourly/daily/weekly/monthly; ignored for custom.
+             * @example 09:00
+             */
+            time_of_day?: string | null;
+            /**
+             * @description IANA timezone identifier.
+             * @example UTC
+             */
+            timezone: string;
+            /**
+             * @description Required for weekly schedules. Lowercase day names.
+             * @example [
+             *       "monday",
+             *       "wednesday",
+             *       "friday"
+             *     ]
+             */
+            weekdays?: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[] | null;
+            /**
+             * @description Required for monthly schedules. Calendar day 1-31.
+             * @example 15
+             */
+            day_of_month?: number | null;
+            /**
+             * @description Required for custom schedules. Each entry is a 5-field POSIX cron expression.
+             * @example [
+             *       "0 9 * * 1-5"
+             *     ]
+             */
+            cron_expressions?: string[] | null;
+            /**
+             * @description Human-readable description of the custom schedule. Required when frequency=custom.
+             * @example Weekdays at 9am
+             */
+            cron_description?: string | null;
+        } | null;
         ActiveConversationRunDto: {
             /** @description Run identifier. */
             runId: string;
@@ -16776,6 +16954,553 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeployResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_addEvaluationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluationCaseInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationCaseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_deleteEvaluationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+                /** @description Id of the evaluation case. */
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_updateEvaluationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+                /** @description Id of the evaluation case. */
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEvaluationCaseDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationCaseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
