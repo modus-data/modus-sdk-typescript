@@ -3385,13 +3385,8 @@ export interface components {
              * @default true
              */
             includeOwnLearnings: boolean;
-            /**
-             * @description The scope's MCP interface configuration. Only entries with `type: "mcp"` are accepted; any other type is rejected with 400.
-             * @example []
-             */
-            interfaces?: {
-                [key: string]: unknown;
-            }[];
+            /** @description MCP interface rows for this scope. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. */
+            interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
             /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */
             accessConfig?: components["schemas"]["AccessConfigDto"];
         };
@@ -4762,6 +4757,49 @@ export interface components {
              */
             updatedAt: string;
         };
+        ScopeMcpInterfaceDto: {
+            /**
+             * @description Interface id.
+             * @example 00000000-0000-4000-a000-000000000500
+             */
+            id: string;
+            /**
+             * @description Interface type. A scope has an MCP interface only.
+             * @example mcp
+             */
+            type: components["schemas"]["ScopeMcpInterfaceType"];
+            /**
+             * @description Display name.
+             * @example MCP Server
+             */
+            name: string;
+            /** @description Core tools and the integrations this interface exposes. */
+            config: components["schemas"]["SkillMcpInterfaceConfigDto"];
+        };
+        ScopeMcpInterfaceInputDto: {
+            /**
+             * @description Interface id. Assigned when omitted.
+             * @example 00000000-0000-4000-a000-000000000500
+             */
+            id?: string;
+            /**
+             * @description Interface type. A scope has an MCP interface only.
+             * @example mcp
+             */
+            type: components["schemas"]["ScopeMcpInterfaceType"];
+            /**
+             * @description Display name. Assigned when omitted.
+             * @example MCP Server
+             */
+            name?: string;
+            /** @description Core tools and the integrations this interface exposes. */
+            config?: components["schemas"]["SkillMcpInterfaceConfigDto"];
+        };
+        /**
+         * @description Interface type. A scope has an MCP interface only.
+         * @enum {string}
+         */
+        ScopeMcpInterfaceType: "mcp";
         SearchMemoriesRequestDto: {
             /**
              * @description Search query string (semantic search over the scope's memories).
@@ -4936,10 +4974,8 @@ export interface components {
             evaluations: {
                 [key: string]: unknown;
             }[];
-            /** @description Interface entries attached to the variation (chat, slack, webhook, etc.). Each is a builder-managed object. */
-            interfaces: {
-                [key: string]: unknown;
-            }[];
+            /** @description MCP interface for this scope. Each row has an id, type mcp, a name, and a config. */
+            interfaces: components["schemas"]["ScopeMcpInterfaceDto"][];
             /**
              * @description IDs of scopes supervised by this scope (when it is a manager). Stringified for wire stability.
              * @example [
@@ -5408,13 +5444,8 @@ export interface components {
             contextSelections?: {
                 [key: string]: unknown;
             }[];
-            /**
-             * @description Updated MCP interface configuration. Only entries with `type: "mcp"` are accepted; any other type is rejected with 400.
-             * @example []
-             */
-            interfaces?: {
-                [key: string]: unknown;
-            }[];
+            /** @description Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list. */
+            interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
             /**
              * @description Updated evaluation entries (task + expected-output pairs) saved for the draft variation. Replaces the prior list when present.
              * @example []

@@ -25399,13 +25399,11 @@
             "default": true
           },
           "interfaces": {
+            "description": "MCP interface rows for this scope. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned.",
             "type": "array",
-            "description": "The scope's MCP interface configuration. Only entries with `type: \"mcp\"` are accepted; any other type is rejected with 400.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "example": []
+              "$ref": "#/components/schemas/ScopeMcpInterfaceInputDto"
+            }
           },
           "accessConfig": {
             "description": "Access configuration. Omit to use the default (full-org shared with use + manage).",
@@ -28731,6 +28729,86 @@
           "updatedAt"
         ]
       },
+      "ScopeMcpInterfaceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Interface id.",
+            "example": "00000000-0000-4000-a000-000000000500"
+          },
+          "type": {
+            "description": "Interface type. A scope has an MCP interface only.",
+            "example": "mcp",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScopeMcpInterfaceType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name.",
+            "example": "MCP Server"
+          },
+          "config": {
+            "description": "Core tools and the integrations this interface exposes.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "config"
+        ]
+      },
+      "ScopeMcpInterfaceInputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Interface id. Assigned when omitted.",
+            "example": "00000000-0000-4000-a000-000000000500"
+          },
+          "type": {
+            "description": "Interface type. A scope has an MCP interface only.",
+            "example": "mcp",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScopeMcpInterfaceType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name. Assigned when omitted.",
+            "example": "MCP Server"
+          },
+          "config": {
+            "description": "Core tools and the integrations this interface exposes.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SkillMcpInterfaceConfigDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "ScopeMcpInterfaceType": {
+        "type": "string",
+        "enum": [
+          "mcp"
+        ],
+        "description": "Interface type. A scope has an MCP interface only."
+      },
       "SearchMemoriesRequestDto": {
         "type": "object",
         "properties": {
@@ -29031,11 +29109,10 @@
             }
           },
           "interfaces": {
+            "description": "MCP interface for this scope. Each row has an id, type mcp, a name, and a config.",
             "type": "array",
-            "description": "Interface entries attached to the variation (chat, slack, webhook, etc.). Each is a builder-managed object.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
+              "$ref": "#/components/schemas/ScopeMcpInterfaceDto"
             }
           },
           "supervisionSubordinateIds": {
@@ -29894,13 +29971,11 @@
             "example": []
           },
           "interfaces": {
+            "description": "Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list.",
             "type": "array",
-            "description": "Updated MCP interface configuration. Only entries with `type: \"mcp\"` are accepted; any other type is rejected with 400.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "example": []
+              "$ref": "#/components/schemas/ScopeMcpInterfaceInputDto"
+            }
           },
           "evaluations": {
             "type": "array",
