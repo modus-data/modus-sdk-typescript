@@ -11,6 +11,30 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **List selectable units.** `client.connections.listSelections(connectionId)` and
+  `iterSelections(connectionId)` page the units a scope can select on a connection
+  (`GET /connections/{id}/selections`). `client.connections.list()` items may include
+  `selectionModel`.
+
+### Changed
+
+- **Breaking (pre-1.0): scope `interfaces` have one shape.** `scopes.create` and `scopes.update` (`POST /api/v1/scopes` and `PATCH /api/v1/scopes/{id}`) accept only MCP interface rows. `type` must be `mcp`. Each row has an optional id and name and a config of core tools and exposed integrations. A row without an id or name is assigned one. Responses return only id, type, name, and config; extra stored keys such as `enabled` are no longer returned.
+- **Scope `connectionSet` rows must be a selectable unit.** `scopes.create` and `scopes.update` reject a new row whose path is neither the whole connection nor one selectable unit of it, with 422 `root.not_a_root`. A row already stored can stay, and removing it still succeeds.
+- **Workflow interface config.** Slack and Teams `config` on a workflow interface is `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. An MCP interface accepts no config keys. An unknown key or invalid value in a changed config returns 422 with violations; `config: null` returns 400. Unchanged stored values are accepted.
+- **`searchQuery` documents word search.** `context.customItems.list({ searchQuery })` (`GET /context/custom-items`) describes
+  word search: it returns rows that contain every word of the query, case-insensitive.
+
+## [0.8.0] — 2026-10-18
+
+### Removed
+
+- **Breaking: evaluation Slack `nangoConnectionId`.** Send `connectionId`, the
+  Slack connection's Modus UUID, in notification settings instead. The generated
+  `EvaluationSlackChannelDto` type uses `connectionId`. No deprecation window;
+  requires a major release.
+
+### Added
+
 - **`includeOwnLearnings` on `scopes.create`.** A new scope reads what is taught while
   using it by default; pass `false` to create it without its own learnings.
 - **`defaultHeaders` client option.** `Modus` and `ModusManagement` accept headers to

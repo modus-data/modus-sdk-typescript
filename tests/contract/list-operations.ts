@@ -84,6 +84,23 @@ export const SDK_AIP_LIST_OPERATIONS: ListOperationSpec[] = [
     invoke: (c) => c.connections.list({ pageSize: 25, pageToken: 'tok_abc' }),
   },
   {
+    operationId: 'ConnectionsController_listSelections',
+    mockUrlSuffix: '/api/v1/connections/7a3f9d2c-1111-4000-a000-000000000abc/selections',
+    itemsKey: 'selections',
+    wrongItemsKey: 'connections',
+    sampleItem: {
+      path: ['acme/widgets'],
+      objectType: 'repository',
+      displayName: 'widgets',
+    },
+    clientKind: 'modus',
+    invoke: (c) =>
+      c.connections.listSelections('7a3f9d2c-1111-4000-a000-000000000abc', {
+        pageSize: 25,
+        pageToken: 'tok_abc',
+      }),
+  },
+  {
     operationId: 'SuggestionsController_listApproved',
     mockUrlSuffix: '/api/v1/suggestions/questions',
     itemsKey: 'suggestions',

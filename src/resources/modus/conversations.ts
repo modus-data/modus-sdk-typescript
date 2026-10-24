@@ -1,10 +1,10 @@
 import type { ModusConfig } from '../../_config.js'
+import { ModusConversationsResourceBase } from '../../_generated/resources/consumption/modus/conversations.js'
 import type { HttpClient } from '../../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry } from '../../_request.js'
-import { validateId, validatePageSize } from '../../_validation.js'
+import { validatePageSize } from '../../_validation.js'
 import type {
-  Conversation,
   ConversationKind,
   ConversationListItem,
 } from '../../types/conversations.js'
@@ -37,16 +37,14 @@ function parseListItem(raw: unknown): ConversationListItem {
   return raw as ConversationListItem
 }
 
-function parseConversation(raw: unknown): Conversation {
-  return raw as Conversation
-}
-
 /** List and retrieve Modus / scope conversations. */
-export class ModusConversationsResource {
+export class ModusConversationsResource extends ModusConversationsResourceBase {
   constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
+    http: HttpClient,
+    config: ModusConfig,
+  ) {
+    super(http, config)
+  }
 
   /**
    * List conversations.
@@ -91,19 +89,5 @@ export class ModusConversationsResource {
     return buildAipPage(data, 'conversations', parseListItem, (token) =>
       this.listPage(pageSize, token, kind, source, sourceRef),
     )
-  }
-
-  /**
-   * Retrieve a conversation thread with full message history.
-   *
-   * @param threadId - Conversation thread id.
-   * @returns Conversation with messages.
-   */
-  async get(threadId: string): Promise<Conversation> {
-    validateId(threadId, 'thread_id')
-    const data = await invokeWithRetry(this.config, this.http, 'ModusConversationsController_get', {
-      pathParams: { threadId },
-    })
-    return parseConversation(data)
   }
 }

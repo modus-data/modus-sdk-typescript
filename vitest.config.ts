@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config'
+import { repoSpecGlob } from '../../../../vitest.repo-specs.js'
 
 export default defineConfig({
   define: {
@@ -7,7 +8,7 @@ export default defineConfig({
   test: {
     clearMocks: false,
     include: ['tests/**/*.test.ts'],
-    exclude: ['tests/integration/**'],
+    exclude: ['tests/integration/**', repoSpecGlob],
     setupFiles: ['./tests/vitest.setup.ts'],
   },
 })

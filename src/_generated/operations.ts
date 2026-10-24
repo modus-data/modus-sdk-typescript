@@ -24,6 +24,16 @@ export const OPERATIONS = {
     requestSchema: null,
     responseSchema: "ListConnectionsResponseDto",
   },
+  "ConnectionsController_listSelections": {
+    method: "GET",
+    path: "/api/v1/connections/{connectionId}/selections",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: ["connectionId"],
+    queryParams: ["pageToken","pageSize"],
+    requestSchema: null,
+    responseSchema: "ListConnectionSelectionsResponseDto",
+  },
   "ContextCreatorsController_createLink": {
     method: "POST",
     path: "/api/v1/context/links",

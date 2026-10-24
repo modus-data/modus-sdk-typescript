@@ -2,10 +2,10 @@ import { readdir, readFile, stat } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import type { ModusConfig } from '../../_config.js'
 import { ModusError } from '../../_exceptions.js'
+import { ContextFilesResourceBase } from '../../_generated/resources/management/context/files.js'
 import type { HttpClient } from '../../_http.js'
-import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry } from '../../_request.js'
-import { validateId, validatePageSize } from '../../_validation.js'
+import { validateId } from '../../_validation.js'
 import type {
   BulkFinalizeResult,
   BulkUploadFromUrlsResult,
@@ -25,7 +25,6 @@ import type {
 /** Bulk `createUploadUrls` / `uploadFromUrls` request cap — matches the backend. */
 export const MAX_BULK_UPLOAD_FILES = 100
 
-const DEFAULT_LIST_PAGE_SIZE = 50
 const DEFAULT_PUT_TIMEOUT_MS = 60_000
 const DEFAULT_POLL_INTERVAL_MS = 500
 const DEFAULT_UPLOAD_TIMEOUT_MS = 120_000
@@ -203,12 +202,14 @@ function assignSlots(
  * - `createUploadUrl(s)`, `uploadFromUrl(s)`, `get`, `list` — raw operations.
  * Hierarchy browsing is available through `mgmt.context.items.list`.
  */
-export class ManagementContextFilesResource {
+export class ManagementContextFilesResource extends ContextFilesResourceBase {
   /** @internal */
   constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
+    http: HttpClient,
+    config: ModusConfig,
+  ) {
+    super(http, config)
+  }
 
   /**
    * Get a presigned S3 PUT URL for one file.
@@ -283,48 +284,6 @@ export class ManagementContextFilesResource {
       }),
     ) as unknown as BulkUploadFromUrlsResult
   }
-
-  /**
-   * Fetch one file upload by its id.
-   *
-   * @param uploadId - Upload id returned by `createUploadUrl` / `uploadFromUrl`.
-   * @returns The file upload resource, including its processing `status`.
-   */
-  async get(uploadId: string): Promise<FileUpload> {
-    validateId(uploadId, 'uploadId')
-    return asRecord(
-      await invokeWithRetry(this.config, this.http, 'ContextFilesController_get', {
-        pathParams: { uploadId },
-      }),
-    ) as unknown as FileUpload
-  }
-
-  /**
-   * List durable file uploads.
-   *
-   * @param options.pageSize - Items per page (default 50).
-   * @param options.pageToken - Opaque token from a previous page's `nextPageToken`.
-   * @returns Page of file uploads. Uploads that only have a pending row (not yet
-   *   landed) aren't included here — use `get(uploadId)` for those.
-   */
-  list(options: { pageSize?: number; pageToken?: string } = {}): Promise<Page<FileUpload>> {
-    const pageSize = options.pageSize ?? DEFAULT_LIST_PAGE_SIZE
-    validatePageSize(pageSize, 200)
-    return this.listPage(pageSize, options.pageToken)
-  }
-
-  private async listPage(pageSize: number, pageToken: string | undefined): Promise<Page<FileUpload>> {
-    const data = asRecord(
-      await invokeWithRetry(this.config, this.http, 'ContextFilesController_list', {
-        query: aipListParams(pageSize, pageToken) as Record<
-          string,
-          string | number | boolean | readonly string[] | undefined | null
-        >,
-      }),
-    )
-    return buildAipPage(data, 'files', (raw) => raw as FileUpload, (token) => this.listPage(pageSize, token))
-  }
-
 
   /**
    * Turn a file already PUT to a presigned URL into durable context.

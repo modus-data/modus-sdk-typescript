@@ -1,5 +1,4 @@
-import type { ModusConfig } from '../../_config.js'
-import type { HttpClient } from '../../_http.js'
+import { ScopesInterfacesResourceBase } from '../../_generated/resources/management/scopes/interfaces.js'
 import { updateMaskQuery } from '../../_query.js'
 import { invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId } from '../../_validation.js'
@@ -9,21 +8,7 @@ export type ScopeInterface = components['schemas']['ScopeInterfaceDto']
 export type AddScopeInterface = components['schemas']['AddScopeInterfaceDto']
 export type UpdateScopeInterface = components['schemas']['UpdateScopeInterfaceDto']
 
-export class ScopeInterfacesResource {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-    private readonly scopeId: number | string,
-  ) {}
-
-  /** List the Slack and Microsoft Teams interfaces on this scope. */
-  async list(): Promise<ScopeInterface[]> {
-    validateId(this.scopeId, 'scope_id')
-    const data = await invokeWithRetry(this.config, this.http, 'ScopeInterfacesController_list', {
-      pathParams: { id: this.scopeId },
-    }) as { interfaces: ScopeInterface[] }
-    return data.interfaces
-  }
+export class ScopeInterfacesResource extends ScopesInterfacesResourceBase {
 
   /**
    * Add a Slack or Microsoft Teams interface to this scope.
@@ -55,18 +40,5 @@ export class ScopeInterfacesResource {
       query: updateMaskQuery(updateMask),
       jsonBody: updateMask === undefined ? omitUndefined(options) : options,
     }) as ScopeInterface
-  }
-
-  /**
-   * Remove an interface from this scope.
-   *
-   * @param interfaceId - Interface id.
-   */
-  async delete(interfaceId: string): Promise<void> {
-    validateId(this.scopeId, 'scope_id')
-    validateId(interfaceId, 'interface_id')
-    await invokeWithRetry(this.config, this.http, 'ScopeInterfacesController_delete', {
-      pathParams: { id: this.scopeId, interfaceId },
-    })
   }
 }
