@@ -42,6 +42,7 @@ const ALLOWED_CHAT_MODELS = new Set([
   'deepseek-chat-v3.1',
   'deepseek-v4-pro',
   'deepseek-v4-flash-latest',
+  'deepseek-v4.1-flash-1017',
   'minimax-m2.7',
   'llama-4-maverick',
   'llama-4-scout',
