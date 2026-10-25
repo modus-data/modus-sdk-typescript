@@ -142,7 +142,7 @@ export class WorkflowRunsResource {
   /**
    * List runs for a workflow.
    *
-   * @param workflowId - Workflow id or slug.
+   * @param workflowId - Numeric workflow id.
    * @param options.pageSize - Maximum items per page (default 25, max 100).
    * @param options.pageToken - Opaque token from a previous page.
    * @param options.status - Filter by run status.
@@ -219,7 +219,7 @@ export class WorkflowRunsResource {
   /**
    * Retrieve a workflow run by id.
    *
-   * @param workflowId - Workflow id or slug the run belongs to.
+   * @param workflowId - Numeric workflow id the run belongs to.
    * @param runId - Run id (the list row's `workflowId` field, not the composite `id`).
    * @param options.temporalRunId - Optional internal execution id when disambiguating retries.
    * @returns Run details including status and output.
@@ -252,7 +252,7 @@ export class WorkflowRunsResource {
   /**
    * Start a workflow run and stream run events.
    *
-   * @param workflowId - Workflow id or slug to run.
+   * @param workflowId - Numeric workflow id to run.
    * @param body - Run body (`message`, optional `sessionId`, optional `version` as `published` or `draft`).
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events (tokens, completion, errors, and related signals).

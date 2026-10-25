@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { ModusManagement } from '../src/management/index.js'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { ModusManagement, type CreateWorkflowOptions, type UpdateWorkflowOptions } from '../src/management/index.js'
 
 const TEST_KEY = 'modus_test_key_mgmt'
 const BASE = 'https://api.getmodus.com'
@@ -13,15 +13,32 @@ describe('ModusManagement.workflows', () => {
       }),
     )
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
-    const agent = await mgmt.workflows.create({
-      name: 'Daily sync',
-      type: 'task',
-      guardrails: ['no-pii'],
-    })
+    const agent = await mgmt.workflows.create({ name: 'Daily sync', type: 'workflow' })
     expect(agent.id).toBe(7)
     const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
-    expect(body.type).toBe('task')
-    expect(body.accessConfig.guardrails).toEqual(['no-pii'])
+    expect(body).toEqual({ name: 'Daily sync', type: 'workflow' })
+  })
+
+  // The workflow access DTO has no `guardrails`, so the server answered 400 to every call that
+  // set it (staging: "accessConfig.property guardrails should not exist"). The option is gone; a
+  // JavaScript caller still passing it must not get a body the spec rejects.
+  it.each([
+    ['create', (m: ModusManagement, legacy: never) => m.workflows.create({ name: 'n', type: 'workflow', ...(legacy as object) })],
+    ['update', (m: ModusManagement, legacy: never) => m.workflows.update(7, legacy)],
+  ] as const)('%s never sends workflow guardrails', async (_name, call) => {
+    expectTypeOf<CreateWorkflowOptions>().not.toHaveProperty('guardrails')
+    expectTypeOf<UpdateWorkflowOptions>().not.toHaveProperty('guardrails')
+    const fetch = vi.fn().mockImplementation(async () =>
+      new Response(JSON.stringify({ id: 7, name: 'n', type: 'workflow', status: 'draft', accessConfig: {} }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await call(mgmt, { guardrails: ['no-pii'] } as never)
+    expect(fetch.mock.calls.map(([, init]) => init?.method)).not.toContain('GET')
+    const body = JSON.parse(String(fetch.mock.calls.at(-1)?.[1]?.body))
+    expect(body).not.toHaveProperty('accessConfig')
   })
 
   it('deploy unwraps workflow from response', async () => {

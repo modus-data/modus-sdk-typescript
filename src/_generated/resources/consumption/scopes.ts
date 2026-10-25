@@ -92,7 +92,8 @@ export class ScopesResourceBase {
    *
    * @example
    * ```ts
-   * const scope = await client.scopes.get('revenue-analysis')
+   * const [first] = (await client.scopes.list()).items
+   * const scope = await client.scopes.get(first.id)
    * console.log(scope.name, scope.status)
    * ```
    */

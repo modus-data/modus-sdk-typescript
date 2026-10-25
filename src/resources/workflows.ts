@@ -43,17 +43,18 @@ export class WorkflowsResource extends WorkflowsResourceBase {
   }
 
   /**
-   * Retrieve a workflow by ID or slug.
+   * Retrieve a workflow by its numeric id.
    *
-   * @param workflowId - Numeric id or slug.
+   * @param workflowId - Numeric workflow id.
    * @param options.view - Which saved version to return (`active` or `draft`).
    * @param options.includeVariation - Include variation metadata when supported.
    * @returns The workflow (`id`, `name`, `status`, …).
-   * @throws {NotFoundError} When no workflow matches the id or slug.
+   * @throws {NotFoundError} When no workflow has this id.
    *
    * @example
    * ```ts
-   * const wf = await client.workflows.get('weekly-digest')
+   * const [first] = (await client.workflows.list()).items
+   * const wf = await client.workflows.get(first.id)
    * console.log(wf.name, wf.status)
    * ```
    */

@@ -17,10 +17,16 @@ release, including pre-1.0 (`0.x`) releases.
 ### Changed
 
 - **Breaking (pre-1.0): scope `connectionSet` rows have one shape.** `scopes.create` and `scopes.update` accept each entry only as `{ connection_id, path, preferences?, context_enabled? }`, where `path` is an array of strings, `preferences` an object and `context_enabled` a boolean. An empty path selects the whole connection. Any other field, a non-string path segment, an empty or null `connection_id`, or a null `connectionSet` is rejected with 400. `variation.connectionSet` is now `{ connection_id: string; path: string[]; preferences?: Record<string, unknown>; context_enabled?: boolean }` instead of `Record<string, unknown>[]`.
+- **Breaking (pre-1.0): workflow `guardrails` removed.** `workflows.create` and `workflows.update` no longer take `guardrails`. The workflow access configuration has no guardrails, so every call that set it failed with 400 and changed nothing. Scope `guardrails` are unchanged.
+- **Breaking (pre-1.0): `scopes.memories(id).update()` returns `Promise<void>`.** The server answers 204 with no body; the method returned `null` typed as `Memory`.
+- **Breaking (pre-1.0): `managerId` is `number | null`.** `scopes.update({ managerId })` takes the numeric id of the manager scope, or `null` to detach. It was typed `string`, which the server rejects with 400.
 
 ### Fixed
 
 - **A path id of `'..'` could target the parent resource, e.g. delete the scope.** `scopes.memories(7).delete('..')` sent `DELETE /scopes/7`. Every path id that is blank, `'.'` or `'..'` now raises `ValidationError` before any request; a blank id no longer returns the list page as one item.
+- **`updateMask` clears the fields it names.** A field named in `updateMask` and left unset is sent as `null`, so the server clears it, on `scopes.update`, `workflows.update`, `context.items.update`, and both `interfaces(id).update`. Before, it was dropped from the body and nothing was cleared.
+- **`suggestions.list({ scopeIds: [] })` throws `ValidationError`** before any request. It sent `scopeIds=`, which the server rejects with 400.
+- **Docs: ids are numeric.** The getting-started example took a slug (`scopes.get('revenue-analysis')`), which the server rejects with 400; it now takes an id from `list()`. Docs no longer say "id or slug". `type: 'task'` is documented as a deprecated alias on create; `workflows.update` accepts only `workflow`.
 
 ## [0.9.0] — 2026-10-24
 

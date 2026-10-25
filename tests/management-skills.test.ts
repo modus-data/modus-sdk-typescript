@@ -109,6 +109,14 @@ describe('ModusManagement.scopes.memories', () => {
     )
     expect(fetch).not.toHaveBeenCalled()
   })
+
+  it('update resolves to undefined: the server answers 204 with no body', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const result = await mgmt.scopes.memories(42).update('mem_1', { memory: 'x' })
+    expect(result).toBeUndefined()
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('ModusManagement.scopes.interfaces', () => {

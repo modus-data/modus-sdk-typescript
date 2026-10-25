@@ -1,9 +1,9 @@
 import type { OperationId } from '../../_generated/operations.js'
 import type { ModusConfig } from '../../_config.js'
 import type { HttpClient } from '../../_http.js'
-import { updateMaskQuery } from '../../_query.js'
+import { updateBody, updateMaskQuery } from '../../_query.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
-import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
+import { asRecord, invokeWithRetry } from '../../_request.js'
 import { validatePageSize } from '../../_validation.js'
 import type { ContextItem, ContextItemDeletion, ContextItemMove } from '../../types/context.js'
 import type { UserFeedback } from './_content-merge.js'
@@ -124,7 +124,7 @@ export class ManagementContextItemsResource {
    * Update a context item.
    *
    * Only the fields you pass are changed. To clear a field, name it in
-   * `updateMask` and leave its argument unset.
+   * `updateMask` and leave its argument unset: it is sent as `null`.
    *
    * @param uid - Context item uid.
    * @param options.content - Replacement type-specific content.
@@ -146,22 +146,13 @@ export class ManagementContextItemsResource {
       updateMask?: string
     } = {},
   ): Promise<ContextItem> {
-    const body =
-      options.updateMask !== undefined
-        ? {
-            content: options.content,
-            contextType: options.contextType,
-            description: options.description,
-            userFeedback: options.userFeedback,
-            topics: options.topics,
-          }
-        : omitUndefined({
-            content: options.content,
-            contextType: options.contextType,
-            description: options.description,
-            userFeedback: options.userFeedback,
-            topics: options.topics,
-          })
+    const body = updateBody({
+      content: options.content,
+      contextType: options.contextType,
+      description: options.description,
+      userFeedback: options.userFeedback,
+      topics: options.topics,
+    }, options.updateMask)
     await invokeWithRetry(this.config, this.http, 'ContextItemsController_update', {
       pathParams: { uid },
       query: updateMaskQuery(options.updateMask),

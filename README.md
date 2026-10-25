@@ -51,7 +51,9 @@ for await (const scope of (await client.scopes.list()).autoPagingIter()) {
   console.log(scope.name, scope.status)
 }
 
-const scope = await client.scopes.get('revenue-analysis')
+// Ids are numeric: take one from list()
+const [first] = (await client.scopes.list()).items
+const scope = await client.scopes.get(first.id)
 console.log(scope.name, scope.description)
 
 for await (const item of (await client.context.items.list()).autoPagingIter()) {

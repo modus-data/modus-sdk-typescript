@@ -14,7 +14,7 @@ import { ScopeConversationsResource } from './scopes/conversations.js'
  *
  * @example
  * ```ts
- * const scope = await client.scopes.get('revenue-analysis')
+ * const [scope] = (await client.scopes.list()).items
  * const result = await client.scopes.chat(scope.id, 'What is our ARR trend?', {
  *   model: 'claude-sonnet-5',
  * })
@@ -26,7 +26,7 @@ export class ScopesResource extends ScopesResourceBase {
   /**
    * Return the conversations sub-resource scoped to `scopeId`.
    *
-   * @param scopeId - Scope numeric id or slug.
+   * @param scopeId - Numeric scope id.
    * @returns Conversations resource for the scope.
    *
    * @example
@@ -48,7 +48,7 @@ export class ScopesResource extends ScopesResourceBase {
    * Large bodies are bounded inline previews. This REST method does not expose file references
    * or a full-content fetch operation.
    *
-   * @param scopeId - Scope numeric id or slug.
+   * @param scopeId - Numeric scope id.
    * @param message - Natural-language intent used to select context.
    * @param options.limit - Maximum context items to return. Omit to return all selected items.
    * @returns Composed context text plus selection counts, item UIDs, and correlation session id.
@@ -79,7 +79,7 @@ export class ScopesResource extends ScopesResourceBase {
    *
    * For the org-wide assistant use `client.modus.chat` instead.
    *
-   * @param scopeId - Scope numeric id or slug (must be active for chat).
+   * @param scopeId - Numeric scope id (must be active for chat).
    * @param message - User message text.
    * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
    * @param options.threadId - Continue an existing conversation; omit to start new.
@@ -110,7 +110,7 @@ export class ScopesResource extends ScopesResourceBase {
    *
    * The request starts when you consume `textStream()` or `eventStream()`.
    *
-   * @param scopeId - Scope numeric id or slug.
+   * @param scopeId - Numeric scope id.
    * @param message - User message text.
    * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
    * @param options.threadId - Continue an existing conversation; omit to start new.

@@ -108,15 +108,14 @@ export class ScopesMemoriesResourceBase {
     memoryId: string,
     update: MemoryUpdate,
     options: { updateMask?: string } = {},
-  ): Promise<Memory> {
+  ): Promise<void> {
     validateId(memoryId, 'memory_id')
     validateId(this.scopeId, 'scope_id')
-    const data = await invokeWithRetry(this.config, this.http, 'ScopeMemoriesController_update', {
+    await invokeWithRetry(this.config, this.http, 'ScopeMemoriesController_update', {
       pathParams: { id: this.scopeId, memoryId },
       query: updateMaskQuery(options.updateMask),
       jsonBody: omitUndefined(update as Record<string, unknown>),
     })
-    return data as Memory
   }
 
   /**

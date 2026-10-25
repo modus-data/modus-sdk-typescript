@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { ValidationError } from '../src/_exceptions.js'
 import { Modus } from '../src/index.js'
 
 const TEST_KEY = 'modus_test_key_suggestions'
@@ -29,6 +30,15 @@ describe('Modus.suggestions', () => {
     expect(url).toContain('/api/v1/suggestions/questions')
     expect(url).toContain('pageSize=5')
     expect(url).toContain('scopeIds=7%2C42')
+  })
+
+  it('rejects an empty scopeIds list before any request', async () => {
+    // `scopeIds=` is a 400 on the server; dropping the filter would silently broaden the result.
+    const fetch = vi.fn()
+    const client = new Modus({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    expect(() => client.suggestions.list({ scopeIds: [] })).toThrow(ValidationError)
+    expect(() => client.suggestions.list({ scopeIds: [] })).toThrow(/scopeIds.*at least one/)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('records suggestion events with camelCase body fields', async () => {
