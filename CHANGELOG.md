@@ -9,6 +9,10 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A path id of `'..'` could target the parent resource, e.g. delete the scope.** `scopes.memories(7).delete('..')` sent `DELETE /scopes/7`. Every path id that is blank, `'.'` or `'..'` now raises `ValidationError` before any request; a blank id no longer returns the list page as one item.
+
 ## [0.9.0] — 2026-10-24
 
 ### Added

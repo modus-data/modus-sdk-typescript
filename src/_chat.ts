@@ -29,6 +29,7 @@ function chatPath(
   const safeId = encodeURIComponent(String(resourceId))
   const tid = effectiveThreadId(options.threadId)
   if (tid !== undefined) {
+    validateId(tid, 'thread_id')
     const safeTid = encodeURIComponent(tid)
     return `/api/v1/${resource}/${safeId}/conversations/${safeTid}/chat`
   }

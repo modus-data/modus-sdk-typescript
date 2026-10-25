@@ -1,6 +1,7 @@
 import { resolveServiceBaseUrl } from './_config.js'
 import { OPERATIONS, type OperationId, type OperationSpec } from './_generated/operations.js'
 import type { HttpClient } from './_http.js'
+import { validateId } from './_validation.js'
 
 export function getOperation(operationId: string): OperationSpec {
   if (!(operationId in OPERATIONS)) {
@@ -20,7 +21,9 @@ function formatPath(template: string, pathParams: Record<string, unknown>): stri
       if (!(key in pathParams)) {
         throw new Error(`Missing path parameter ${JSON.stringify(key)} for ${JSON.stringify(template)}`)
       }
-      return encodeURIComponent(String(pathParams[key]))
+      const value = String(pathParams[key])
+      validateId(value, key)
+      return encodeURIComponent(value)
     })
     .join('/')
 }
