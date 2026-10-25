@@ -25174,6 +25174,37 @@
           "displayName"
         ]
       },
+      "ConnectionSetItemDto": {
+        "type": "object",
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "description": "Id of the connection this row selects.",
+            "example": "11111111-1111-4111-8111-111111111111"
+          },
+          "path": {
+            "description": "Path of the selected unit. An empty array selects the whole connection.",
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferences": {
+            "type": "object",
+            "description": "Which objects under this connection the scope includes or excludes.",
+            "additionalProperties": true
+          },
+          "context_enabled": {
+            "type": "boolean",
+            "description": "Whether the scope reads context from this connection. Defaults to true."
+          }
+        },
+        "required": [
+          "connection_id",
+          "path"
+        ]
+      },
       "ContentProjectionDto": {
         "type": "object",
         "properties": {
@@ -26048,13 +26079,17 @@
             ]
           },
           "connectionSet": {
+            "description": "Connections this scope can use. Each entry is a connection id and a path; an empty path selects the whole connection.",
+            "example": [
+              {
+                "connection_id": "11111111-1111-4111-8111-111111111111",
+                "path": []
+              }
+            ],
             "type": "array",
-            "description": "List of integration connection refs available to this scope. Shape is integration-specific.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "example": []
+              "$ref": "#/components/schemas/ConnectionSetItemDto"
+            }
           },
           "contextSelections": {
             "type": "array",
@@ -29901,11 +29936,10 @@
             }
           },
           "connectionSet": {
+            "description": "Connections attached to this variation. Each entry is a connection id and a path; an empty path selects the whole connection.",
             "type": "array",
-            "description": "Connection selections (DBs, integrations) attached to the variation. Each entry is a builder-managed object; opaque here.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
+              "$ref": "#/components/schemas/ConnectionSetItemDto"
             }
           },
           "contextSelections": {
@@ -30753,13 +30787,17 @@
             ]
           },
           "connectionSet": {
+            "description": "Replacement connection list. Each entry is a connection id and a path; an empty path selects the whole connection.",
+            "example": [
+              {
+                "connection_id": "11111111-1111-4111-8111-111111111111",
+                "path": []
+              }
+            ],
             "type": "array",
-            "description": "Updated connection set. Shape is integration-specific.",
             "items": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "example": []
+              "$ref": "#/components/schemas/ConnectionSetItemDto"
+            }
           },
           "contextSelections": {
             "type": "array",

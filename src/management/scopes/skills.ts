@@ -9,6 +9,7 @@ import {
   accessConfigBodyForCreate,
   accessConfigBodyForUpdate,
 } from '../_access-config.js'
+import type { components } from '../../_generated/v1.js'
 import type { JsonObjectListInput } from '../types/json-blob.js'
 import type { ToolsetInput } from '../types/toolset.js'
 import { ScopeMemoriesResource } from './memories.js'
@@ -31,6 +32,9 @@ interface ManagementScopesOperations {
   readonly patchMcpConfig: OperationId
   readonly getVariation: OperationId
 }
+
+/** A connectionSet row from `scopes.get`, or a plain `{ connection_id, path }` object. */
+type ConnectionSetRowInput = components['schemas']['ConnectionSetItemDto']
 
 const MANAGEMENT_SCOPE_OPERATIONS: ManagementScopesOperations = {
   list: 'ScopesController_list',
@@ -58,7 +62,7 @@ export interface CreateScopeOptions {
   instructions?: string[]
   toolset?: ToolsetInput
   model?: string
-  connectionSet?: JsonObjectListInput
+  connectionSet?: ReadonlyArray<ConnectionSetRowInput>
   contextSelections?: JsonObjectListInput
   includeOwnLearnings?: boolean
   interfaces?: JsonObjectListInput
@@ -75,7 +79,7 @@ export interface UpdateScopeOptions {
   instructions?: string[]
   toolset?: ToolsetInput
   model?: string
-  connectionSet?: JsonObjectListInput
+  connectionSet?: ReadonlyArray<ConnectionSetRowInput>
   contextSelections?: JsonObjectListInput
   interfaces?: JsonObjectListInput
   guardrails?: string[]

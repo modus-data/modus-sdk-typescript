@@ -61,6 +61,22 @@ describe('ModusManagement.scopes', () => {
     expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/scopes/42/deploy')
   })
 
+  it('update resends connectionSet from get as connection_id and path', async () => {
+    const row = { connection_id: '11111111-1111-4111-8111-111111111111', path: [] as string[] }
+    const scopeBody = { id: 10, variation: { connectionSet: [row] } }
+    const json = (body: unknown) =>
+      new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(json(scopeBody))
+      .mockResolvedValueOnce(json(scopeBody))
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const scope = await mgmt.scopes.get(10)
+    expect(scope.variation?.connectionSet.length).toBeGreaterThan(0)
+    await mgmt.scopes.update(10, { connectionSet: scope.variation?.connectionSet })
+    const body = JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))
+    expect(body.connectionSet).toEqual([{ connection_id: row.connection_id, path: [] }])
+  })
+
   it('delete calls DELETE', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
     const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })

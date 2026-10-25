@@ -2890,6 +2890,24 @@ export interface components {
              */
             displayName: string | null;
         };
+        ConnectionSetItemDto: {
+            /**
+             * @description Id of the connection this row selects.
+             * @example 11111111-1111-4111-8111-111111111111
+             */
+            connection_id: string;
+            /**
+             * @description Path of the selected unit. An empty array selects the whole connection.
+             * @example []
+             */
+            path: string[];
+            /** @description Which objects under this connection the scope includes or excludes. */
+            preferences?: {
+                [key: string]: unknown;
+            };
+            /** @description Whether the scope reads context from this connection. Defaults to true. */
+            context_enabled?: boolean;
+        };
         ContentProjectionDto: {
             /**
              * @description Top-level scalar field names to project.
@@ -3437,12 +3455,15 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description List of integration connection refs available to this scope. Shape is integration-specific.
-             * @example []
+             * @description Connections this scope can use. Each entry is a connection id and a path; an empty path selects the whole connection.
+             * @example [
+             *       {
+             *         "connection_id": "11111111-1111-4111-8111-111111111111",
+             *         "path": []
+             *       }
+             *     ]
              */
-            connectionSet?: {
-                [key: string]: unknown;
-            }[];
+            connectionSet?: components["schemas"]["ConnectionSetItemDto"][];
             /**
              * @description Selected context items (sources / docs) the scope may read. The scope's own learnings are added unless `includeOwnLearnings` is false or these selections already mention learnings.
              * @example []
@@ -5098,10 +5119,8 @@ export interface components {
             toolset: {
                 [key: string]: unknown;
             };
-            /** @description Connection selections (DBs, integrations) attached to the variation. Each entry is a builder-managed object; opaque here. */
-            connectionSet: {
-                [key: string]: unknown;
-            }[];
+            /** @description Connections attached to this variation. Each entry is a connection id and a path; an empty path selects the whole connection. */
+            connectionSet: components["schemas"]["ConnectionSetItemDto"][];
             /** @description Context selections attached to the variation. Free-form builder objects. */
             contextSelections: {
                 [key: string]: unknown;
@@ -5554,12 +5573,15 @@ export interface components {
             /** @description Updated model-specific runtime controls. Pass `null` to clear. */
             modelSettings?: components["schemas"]["ModelSettingsDto"] | null;
             /**
-             * @description Updated connection set. Shape is integration-specific.
-             * @example []
+             * @description Replacement connection list. Each entry is a connection id and a path; an empty path selects the whole connection.
+             * @example [
+             *       {
+             *         "connection_id": "11111111-1111-4111-8111-111111111111",
+             *         "path": []
+             *       }
+             *     ]
              */
-            connectionSet?: {
-                [key: string]: unknown;
-            }[];
+            connectionSet?: components["schemas"]["ConnectionSetItemDto"][];
             /**
              * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings.
              * @example []
