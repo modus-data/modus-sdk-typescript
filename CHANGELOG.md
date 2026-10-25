@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-10-24
+
 ### Added
 
 - **List selectable units.** `client.connections.listSelections(connectionId)` and
