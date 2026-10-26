@@ -5178,8 +5178,8 @@ export interface components {
              */
             content: string;
             /**
-             * @description Conversation thread id. For follow-up messages use POST …/conversations/{threadId}/chat (same id as GET …/conversations/{threadId}).
-             * @example api-skill-42-550e8400-e29b-41d4-a716-446655440000
+             * @description Conversation thread id, `agent_{scopeId}_…`: the id GET …/conversations lists. Use it for GET …/conversations/{threadId} and for follow-up messages via POST …/conversations/{threadId}/chat.
+             * @example agent_42_550e8400-e29b-41d4-a716-446655440000
              */
             threadId: string;
             /**
@@ -17506,7 +17506,7 @@ export interface operations {
             path: {
                 /** @description Numeric scope id. */
                 id: unknown;
-                /** @description Thread id from a prior chat response. */
+                /** @description Thread id from a prior chat response or from GET …/conversations: `agent_{scopeId}_…`. Deprecated: the `api-skill-{scopeId}-…` id earlier chat responses returned is still accepted. */
                 threadId: string;
             };
             cookie?: never;
