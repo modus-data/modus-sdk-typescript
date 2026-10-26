@@ -96,12 +96,8 @@
       "description": "Run lifecycle: stream, poll, resume, interrupt, and cancel executions."
     },
     {
-      "name": "Scopes · Runs",
-      "description": "Run a published or draft scope."
-    },
-    {
-      "name": "Modus · Runs",
-      "description": "Run the Modus home agent."
+      "name": "Workflows · Chat",
+      "description": "Chat with a published workflow."
     }
   ],
   "paths": {
@@ -23091,7 +23087,7 @@
     },
     "/agent/v1/modus/runs": {
       "post": {
-        "description": "Starts a streaming run of the Modus home agent (all scopes available) and returns Server-Sent Events. Send Accept: application/json for the polling transport.\n\n**Requires:** `workflows:invoke`",
+        "description": "Sends a message to Modus, the org-wide assistant, and streams the reply as Server-Sent Events. Reuse `sessionId` to continue. The final `done` event carries the answer in `content`; after `approval_required` it holds the turn so far, and POST /agent/v1/runs/{runId}/resume approves or denies. Send Accept: application/json to poll instead. With an API token, `sessionId` must be new or a conversation your user took part in.\n\n**Requires:** one of `scopes:invoke`, `workflows:invoke`",
         "operationId": "ModusRunsController_create",
         "parameters": [],
         "requestBody": {
@@ -23156,16 +23152,17 @@
             }
           }
         },
-        "summary": "Run the Modus agent",
+        "summary": "Chat with Modus",
         "tags": [
-          "Modus · Runs"
+          "Modus · Chat"
         ],
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:invoke"
         ],
         "x-modus-service": "agent-service",
@@ -23366,7 +23363,7 @@
     },
     "/agent/v1/runs/{runId}/cancel": {
       "post": {
-        "description": "Idempotently cancel an in-flight or queued run. The owning replica aborts the run and a terminal `cancelled` event lands on any watching SSE stream.\n\n**Requires:** `workflows:invoke`",
+        "description": "Idempotently cancel an in-flight or queued run. The owning replica aborts the run and a terminal `cancelled` event lands on any watching SSE stream. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.\n\n**Requires:** one of `scopes:invoke`, `workflows:invoke`",
         "operationId": "RunLifecycleController_cancel",
         "parameters": [
           {
@@ -23420,7 +23417,8 @@
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:invoke"
         ],
         "x-modus-service": "agent-service",
@@ -23433,7 +23431,7 @@
     },
     "/agent/v1/runs/{runId}/events": {
       "get": {
-        "description": "Long-poll buffered run events for a run as JSON — the non-SSE transport. Replays from the `Last-Event-ID` header cursor (or offset 0 if absent), then waits briefly for new events before returning.\n\n**Requires:** `workflows:read`",
+        "description": "Long-poll buffered run events for a run as JSON — the non-SSE transport. Replays from the `Last-Event-ID` header cursor (or offset 0 if absent), then waits briefly for new events before returning.\n\n**Requires:** one of `scopes:invoke`, `workflows:read`",
         "operationId": "RunLifecycleController_events",
         "parameters": [
           {
@@ -23477,7 +23475,8 @@
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:read"
         ],
         "x-modus-service": "agent-service",
@@ -23490,7 +23489,7 @@
     },
     "/agent/v1/runs/{runId}/interrupt": {
       "post": {
-        "description": "Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run.\n\n**Requires:** `workflows:invoke`",
+        "description": "Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.\n\n**Requires:** one of `scopes:invoke`, `workflows:invoke`",
         "operationId": "RunLifecycleController_interrupt",
         "parameters": [
           {
@@ -23551,7 +23550,8 @@
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:invoke"
         ],
         "x-modus-service": "agent-service",
@@ -23564,7 +23564,7 @@
     },
     "/agent/v1/runs/{runId}/queue-edit": {
       "post": {
-        "description": "Replace the payload of a run that is still queued (not yet started). Returns the run id and its current status.\n\n**Requires:** `workflows:invoke`",
+        "description": "Replace the payload of a run that is still queued (not yet started). Returns the run id and its current status. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.\n\n**Requires:** one of `scopes:invoke`, `workflows:invoke`",
         "operationId": "RunLifecycleController_editQueued",
         "parameters": [
           {
@@ -23625,7 +23625,8 @@
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:invoke"
         ],
         "x-modus-service": "agent-service",
@@ -23638,7 +23639,7 @@
     },
     "/agent/v1/runs/{runId}/resume": {
       "post": {
-        "description": "Resumes an interrupted run (approval or connect interrupt) as a new turn on the same conversation. Returns Server-Sent Events. Send Accept: application/json for the polling transport.\n\n**Requires:** `workflows:invoke`",
+        "description": "Resumes an interrupted run (approval or connect interrupt) as a new turn on the same conversation. Returns Server-Sent Events. Send Accept: application/json for the polling transport.\n\n**Requires:** one of `scopes:invoke`, `workflows:invoke`",
         "operationId": "ResumeRunsController_create",
         "parameters": [
           {
@@ -23722,7 +23723,8 @@
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:invoke"
         ],
         "x-modus-service": "agent-service",
@@ -23735,7 +23737,7 @@
     },
     "/agent/v1/runs/{runId}/stream": {
       "get": {
-        "description": "Opens an SSE connection to an already-started run. Replays events from the `Last-Event-ID` header (or from offset 0 if absent), then blocks for new events until the run reaches a terminal state (`done`/`error`/`cancelled`) or the client disconnects.\n\nSupports multi-device watching: multiple simultaneous connections to the same `runId` all receive the same event sequence from the shared Redis Stream.\n\n**Requires:** `workflows:read`",
+        "description": "Opens an SSE connection to an already-started run. Replays events from the `Last-Event-ID` header (or from offset 0 if absent), then blocks for new events until the run reaches a terminal state (`done`/`error`/`cancelled`) or the client disconnects.\n\nSupports multi-device watching: multiple simultaneous connections to the same `runId` all receive the same event sequence from the shared Redis Stream.\n\n**Requires:** one of `scopes:invoke`, `workflows:read`",
         "operationId": "RunLifecycleController_stream",
         "parameters": [
           {
@@ -23808,7 +23810,8 @@
             "bearerAuth": []
           }
         ],
-        "x-required-scopes": [
+        "x-required-any-scopes": [
+          "scopes:invoke",
           "workflows:read"
         ],
         "x-modus-service": "agent-service",
@@ -23821,7 +23824,7 @@
     },
     "/agent/v1/scopes/{id}/runs": {
       "post": {
-        "description": "Starts a streaming run of a scope and returns Server-Sent Events. Send Accept: application/json for the polling transport.\n\n**Requires:** `scopes:invoke`",
+        "description": "Sends a message to a published scope and streams the reply as Server-Sent Events. Reuse `sessionId` to continue the conversation. The final `done` event carries the answer in `content`. Send Accept: application/json to poll instead of streaming. API tokens cannot run a draft (`version: draft`).\n\n**Requires:** `scopes:invoke`",
         "operationId": "ScopeRunsController_create",
         "parameters": [
           {
@@ -23896,9 +23899,9 @@
             }
           }
         },
-        "summary": "Run a scope",
+        "summary": "Chat with a scope",
         "tags": [
-          "Scopes · Runs"
+          "Scopes · Chat"
         ],
         "security": [
           {
@@ -24062,7 +24065,7 @@
     },
     "/agent/v1/workflows/{id}/runs": {
       "post": {
-        "description": "Starts a streaming run of a workflow and returns Server-Sent Events. Send Accept: application/json for the polling transport.\n\n**Requires:** `workflows:invoke`",
+        "description": "Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.\n\n**Requires:** `workflows:invoke`",
         "operationId": "WorkflowRunsController_create",
         "parameters": [
           {
@@ -24137,9 +24140,9 @@
             }
           }
         },
-        "summary": "Run a workflow",
+        "summary": "Chat with a workflow",
         "tags": [
-          "Workflows · Runs"
+          "Workflows · Chat"
         ],
         "security": [
           {
@@ -31580,7 +31583,8 @@
         "properties": {
           "message": {
             "type": "string",
-            "description": "The user message to send."
+            "maxLength": 32000,
+            "description": "The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts."
           },
           "sessionId": {
             "type": "string",
@@ -31596,7 +31600,7 @@
               "published",
               "draft"
             ],
-            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+            "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
           },
           "fileThreadId": {
             "type": "string",
@@ -31615,7 +31619,7 @@
             "$ref": "#/components/schemas/SupplementalContextDto"
           },
           "source": {
-            "description": "Origin of the run.",
+            "description": "Origin of the run. Set by the server for API tokens.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/RunSource"
@@ -31811,7 +31815,8 @@
         "properties": {
           "message": {
             "type": "string",
-            "description": "The user message to send."
+            "maxLength": 32000,
+            "description": "The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts."
           },
           "sessionId": {
             "type": "string",
@@ -31827,7 +31832,7 @@
               "published",
               "draft"
             ],
-            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+            "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
           },
           "fileThreadId": {
             "type": "string",
@@ -31846,7 +31851,7 @@
             "$ref": "#/components/schemas/SupplementalContextDto"
           },
           "source": {
-            "description": "Origin of the run.",
+            "description": "Origin of the run. Set by the server for API tokens.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/RunSource"
@@ -31932,7 +31937,8 @@
         "properties": {
           "message": {
             "type": "string",
-            "description": "The user message to send."
+            "maxLength": 32000,
+            "description": "The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts."
           },
           "sessionId": {
             "type": "string",
@@ -31948,7 +31954,7 @@
               "published",
               "draft"
             ],
-            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+            "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
           },
           "fileThreadId": {
             "type": "string",
@@ -31967,7 +31973,7 @@
             "$ref": "#/components/schemas/SupplementalContextDto"
           },
           "source": {
-            "description": "Origin of the run.",
+            "description": "Origin of the run. Set by the server for API tokens.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/RunSource"
@@ -32021,7 +32027,7 @@
               "published",
               "draft"
             ],
-            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+            "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
           },
           "fileThreadId": {
             "type": "string",
@@ -32040,7 +32046,7 @@
             "$ref": "#/components/schemas/SupplementalContextDto"
           },
           "source": {
-            "description": "Origin of the run.",
+            "description": "Origin of the run. Set by the server for API tokens.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/RunSource"
@@ -32114,7 +32120,7 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Model id, e.g. anthropic/claude-sonnet-4.6."
+            "description": "Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3."
           },
           "modelSettings": {
             "description": "Model-specific runtime controls.",
@@ -32224,14 +32230,15 @@
           "dashboard_assistant",
           "other"
         ],
-        "description": "Origin of the run."
+        "description": "Origin of the run. Set by the server for API tokens."
       },
       "SkillRunDto": {
         "type": "object",
         "properties": {
           "message": {
             "type": "string",
-            "description": "The user message to send."
+            "maxLength": 32000,
+            "description": "The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts."
           },
           "sessionId": {
             "type": "string",
@@ -32247,7 +32254,7 @@
               "published",
               "draft"
             ],
-            "description": "Saved version to run (scope/workflow; ignored for Modus)."
+            "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
           },
           "fileThreadId": {
             "type": "string",
@@ -32266,7 +32273,7 @@
             "$ref": "#/components/schemas/SupplementalContextDto"
           },
           "source": {
-            "description": "Origin of the run.",
+            "description": "Origin of the run. Set by the server for API tokens.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/RunSource"

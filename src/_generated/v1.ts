@@ -2052,10 +2052,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run the Modus agent
-         * @description Starts a streaming run of the Modus home agent (all scopes available) and returns Server-Sent Events. Send Accept: application/json for the polling transport.
+         * Chat with Modus
+         * @description Sends a message to Modus, the org-wide assistant, and streams the reply as Server-Sent Events. Reuse `sessionId` to continue. The final `done` event carries the answer in `content`; after `approval_required` it holds the turn so far, and POST /agent/v1/runs/{runId}/resume approves or denies. Send Accept: application/json to poll instead. With an API token, `sessionId` must be new or a conversation your user took part in.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["ModusRunsController_create"];
         delete?: never;
@@ -2119,9 +2119,9 @@ export interface paths {
         put?: never;
         /**
          * Cancel a run
-         * @description Idempotently cancel an in-flight or queued run. The owning replica aborts the run and a terminal `cancelled` event lands on any watching SSE stream.
+         * @description Idempotently cancel an in-flight or queued run. The owning replica aborts the run and a terminal `cancelled` event lands on any watching SSE stream. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["RunLifecycleController_cancel"];
         delete?: never;
@@ -2141,7 +2141,7 @@ export interface paths {
          * Poll run events
          * @description Long-poll buffered run events for a run as JSON — the non-SSE transport. Replays from the `Last-Event-ID` header cursor (or offset 0 if absent), then waits briefly for new events before returning.
          *
-         *     **Requires:** `workflows:read`
+         *     **Requires:** one of `scopes:invoke`, `workflows:read`
          */
         get: operations["RunLifecycleController_events"];
         put?: never;
@@ -2163,9 +2163,9 @@ export interface paths {
         put?: never;
         /**
          * Interrupt an active run
-         * @description Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run.
+         * @description Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["RunLifecycleController_interrupt"];
         delete?: never;
@@ -2185,9 +2185,9 @@ export interface paths {
         put?: never;
         /**
          * Edit a queued run
-         * @description Replace the payload of a run that is still queued (not yet started). Returns the run id and its current status.
+         * @description Replace the payload of a run that is still queued (not yet started). Returns the run id and its current status. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["RunLifecycleController_editQueued"];
         delete?: never;
@@ -2209,7 +2209,7 @@ export interface paths {
          * Resume a run
          * @description Resumes an interrupted run (approval or connect interrupt) as a new turn on the same conversation. Returns Server-Sent Events. Send Accept: application/json for the polling transport.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["ResumeRunsController_create"];
         delete?: never;
@@ -2231,7 +2231,7 @@ export interface paths {
          *
          *     Supports multi-device watching: multiple simultaneous connections to the same `runId` all receive the same event sequence from the shared Redis Stream.
          *
-         *     **Requires:** `workflows:read`
+         *     **Requires:** one of `scopes:invoke`, `workflows:read`
          */
         get: operations["RunLifecycleController_stream"];
         put?: never;
@@ -2252,8 +2252,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run a scope
-         * @description Starts a streaming run of a scope and returns Server-Sent Events. Send Accept: application/json for the polling transport.
+         * Chat with a scope
+         * @description Sends a message to a published scope and streams the reply as Server-Sent Events. Reuse `sessionId` to continue the conversation. The final `done` event carries the answer in `content`. Send Accept: application/json to poll instead of streaming. API tokens cannot run a draft (`version: draft`).
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -2318,8 +2318,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run a workflow
-         * @description Starts a streaming run of a workflow and returns Server-Sent Events. Send Accept: application/json for the polling transport.
+         * Chat with a workflow
+         * @description Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.
          *
          *     **Requires:** `workflows:invoke`
          */
@@ -5990,14 +5990,14 @@ export interface components {
             nextPageToken: string | null;
         };
         AgentRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -6007,7 +6007,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -6078,14 +6078,14 @@ export interface components {
             error: components["schemas"]["ErrorEnvelopeDto1"];
         };
         FollowUpRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -6095,7 +6095,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -6125,14 +6125,14 @@ export interface components {
             nextRun: components["schemas"]["FollowUpRunDto"];
         };
         ModusRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -6142,7 +6142,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -6162,7 +6162,7 @@ export interface components {
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -6172,7 +6172,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -6200,7 +6200,7 @@ export interface components {
             status: string;
         };
         RunConfigDto: {
-            /** @description Model id, e.g. anthropic/claude-sonnet-4.6. */
+            /** @description Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3. */
             model?: string;
             /** @description Model-specific runtime controls. */
             modelSettings?: components["schemas"]["RunModelSettingsDto"];
@@ -6236,19 +6236,19 @@ export interface components {
         /** @enum {string} */
         RunReasoningEffort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
         /**
-         * @description Origin of the run.
+         * @description Origin of the run. Set by the server for API tokens.
          * @enum {string}
          */
         RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
         SkillRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -6258,7 +6258,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
