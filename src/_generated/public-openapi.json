@@ -123,10 +123,8 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "description": "Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range.",
             "schema": {
-              "minimum": 1,
-              "maximum": 100,
               "example": 25,
               "type": "number"
             }
@@ -297,10 +295,8 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "description": "Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range.",
             "schema": {
-              "minimum": 1,
-              "maximum": 100,
               "example": 25,
               "type": "number"
             }
@@ -470,7 +466,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25 (the legacy `list-context-items-olap` action defaulted to 100; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 200.",
             "schema": {
               "minimum": 1,
               "maximum": 200,
@@ -5771,7 +5767,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 200.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 200.",
             "schema": {
               "minimum": 1,
               "maximum": 200,
@@ -7365,7 +7361,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25 (the legacy `list-context-items-olap` action defaulted to 100; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 200.",
             "schema": {
               "minimum": 1,
               "maximum": 200,
@@ -8688,7 +8684,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max values per page. Defaults to 25 (the legacy `get-context-values` action defaulted to 50; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200.",
+            "description": "Max values per page. Defaults to 25. Must be between 1 and 200.",
             "schema": {
               "minimum": 1,
               "maximum": 200,
@@ -10151,7 +10147,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Items per page. Defaults to 10, clamped to 100.",
+            "description": "Items per page. Defaults to 10. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -10780,7 +10776,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -10817,6 +10813,7 @@
             "in": "query",
             "description": "Return only scopes supervised by this manager scope id.",
             "schema": {
+              "maximum": 2147483647,
               "example": 17,
               "type": "number"
             }
@@ -12237,7 +12234,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Items per page. Defaults to 10, clamped to 100.",
+            "description": "Items per page. Defaults to 10. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -14325,7 +14322,10 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
+            "description": "Max items per page. Defaults to 20. Must be between 1 and 100.",
             "schema": {
+              "minimum": 1,
+              "maximum": 100,
               "type": "number"
             }
           },
@@ -14333,6 +14333,7 @@
             "name": "pageToken",
             "required": false,
             "in": "query",
+            "description": "Opaque page token from a previous response's `nextPageToken`. Omit for the first page.",
             "schema": {
               "type": "string"
             }
@@ -15753,7 +15754,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25, clamped to 100.",
+            "description": "Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -18208,6 +18209,7 @@
             "in": "query",
             "description": "Return suggestions scoped to this numeric scope id. Omit for org-general suggestions.",
             "schema": {
+              "maximum": 2147483647,
               "example": 42,
               "type": "number"
             }
@@ -18595,7 +18597,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -19443,7 +19445,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,
@@ -21921,7 +21923,7 @@
             "name": "pageSize",
             "required": false,
             "in": "query",
-            "description": "Max items per page. Defaults to 25, clamped to 100.",
+            "description": "Max items per page. Defaults to 25. Must be between 1 and 100.",
             "schema": {
               "minimum": 1,
               "maximum": 100,

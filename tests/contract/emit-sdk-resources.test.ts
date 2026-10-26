@@ -595,7 +595,7 @@ describe('emit-sdk-resources parameter documentation', () => {
   })
 
   it.each([
-    'Items per page. Defaults to 10, clamped to 100.',
+    'Items per page. Defaults to 10. Must be between 1 and 100.',
     'Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25.',
     '',
   ])('documents the SDK page size default instead of API prose: %s', (description) => {

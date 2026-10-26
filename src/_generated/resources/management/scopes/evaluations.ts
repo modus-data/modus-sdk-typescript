@@ -83,6 +83,8 @@ export class ScopesEvaluationsResourceBase {
    * **Requires:** `scopes:read`
    *
    * @param options.pageSize - Items per page. Defaults to 25.
+   * @param options.pageToken - Opaque page token from a previous response's `nextPageToken`. Omit
+   *   for the first page.
    * @returns A page of runs.
    */
   listRuns(options: {

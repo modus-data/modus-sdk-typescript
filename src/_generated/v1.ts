@@ -6338,7 +6338,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range. */
                 pageSize?: number;
                 /** @description Filter by effective integration category (case-sensitive exact match). */
                 type?: string;
@@ -6464,7 +6464,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range. */
                 pageSize?: number;
             };
             header?: never;
@@ -6610,7 +6610,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25 (the legacy `list-context-items-olap` action defaulted to 100; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
                 /** @description Filter by one or more context types (repeat the query param). Example: `?contextTypes=note&contextTypes=saved_query`. */
                 contextTypes?: string[];
@@ -11227,7 +11227,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 200. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
             };
             header?: never;
@@ -12594,7 +12594,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25 (the legacy `list-context-items-olap` action defaulted to 100; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
                 /** @description Filter by one or more context types (repeat the query param). Example: `?contextTypes=note&contextTypes=saved_query`. */
                 contextTypes?: string[];
@@ -13606,7 +13606,7 @@ export interface operations {
                 contextType: string;
                 /** @description Dot-separated JSON path to the array of values inside `content`. Example: `enumValues` or `sample.values`. */
                 contentKeyPath: string;
-                /** @description Max values per page. Defaults to 25 (the legacy `get-context-values` action defaulted to 50; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200. */
+                /** @description Max values per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
                 /** @description Cursor offset (numeric). Legacy semantics — prefer `pageToken` for deep pages. */
                 offset?: number;
@@ -14851,7 +14851,7 @@ export interface operations {
                 pageToken?: string;
                 /** @description Legacy zero-indexed page number. Defaults to 0. Prefer `pageToken`; if both are supplied, `pageToken` wins. */
                 page?: number;
-                /** @description Items per page. Defaults to 10, clamped to 100. */
+                /** @description Items per page. Defaults to 10. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
@@ -15313,7 +15313,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
                 view?: "active" | "draft";
@@ -16500,7 +16500,7 @@ export interface operations {
                 pageToken?: string;
                 /** @description Legacy zero-indexed page number. Defaults to 0. Prefer `pageToken`; if both are supplied, `pageToken` wins. */
                 page?: number;
-                /** @description Items per page. Defaults to 10, clamped to 100. */
+                /** @description Items per page. Defaults to 10. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
@@ -18043,7 +18043,9 @@ export interface operations {
     EvaluationsController_listRuns: {
         parameters: {
             query?: {
+                /** @description Max items per page. Defaults to 20. Must be between 1 and 100. */
                 pageSize?: number;
+                /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
             };
             header?: never;
@@ -19386,7 +19388,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25, clamped to 100. */
+                /** @description Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Narrow results to memories tagged with this end-user id. */
                 userId?: string;
@@ -21788,7 +21790,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
             };
             header?: never;
@@ -22414,7 +22416,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
                 view?: "active" | "draft";
@@ -24469,7 +24471,7 @@ export interface operations {
                 approvalScope?: string;
                 /** @description Case-insensitive substring filter on the parent workflow name. */
                 search?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
