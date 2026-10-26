@@ -24017,6 +24017,46 @@
               }
             }
           },
+          "400": {
+            "description": "The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not run as this identity or in this organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The run target was not found, or the caller cannot see it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The Idempotency-Key was already used with a different body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
             "content": {
@@ -24579,6 +24619,46 @@
               }
             }
           },
+          "400": {
+            "description": "The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not run as this identity or in this organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The run target was not found, or the caller cannot see it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The Idempotency-Key was already used with a different body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
             "content": {
@@ -24764,6 +24844,46 @@
               }
             }
           },
+          "400": {
+            "description": "The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not run as this identity or in this organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The run target was not found, or the caller cannot see it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The Idempotency-Key was already used with a different body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
             "content": {
@@ -24811,7 +24931,7 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "description": "Client-generated idempotency key (UUID recommended). Retry with same key + same body resumes the existing SSE stream. Same key + different body returns a 409 error event.",
+            "description": "Client-generated idempotency key (UUID recommended). Retry with same key + same body resumes the existing SSE stream. Same key + different body returns 409.",
             "required": false,
             "schema": {
               "type": "string"
@@ -24838,6 +24958,46 @@
                   "description": "W3C Server-Sent Events stream. Each frame:\n  id: <redis-stream-id>\\n  data: <json-encoded RunEvent>\\n\\n\n\nRunEvent shapes are identical to POST /agent/runs."
                 },
                 "example": "id: 1717000000000-0\ndata: {\"type\":\"token\",\"content\":\"Result: 42\"}\n\nid: 1717000000001-0\ndata: {\"type\":\"done\",\"runId\":\"xyz-456\"}\n\n"
+              }
+            }
+          },
+          "400": {
+            "description": "The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not run as this identity or in this organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The run target was not found, or the caller cannot see it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The Idempotency-Key was already used with a different body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
               }
             }
           },
@@ -25001,6 +25161,46 @@
                       "type": "string"
                     }
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not run as this identity or in this organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The run target was not found, or the caller cannot see it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The Idempotency-Key was already used with a different body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto1"
                 }
               }
             }

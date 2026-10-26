@@ -26496,6 +26496,42 @@ export interface operations {
                     };
                 };
             };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
                 headers: {
@@ -26859,6 +26895,42 @@ export interface operations {
                     };
                 };
             };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
                 headers: {
@@ -26978,6 +27050,42 @@ export interface operations {
                     };
                 };
             };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
                 headers: {
@@ -27003,7 +27111,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                /** @description Client-generated idempotency key (UUID recommended). Retry with same key + same body resumes the existing SSE stream. Same key + different body returns a 409 error event. */
+                /** @description Client-generated idempotency key (UUID recommended). Retry with same key + same body resumes the existing SSE stream. Same key + different body returns 409. */
                 "Idempotency-Key"?: string;
             };
             path?: never;
@@ -27029,6 +27137,42 @@ export interface operations {
                      *     data: {"type":"done","runId":"xyz-456"}
                      */
                     "text/event-stream": string;
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
@@ -27129,6 +27273,42 @@ export interface operations {
                         runId: string;
                         status: string;
                     };
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */

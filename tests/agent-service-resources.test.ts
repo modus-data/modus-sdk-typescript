@@ -2,6 +2,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
 import { HttpClient } from '../src/_http.js'
 import { WorkflowsResource } from '../src/resources/workflows.js'
+import {
+  ConflictError,
+  ModusError,
+  NotFoundError,
+  PermissionDeniedError,
+  RateLimitError,
+} from '../src/_exceptions.js'
 
 const TEST_KEY = 'modus_test_key_agent_service'
 
@@ -359,5 +366,29 @@ describe('agent-service resources', () => {
       method: 'POST',
       headers: expect.objectContaining({ 'Idempotency-Key': 'wf-123' }),
     })
+  })
+
+  // agent-service admits a run before the first response byte, so a rejected
+  // stream POST is a plain HTTP error with the standard envelope (these are its bytes).
+  it.each([
+    [400, 'BAD_REQUEST', 'INVALID_ARGUMENT', 'Message, images, or documents required', ModusError],
+    [403, 'FORBIDDEN', 'PERMISSION_DENIED', 'Not a member of this organization', PermissionDeniedError],
+    [404, 'NOT_FOUND', 'NOT_FOUND', 'Scope 17 not found', NotFoundError],
+    [409, 'CONFLICT', 'ALREADY_EXISTS', 'Idempotency key run-1 conflicts with an existing run', ConflictError],
+    [429, 'RATE_LIMITED', 'RESOURCE_EXHAUSTED', 'Conversation has 20 non-terminal runs', RateLimitError],
+  ])('a run stream refused with %i raises the typed error before any event', async (status, code, canonical, message, errorClass) => {
+    const fetch = vi.fn().mockResolvedValue(
+      jsonResponse(status, { error: { code, status: canonical, message, requestId: 'req_admission' } }),
+    )
+    const run = resource(fetch).runs.createModus({ message: 'hi', sessionId: 'session-1' })
+
+    const events: unknown[] = []
+    const failure = await (async () => {
+      for await (const event of run.events) events.push(event)
+    })().catch((error: unknown) => error)
+
+    expect(failure).toBeInstanceOf(errorClass)
+    expect(failure).toMatchObject({ message, code })
+    expect(events).toEqual([])
   })
 })
