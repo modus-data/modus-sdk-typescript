@@ -19,6 +19,13 @@ function sseResponse(chunks: string[]): Response {
   })
 }
 
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
 function resource(fetch: typeof globalThis.fetch): WorkflowsResource {
   const config = createModusConfig({
     apiKey: TEST_KEY,
@@ -158,6 +165,94 @@ describe('agent-service resources', () => {
       method: 'POST',
       body: JSON.stringify({}),
     })
+  })
+
+  it('interrupts with the follow-up turn and returns the new run', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(202, { runId: 'run-steer', status: 'pending' }))
+    const workflows = resource(fetch)
+
+    const admitted = await workflows.runs.interrupt(
+      'run-123',
+      { message: 'Use EMEA only.', sessionId: 'session-1' },
+      { lastSeenEventId: '1717000000000-0' },
+    )
+
+    expect(admitted).toEqual({ runId: 'run-steer', status: 'pending' })
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      'http://localhost:3130/agent/v1/runs/run-123/interrupt',
+    )
+    const sent = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    expect(sent).toEqual({
+      nextRun: { message: 'Use EMEA only.', sessionId: 'session-1', runId: expect.any(String) },
+      lastSeenEventId: '1717000000000-0',
+    })
+    expect(sent.nextRun.runId).not.toBe('')
+  })
+
+  it('retries an interrupt with the same pinned run id, so a 5xx retry cannot start a second turn', async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(500, { error: { code: 'INTERNAL_ERROR', message: 'boom' } }))
+      .mockResolvedValueOnce(jsonResponse(202, { runId: 'run-steer', status: 'pending' }))
+    const config = createModusConfig({
+      apiKey: TEST_KEY,
+      maxRetries: 1,
+      baseUrls: { 'agent-service': 'http://localhost:3130' },
+      fetch,
+    })
+    const workflows = new WorkflowsResource(new HttpClient(config), config)
+
+    await workflows.runs.interrupt('run-123', { message: 'm', sessionId: 'session-1' })
+
+    expect(fetch).toHaveBeenCalledTimes(2)
+    const first = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    const second = JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))
+    expect(second.nextRun.runId).toBe(first.nextRun.runId)
+  })
+
+  it('keeps a caller-supplied nextRun.runId on interrupt', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(202, { runId: 'mine', status: 'pending' }))
+    await resource(fetch).runs.interrupt('run-123', { message: 'm', sessionId: 's', runId: 'mine' })
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)).nextRun.runId).toBe('mine')
+  })
+
+  it('edits a queued run with the replacement turn and returns the run', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(200, { runId: 'run-q', status: 'queued' }))
+
+    const edited = await resource(fetch).runs.editQueued('run-q', { message: 'edited', sessionId: 'session-1' })
+
+    expect(edited).toEqual({ runId: 'run-q', status: 'queued' })
+    expect(String(fetch.mock.calls[0]?.[0])).toBe('http://localhost:3130/agent/v1/runs/run-q/queue-edit')
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      nextRun: { message: 'edited', sessionId: 'session-1' },
+    })
+  })
+
+  it.each([
+    ['interrupt', (w: WorkflowsResource) => w.runs.interrupt('run-1', { message: 'm', sessionId: ' ' })],
+    ['editQueued', (w: WorkflowsResource) => w.runs.editQueued('run-1', { message: 'm', sessionId: '' })],
+  ])('%s refuses a blank sessionId before sending anything', async (_name, call) => {
+    const fetch = vi.fn()
+    await expect(call(resource(fetch))).rejects.toThrow(/sessionId/)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('resumes with the decision and no message', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      sseResponse(['data: {"type":"done","runId":"run-c","threadId":"thread-1"}\n\n']),
+    )
+    const run = resource(fetch).runs.resume('run-1', { decision: 'approve', sessionId: 'session-1' })
+    for await (const _event of run.events) {
+      // consume stream
+    }
+    const sent = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    expect(sent).toMatchObject({ decision: 'approve', sessionId: 'session-1' })
+    expect(sent).not.toHaveProperty('message')
+  })
+
+  it('refuses a resume without a sessionId instead of minting one', () => {
+    const fetch = vi.fn()
+    expect(() => resource(fetch).runs.resume('run-1', { decision: 'approve', sessionId: ' ' })).toThrow(/sessionId/)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('lists active conversation runs through generated operation metadata', async () => {

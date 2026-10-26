@@ -11,6 +11,10 @@ export type CreateAgentRunRequest = AgentRunCreateRequest
 export type CancelRunRequest = components['schemas']['CancelRunDto']
 export type InterruptRunRequest = components['schemas']['InterruptRunDto']
 export type EditQueuedRunRequest = components['schemas']['EditQueuedRunDto']
+/** The turn `runs.interrupt` / `runs.editQueued` send as `nextRun`. */
+export type FollowUpRunRequest = components['schemas']['FollowUpRunDto']
+/** The run `runs.interrupt` / `runs.editQueued` admitted. */
+export type RunAdmission = components['schemas']['RunAdmissionResponseDto']
 export type WorkflowActionRequest = components['schemas']['WorkflowActionDto']
 
 export type RunStatus =

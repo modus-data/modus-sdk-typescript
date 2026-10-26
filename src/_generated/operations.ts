@@ -662,7 +662,7 @@ export const OPERATIONS = {
     pathParams: ["runId"],
     queryParams: [],
     requestSchema: "EditQueuedRunDto",
-    responseSchema: null,
+    responseSchema: "RunAdmissionResponseDto",
   },
   "RunLifecycleController_events": {
     method: "GET",
@@ -682,7 +682,7 @@ export const OPERATIONS = {
     pathParams: ["runId"],
     queryParams: [],
     requestSchema: "InterruptRunDto",
-    responseSchema: null,
+    responseSchema: "RunAdmissionResponseDto",
   },
   "RunLifecycleController_stream": {
     method: "GET",

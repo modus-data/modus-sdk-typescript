@@ -106,8 +106,8 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ],
   RunLifecycleController_cancel: [],
   RunLifecycleController_activeBySession: ['sessionIds'],
-  RunLifecycleController_interrupt: [],
-  RunLifecycleController_editQueued: [],
+  RunLifecycleController_interrupt: ['nextRun', 'lastSeenEventId'],
+  RunLifecycleController_editQueued: ['nextRun'],
   WorkflowActionsController_execute: [
     'organizationId',
     'sessionId',

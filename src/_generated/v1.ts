@@ -2163,7 +2163,7 @@ export interface paths {
         put?: never;
         /**
          * Interrupt an active run
-         * @description Interrupts an in-flight run with a follow-up message. The current turn is superseded and a new run turn starts from the supplied payload.
+         * @description Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run.
          *
          *     **Requires:** `workflows:invoke`
          */
@@ -6103,7 +6103,7 @@ export interface components {
             organizationId?: string;
             /** @description Redis Stream id of the last SSE frame the client rendered (see CancelRunDto). */
             lastSeenEventId?: string;
-            /** @description Follow-up message that supersedes the current turn. */
+            /** @description Follow-up turn that supersedes the current one. Its `sessionId` must be the run's conversation. Set `runId` so a retry returns the same run. */
             nextRun: components["schemas"]["FollowUpRunDto"];
         };
         ModusRunDto: {
@@ -6139,8 +6139,6 @@ export interface components {
             subordinateSkillIds?: number[];
         };
         ResumeRunDto: {
-            /** @description The user message to send. */
-            message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
@@ -6167,6 +6165,8 @@ export interface components {
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
             debug?: boolean;
+            /** @description Omit it. A resume carries no new message; a non-empty message is rejected. */
+            message?: string;
             /**
              * @description Decision that resumes the interrupted run.
              * @enum {string}
@@ -6174,6 +6174,12 @@ export interface components {
             decision: "approve" | "deny" | "connected" | "cancelled";
             /** @description The paused call an approval decision answers. Only that call is resolved and any other paused write is rejected; without it the first pending approval is resolved. */
             approvalTarget?: components["schemas"]["ApprovalTargetDto"];
+        };
+        RunAdmissionResponseDto: {
+            /** @description Id of the admitted run. Stream it with GET /runs/{runId}/stream. */
+            runId: string;
+            /** @description Status of the admitted run, e.g. `pending` or `queued`. */
+            status: string;
         };
         RunConfigDto: {
             /** @description Model id, e.g. anthropic/claude-sonnet-4.6. */
@@ -25734,11 +25740,14 @@ export interface operations {
             };
         };
         responses: {
+            /** @description The new run that carries the follow-up turn. */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunAdmissionResponseDto"];
+                };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
@@ -25776,11 +25785,14 @@ export interface operations {
             };
         };
         responses: {
+            /** @description The edited run. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunAdmissionResponseDto"];
+                };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {

@@ -20,6 +20,8 @@ release, including pre-1.0 (`0.x`) releases.
 - **Breaking (pre-1.0): workflow `guardrails` removed.** `workflows.create` and `workflows.update` no longer take `guardrails`. The workflow access configuration has no guardrails, so every call that set it failed with 400 and changed nothing. Scope `guardrails` are unchanged.
 - **Breaking (pre-1.0): `scopes.memories(id).update()` returns `Promise<void>`.** The server answers 204 with no body; the method returned `null` typed as `Memory`.
 - **Breaking (pre-1.0): `managerId` is `number | null`.** `scopes.update({ managerId })` takes the numeric id of the manager scope, or `null` to detach. It was typed `string`, which the server rejects with 400.
+- **Breaking (pre-1.0): `runs.interrupt` and `runs.editQueued` take the turn to send.** `runs.interrupt(runId, nextRun, { lastSeenEventId? })` and `runs.editQueued(runId, nextRun)` send `nextRun` (`message` and `sessionId`, the run's conversation id) and return the admitted run as `RunAdmission` (`{ runId, status }`). For `interrupt`, that is the new run that carries the follow-up turn; stream it with `runs.stream(runId)`. The old signatures sent an empty body, which the server always rejected, so no working call changes behaviour. `interrupt` sets `nextRun.runId` when you omit it, so a retried request returns the same run instead of starting a second turn. On a run that has already finished, `interrupt` starts a follow-up turn.
+- **`runs.resume` sends no message.** The documented example now sends only `decision` and `sessionId`; a non-empty `message` is rejected by the server. A blank `sessionId` is refused before any request instead of being replaced by a new random conversation.
 
 ### Fixed
 

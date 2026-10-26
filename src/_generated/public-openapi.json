@@ -23488,7 +23488,7 @@
     },
     "/agent/v1/runs/{runId}/interrupt": {
       "post": {
-        "description": "Interrupts an in-flight run with a follow-up message. The current turn is superseded and a new run turn starts from the supplied payload.\n\n**Requires:** `workflows:invoke`",
+        "description": "Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run.\n\n**Requires:** `workflows:invoke`",
         "operationId": "RunLifecycleController_interrupt",
         "parameters": [
           {
@@ -23512,7 +23512,14 @@
         },
         "responses": {
           "202": {
-            "description": ""
+            "description": "The new run that carries the follow-up turn.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunAdmissionResponseDto"
+                }
+              }
+            }
           },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
@@ -23579,7 +23586,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "The edited run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunAdmissionResponseDto"
+                }
+              }
+            }
           },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
@@ -31882,7 +31896,7 @@
             "description": "Redis Stream id of the last SSE frame the client rendered (see CancelRunDto)."
           },
           "nextRun": {
-            "description": "Follow-up message that supersedes the current turn.",
+            "description": "Follow-up turn that supersedes the current one. Its `sessionId` must be the run's conversation. Set `runId` so a retry returns the same run.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/FollowUpRunDto"
@@ -31974,10 +31988,6 @@
       "ResumeRunDto": {
         "type": "object",
         "properties": {
-          "message": {
-            "type": "string",
-            "description": "The user message to send."
-          },
           "sessionId": {
             "type": "string",
             "description": "Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together."
@@ -32035,6 +32045,10 @@
           "debug": {
             "type": "boolean"
           },
+          "message": {
+            "type": "string",
+            "description": "Omit it. A resume carries no new message; a non-empty message is rejected."
+          },
           "decision": {
             "type": "string",
             "enum": [
@@ -32055,9 +32069,25 @@
           }
         },
         "required": [
-          "message",
           "sessionId",
           "decision"
+        ]
+      },
+      "RunAdmissionResponseDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "Id of the admitted run. Stream it with GET /runs/{runId}/stream."
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the admitted run, e.g. `pending` or `queued`."
+          }
+        },
+        "required": [
+          "runId",
+          "status"
         ]
       },
       "RunConfigDto": {
