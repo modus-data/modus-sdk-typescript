@@ -10,5 +10,11 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['tests/integration/**', repoSpecGlob],
     setupFiles: ['./tests/vitest.setup.ts'],
+    // `tsconfig.json` covers src only; type-level tests (`*.test-d.ts`) need their own.
+    typecheck: {
+      enabled: true,
+      include: ['tests/**/*.test-d.ts'],
+      tsconfig: './tests/tsconfig.typecheck.json',
+    },
   },
 })

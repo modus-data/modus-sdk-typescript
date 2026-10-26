@@ -3266,7 +3266,9 @@ export interface components {
                 [key: string]: unknown;
             };
             /** @description Representative samples for entity sample context. */
-            samples?: Record<string, never>[];
+            samples?: {
+                [key: string]: unknown;
+            }[];
             /** @description Customer-specific fields that should be retained but are not part of the normalized contract. */
             raw?: {
                 [key: string]: unknown;
@@ -3985,7 +3987,7 @@ export interface components {
             /** @description Email address */
             email: string;
             /** @description Display name */
-            name?: Record<string, never>;
+            name?: string | null;
         };
         EvaluationResultDto: {
             /** @description Result ID */
@@ -3997,15 +3999,15 @@ export interface components {
             /** @description Expected output */
             expectedOutput: string;
             /** @description Actual output from the scope */
-            actualOutput?: Record<string, never>;
+            actualOutput?: string | null;
             /** @description Whether the case passed */
-            passed?: Record<string, never>;
+            passed?: boolean | null;
             /** @description Score (0-100) */
-            score?: Record<string, never>;
+            score?: number | null;
             /** @description Judge reasoning */
-            reasoning?: Record<string, never>;
+            reasoning?: string | null;
             /** @description Whether this case was passing in the previous run */
-            wasPassingBefore?: Record<string, never>;
+            wasPassingBefore?: boolean | null;
         };
         EvaluationRunDto: {
             /** @description Run ID */
@@ -4016,10 +4018,16 @@ export interface components {
             trigger: components["schemas"]["EvaluationRunTrigger"];
             /** @description Run status */
             status: components["schemas"]["EvaluationRunStatus"];
-            /** @description When the run started */
+            /**
+             * Format: date-time
+             * @description When the run started
+             */
             startedAt: string;
-            /** @description When the run finished */
-            finishedAt?: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When the run finished
+             */
+            finishedAt?: string | null;
             /** @description Total number of evaluation cases */
             totalCases: number;
             /** @description Number of passed cases */
@@ -4027,7 +4035,7 @@ export interface components {
             /** @description Number of failed cases */
             failedCases: number;
             /** @description Average score (0-100) */
-            avgScore?: Record<string, never>;
+            avgScore?: number | null;
             /** @description Whether this run detected a regression */
             isRegression: boolean;
             /** @description Judge model used */
@@ -4054,10 +4062,16 @@ export interface components {
             trigger: components["schemas"]["EvaluationRunTrigger"];
             /** @description Run status */
             status: components["schemas"]["EvaluationRunStatus"];
-            /** @description When the run started */
+            /**
+             * Format: date-time
+             * @description When the run started
+             */
             startedAt: string;
-            /** @description When the run finished */
-            finishedAt?: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When the run finished
+             */
+            finishedAt?: string | null;
             /** @description Total number of evaluation cases */
             totalCases: number;
             /** @description Number of passed cases */
@@ -4065,7 +4079,7 @@ export interface components {
             /** @description Number of failed cases */
             failedCases: number;
             /** @description Average score (0-100) */
-            avgScore?: Record<string, never>;
+            avgScore?: number | null;
             /** @description Whether this run detected a regression */
             isRegression: boolean;
             /** @description Judge model used */
@@ -4082,7 +4096,9 @@ export interface components {
              */
             connectionId: string;
             /** @description Mapping of Clerk user ID to Slack user ID */
-            slackUserIdByRecipient: Record<string, never>;
+            slackUserIdByRecipient: {
+                [key: string]: unknown;
+            };
         };
         FailedFinalizeDto: {
             /**
@@ -5434,7 +5450,9 @@ export interface components {
                 [key: string]: unknown;
             };
             /** @description Replacement representative samples. */
-            samples?: Record<string, never>[];
+            samples?: {
+                [key: string]: unknown;
+            }[];
             /** @description Replacement customer-specific raw fields. */
             raw?: {
                 [key: string]: unknown;
@@ -6187,16 +6205,24 @@ export interface components {
             /** @description Model-specific runtime controls. */
             modelSettings?: components["schemas"]["RunModelSettingsDto"];
             /** @description Context selections (runtime-owned shape). */
-            contextSelections?: Record<string, never>[];
+            contextSelections?: {
+                [key: string]: unknown;
+            }[];
             /** @description Database connection selections (runtime-owned shape). */
-            connectionSelections?: Record<string, never>[];
+            connectionSelections?: {
+                [key: string]: unknown;
+            }[];
             /** @description Schema scopes (runtime-owned shape). */
-            connectionSet?: Record<string, never>[];
+            connectionSet?: {
+                [key: string]: unknown;
+            }[];
             connectionAllModeIds?: string[];
             /** @description Guardrail ids applied to the run. */
             guardrails?: string[];
             /** @description Map of tool name to tool config. */
-            toolset?: Record<string, never>;
+            toolset?: {
+                [key: string]: unknown;
+            };
             experimentalFeatures?: boolean;
             debug?: boolean;
             /** @description Set false to keep composer output inline. */

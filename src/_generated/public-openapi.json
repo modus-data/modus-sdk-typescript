@@ -25758,10 +25758,11 @@
             "additionalProperties": true
           },
           "samples": {
-            "description": "Representative samples for entity sample context.",
             "type": "array",
+            "description": "Representative samples for entity sample context.",
             "items": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": true
             }
           },
           "raw": {
@@ -27566,7 +27567,8 @@
             "description": "Email address"
           },
           "name": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Display name"
           }
         },
@@ -27595,23 +27597,28 @@
             "description": "Expected output"
           },
           "actualOutput": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Actual output from the scope"
           },
           "passed": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "Whether the case passed"
           },
           "score": {
-            "type": "object",
+            "type": "number",
+            "nullable": true,
             "description": "Score (0-100)"
           },
           "reasoning": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Judge reasoning"
           },
           "wasPassingBefore": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "Whether this case was passing in the previous run"
           }
         },
@@ -27651,10 +27658,13 @@
           },
           "startedAt": {
             "type": "string",
+            "format": "date-time",
             "description": "When the run started"
           },
           "finishedAt": {
-            "type": "object",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
             "description": "When the run finished"
           },
           "totalCases": {
@@ -27670,7 +27680,8 @@
             "description": "Number of failed cases"
           },
           "avgScore": {
-            "type": "object",
+            "type": "number",
+            "nullable": true,
             "description": "Average score (0-100)"
           },
           "isRegression": {
@@ -27747,10 +27758,13 @@
           },
           "startedAt": {
             "type": "string",
+            "format": "date-time",
             "description": "When the run started"
           },
           "finishedAt": {
-            "type": "object",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
             "description": "When the run finished"
           },
           "totalCases": {
@@ -27766,7 +27780,8 @@
             "description": "Number of failed cases"
           },
           "avgScore": {
-            "type": "object",
+            "type": "number",
+            "nullable": true,
             "description": "Average score (0-100)"
           },
           "isRegression": {
@@ -27814,6 +27829,7 @@
           },
           "slackUserIdByRecipient": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Mapping of Clerk user ID to Slack user ID"
           }
         },
@@ -30519,10 +30535,11 @@
             "additionalProperties": true
           },
           "samples": {
-            "description": "Replacement representative samples.",
             "type": "array",
+            "description": "Replacement representative samples.",
             "items": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": true
             }
           },
           "raw": {
@@ -32106,25 +32123,28 @@
             ]
           },
           "contextSelections": {
-            "description": "Context selections (runtime-owned shape).",
             "type": "array",
             "items": {
-              "type": "object"
-            }
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Context selections (runtime-owned shape)."
           },
           "connectionSelections": {
-            "description": "Database connection selections (runtime-owned shape).",
             "type": "array",
             "items": {
-              "type": "object"
-            }
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Database connection selections (runtime-owned shape)."
           },
           "connectionSet": {
-            "description": "Schema scopes (runtime-owned shape).",
             "type": "array",
             "items": {
-              "type": "object"
-            }
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Schema scopes (runtime-owned shape)."
           },
           "connectionAllModeIds": {
             "type": "array",
@@ -32141,6 +32161,7 @@
           },
           "toolset": {
             "type": "object",
+            "additionalProperties": true,
             "description": "Map of tool name to tool config."
           },
           "experimentalFeatures": {
