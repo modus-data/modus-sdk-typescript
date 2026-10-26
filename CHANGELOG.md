@@ -13,6 +13,12 @@ release, including pre-1.0 (`0.x`) releases.
 
 - **`deepseek-v4.1-flash-1017` model.** The October 17, 2026 snapshot of DeepSeek V4.1 Flash is an
   accepted chat model id.
+- **`BadRequestError`** for HTTP 400 (a schema or parse failure), a `ModusError` subclass, so
+  existing `catch (e instanceof ModusError)` code is unaffected.
+- **`ModusError.info`** carries the error envelope's structured detail, for example
+  `info.missing` (the token scopes a 403 lacks) or `info.violations` on a 422.
+- **`ModusError.retryable`** says whether the SDK's retry rule allowed re-sending the failed call.
+- **`Retry-After` as an HTTP date, and `retry-after-ms`,** fill `RateLimitError.retryAfter`.
 
 ### Changed
 
@@ -23,6 +29,14 @@ release, including pre-1.0 (`0.x`) releases.
 - **Breaking (pre-1.0): `scopes.memories(id).update()` returns `Promise<void>`.** The server answers 204 with no body; the method returned `null` typed as `Memory`.
 - **Breaking (pre-1.0): `managerId` is `number | null`.** `scopes.update({ managerId })` takes the numeric id of the manager scope, or `null` to detach. It was typed `string`, which the server rejects with 400.
 - **Breaking (pre-1.0): evaluation runs `pageSize` is checked.** `scopes.evaluations(id).listRuns()` rejects a `pageSize` outside 1..100 with 400, like every other list (it was clamped above 100).
+- **Breaking (pre-1.0): a POST that fails after being sent now throws instead of being
+  re-sent.** Retries depend on the method: GET, PUT, PATCH and DELETE retry 408, 429, 500, 502,
+  503, 504, dropped connections and timeouts. A POST retries only on 429 or a connection that
+  never opened, except the POSTs that only read or set a state (context compose, item lookup, memory search, active-run lookup, run cancel, run interrupt, workflow-action cancel, workflow toggle, ingested-data upload), which retry like
+  a GET. Before, a `scopes.create` that hit a gateway 502 or a timeout was sent again and could
+  create a second scope; now it throws and you decide whether to re-create.
+- **A `Retry-After` over 60 s throws `RateLimitError` at once** (with `retryAfter` set)
+  instead of sleeping that long. Up to 60 s is still waited out.
 - **Breaking (pre-1.0): `runs.interrupt` and `runs.editQueued` take the turn to send.** `runs.interrupt(runId, nextRun, { lastSeenEventId? })` and `runs.editQueued(runId, nextRun)` send `nextRun` (`message` and `sessionId`, the run's conversation id) and return the admitted run as `RunAdmission` (`{ runId, status }`). For `interrupt`, that is the new run that carries the follow-up turn; stream it with `runs.stream(runId)`. The old signatures sent an empty body, which the server always rejected, so no working call changes behaviour. `interrupt` sets `nextRun.runId` when you omit it, so a retried request returns the same run instead of starting a second turn. On a run that has already finished, `interrupt` starts a follow-up turn.
 - **`runs.resume` sends no message.** The documented example now sends only `decision` and `sessionId`; a non-empty `message` is rejected by the server. A blank `sessionId` is refused before any request instead of being replaced by a new random conversation.
 
@@ -35,6 +49,14 @@ release, including pre-1.0 (`0.x`) releases.
 - **`updateMask` clears the fields it names.** A field named in `updateMask` and left unset is sent as `null`, so the server clears it, on `scopes.update`, `workflows.update`, `context.items.update`, and both `interfaces(id).update`. Before, it was dropped from the body and nothing was cleared.
 - **`suggestions.list({ scopeIds: [] })` throws `ValidationError`** before any request. It sent `scopeIds=`, which the server rejects with 400.
 - **Docs: ids are numeric.** The getting-started example took a slug (`scopes.get('revenue-analysis')`), which the server rejects with 400; it now takes an id from `list()`. Docs no longer say "id or slug". `type: 'task'` is documented as a deprecated alias on create; `workflows.update` accepts only `workflow`.
+- **`requestId` is set on every API error.** It was always `undefined`, because the API sends
+  it in the error body, not in an `x-request-id` header. The header is still used when the body
+  has none.
+- **A 2xx response that is not JSON** throws a `ModusError` naming the status, content type and
+  the first 200 characters, after one request. It was an `APIConnectionError` ("check
+  connectivity") retried three times.
+- **`UnprocessableError` documentation:** 422 is a business-rule failure; schema failures are
+  400 (`BadRequestError`).
 
 ## [0.9.0] — 2026-10-24
 

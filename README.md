@@ -215,8 +215,10 @@ for await (const scope of (await client.scopes.list()).autoPagingIter()) {
 ```ts
 import {
   Modus,
+  BadRequestError,
   NotFoundError,
   AuthenticationError,
+  PermissionDeniedError,
   RateLimitError,
   ModusError,
 } from '@getmodus/sdk'
@@ -226,17 +228,44 @@ try {
 } catch (e) {
   if (e instanceof NotFoundError) {
     console.log('Scope not found')
+  } else if (e instanceof BadRequestError) {
+    console.log(`Invalid request: ${e.message}`)
   } else if (e instanceof AuthenticationError) {
     console.log('Check your MODUS_API_KEY')
+  } else if (e instanceof PermissionDeniedError) {
+    console.log('Token is missing scopes:', e.info?.missing)
   } else if (e instanceof RateLimitError) {
     console.log(`Rate limited. Retry after ${e.retryAfter}s`)
   } else if (e instanceof ModusError) {
-    console.log(`API error ${e.statusCode}: ${e.message}`)
+    console.log(`API error ${e.statusCode} ${e.code}: ${e.message} (request ${e.requestId})`)
   } else {
     throw e
   }
 }
 ```
+
+Every error carries `code` (for example `NOT_FOUND`), `requestId` (quote it to support) and,
+when the server sends one, `info` with structured detail. A request that fails schema
+validation is a `BadRequestError` (400); one that is well-formed but breaks a business rule
+is an `UnprocessableError` (422), with the rule in `info`.
+
+## Retries
+
+A failed request is re-sent up to `maxRetries` times (default 2, with exponential backoff),
+but only when sending it twice cannot do the work twice:
+
+- **429**, for every method. A `Retry-After` (or `retry-after-ms`) of up to 60 s is waited
+  out; a longer one throws `RateLimitError` at once with `retryAfter` set.
+- **A connection that never opened** (refused, DNS failure, connect timeout), for every method.
+- **408, 500, 502, 503, 504, a dropped connection or a timeout**, for GET, PUT, PATCH and
+  DELETE, and for the POSTs that only read or set a state (context compose, item lookup,
+  memory search, active-run lookup, run cancel, run interrupt, workflow-action cancel, workflow toggle,
+  ingested-data upload).
+
+Any other POST (a create, an add, an evaluation run) may already have run on the server, so
+it throws instead of being re-sent: check whether the resource exists before creating it
+again. `e.retryable` tells you whether the SDK considered the failure safe to re-send.
+Pass `maxRetries: 0` to turn retries off.
 
 ## Examples
 

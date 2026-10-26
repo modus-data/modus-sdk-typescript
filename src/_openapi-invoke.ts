@@ -69,7 +69,7 @@ export async function invokeOperation(
     case 'GET':
       return http.get(path, params, requestOptions)
     case 'POST':
-      return http.post(path, options.jsonBody, requestOptions)
+      return http.post(path, options.jsonBody, { ...requestOptions, idempotent: op.idempotent })
     case 'PUT':
       return http.put(path, options.jsonBody, requestOptions)
     case 'PATCH':

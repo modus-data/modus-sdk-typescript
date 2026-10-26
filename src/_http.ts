@@ -3,6 +3,7 @@ import type { ModusConfig } from './_config.js'
 import {
   APIConnectionError,
   AuthenticationError,
+  BadRequestError,
   ConflictError,
   InternalServerError,
   ModusError,
@@ -11,6 +12,7 @@ import {
   RateLimitError,
   UnprocessableError,
 } from './_exceptions.js'
+import { isRetrySafe } from './_retry.js'
 
 const USER_AGENT = `modus-typescript/${__SDK_VERSION__} (node/${process.version}; ${process.platform})`
 
@@ -19,6 +21,8 @@ type QueryParams = Record<string, QueryValue>
 type RequestOptions = {
   baseUrl?: string
   headers?: Record<string, string>
+  /** A POST that only reads or sets a state, so it is safe to re-send after a 5xx or a timeout. */
+  idempotent?: boolean
 }
 
 function buildUrl(baseUrl: string, path: string, params?: QueryParams): string {
@@ -57,46 +61,81 @@ function headersToRecord(headers: Headers): Record<string, string> {
   return out
 }
 
-function messageFromBody(raw: string, statusCode: number): string {
-  if (!raw) return `HTTP ${statusCode}`
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value ? value : undefined
+}
+
+interface ErrorFields {
+  message: string
+  code?: string
+  requestId?: string
+  info?: Record<string, unknown>
+  /** The parsed body, when it is JSON. */
+  parsed?: unknown
+}
+
+/**
+ * Read an error body once: Modus's envelope `{"error":{code,message,requestId,info}}`,
+ * an API Gateway body `{"message":"..."}`, or anything else as raw text.
+ */
+function parseErrorBody(raw: string, statusCode: number): ErrorFields {
+  let parsed: unknown
   try {
-    const body = JSON.parse(raw) as unknown
-    if (body && typeof body === 'object') {
-      const record = body as Record<string, unknown>
-      const envelope = record.error
-      if (envelope && typeof envelope === 'object') {
-        const msg = (envelope as Record<string, unknown>).message
-        if (typeof msg === 'string' && msg) return msg
-      }
-      const msg = record.message ?? record.error
-      if (Array.isArray(msg)) return msg.map(String).join('; ')
-      if (typeof msg === 'string' && msg) return msg
+    parsed = JSON.parse(raw)
+  } catch {
+    return { message: raw || `HTTP ${statusCode}` }
+  }
+  if (!isRecord(parsed)) return { message: raw, parsed }
+  const envelope = parsed.error
+  if (isRecord(envelope)) {
+    return {
+      message: nonEmptyString(envelope.message) ?? raw,
+      code: nonEmptyString(envelope.code),
+      requestId: nonEmptyString(envelope.requestId),
+      info: isRecord(envelope.info) ? envelope.info : undefined,
+      parsed,
     }
-  } catch {
-    // non-JSON body
   }
-  return raw
+  const message = parsed.message ?? parsed.error
+  if (Array.isArray(message)) return { message: message.map(String).join('; '), parsed }
+  return { message: nonEmptyString(message) ?? raw, parsed }
 }
 
-function errorCodeFromBody(raw: string): string | undefined {
-  try {
-    const body = JSON.parse(raw) as { error?: { code?: string } }
-    return typeof body.error?.code === 'string' ? body.error.code : undefined
-  } catch {
-    return undefined
-  }
+/**
+ * Seconds to wait, from `retry-after-ms` or `Retry-After` (delta-seconds or an HTTP date),
+ * rounded up to whole seconds.
+ */
+function parseRetryAfter(headers: Headers): number | undefined {
+  const ms = headers.get('retry-after-ms')?.trim()
+  if (ms && /^\d+(\.\d+)?$/.test(ms)) return Math.ceil(Number(ms) / 1000)
+  const value = headers.get('retry-after')?.trim()
+  if (!value) return undefined
+  if (/^\d+$/.test(value)) return Number(value)
+  const date = Date.parse(value)
+  return Number.isNaN(date) ? undefined : Math.max(0, Math.ceil((date - Date.now()) / 1000))
 }
 
-export function raiseForStatus(response: Response, body: string): void {
+export function raiseForStatus(response: Response, body: string, method = 'GET', idempotent = false): void {
   if (response.ok) return
-  const message = messageFromBody(body, response.status)
-  const requestId =
-    response.headers.get('x-request-id') ?? response.headers.get('X-Request-ID') ?? undefined
-  const headers = headersToRecord(response.headers)
-  const code = errorCodeFromBody(body)
-  const base = { requestId, responseHeaders: headers, body, code }
+  const status = response.status
+  const { message, code, requestId, info, parsed } = parseErrorBody(body, status)
+  const retryAfter = status === 429 ? parseRetryAfter(response.headers) : undefined
+  const base = {
+    requestId: requestId ?? response.headers.get('x-request-id') ?? undefined,
+    responseHeaders: headersToRecord(response.headers),
+    body,
+    code,
+    info,
+    retryable: isRetrySafe(method, idempotent, { status, retryAfter }),
+  }
 
-  switch (response.status) {
+  switch (status) {
+    case 400:
+      throw new BadRequestError(message, base)
     case 401:
       throw new AuthenticationError(message, base)
     case 403:
@@ -105,38 +144,54 @@ export function raiseForStatus(response: Response, body: string): void {
       throw new NotFoundError(message, base)
     case 409:
       throw new ConflictError(message, base)
-    case 422: {
-      let errors: unknown
-      try {
-        errors = JSON.parse(body)
-      } catch {
-        errors = undefined
-      }
-      throw new UnprocessableError(message, { ...base, errors })
-    }
-    case 429: {
-      const retryHeader = response.headers.get('retry-after') ?? ''
-      const retryAfter = /^\d+$/.test(retryHeader) ? Number.parseInt(retryHeader, 10) : undefined
+    case 422:
+      throw new UnprocessableError(message, { ...base, errors: parsed })
+    case 429:
       throw new RateLimitError(message, { ...base, retryAfter })
-    }
     default:
-      if (response.status >= 500) {
-        throw new InternalServerError(message, response.status, base)
-      }
-      throw new ModusError(message, { ...base, statusCode: response.status })
+      if (status >= 500) throw new InternalServerError(message, status, base)
+      throw new ModusError(message, { ...base, statusCode: status })
   }
 }
 
-function wrapNetworkError(error: unknown, baseUrl: string): APIConnectionError {
-  const detail = error instanceof Error ? error.message : String(error)
+function wrapNetworkError(
+  error: unknown,
+  baseUrl: string,
+  method: string,
+  idempotent: boolean,
+): APIConnectionError {
+  const detail =
+    error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError')
+      ? 'Request timed out'
+      : error instanceof Error
+        ? error.message
+        : String(error)
+  const cause = error instanceof Error ? error.cause : undefined
+  const causeCode = isRecord(cause) ? nonEmptyString(cause.code) : undefined
   return new APIConnectionError(
     `Network error communicating with Modus API at ${JSON.stringify(baseUrl)}: ${detail}. ` +
       'Check connectivity and that baseUrl is correct.',
+    { retryable: isRetrySafe(method, idempotent, { causeCode }) },
   )
 }
 
-async function readBody(response: Response): Promise<string> {
-  return response.text()
+/** Parse a 2xx JSON body; one that is not JSON is a non-retryable ModusError, not a network error. */
+function parseJsonBody(response: Response, body: string): unknown {
+  try {
+    return JSON.parse(body) as unknown
+  } catch {
+    const contentType = response.headers.get('content-type') ?? ''
+    throw new ModusError(
+      `Invalid JSON in HTTP ${response.status} response (content-type ${JSON.stringify(contentType)}): ` +
+        body.slice(0, 200),
+      {
+        statusCode: response.status,
+        requestId: response.headers.get('x-request-id') ?? undefined,
+        responseHeaders: headersToRecord(response.headers),
+        body,
+      },
+    )
+  }
 }
 
 /** Read at most `maxChars` from the body, then cancel the remainder. */
@@ -187,24 +242,23 @@ export class HttpClient {
   ): Promise<unknown> {
     const baseUrl = options.baseUrl ?? this.config.baseUrl
     const url = buildUrl(baseUrl, path, options.params)
+    const idempotent = options.idempotent ?? false
+    let response: Response
+    let body: string
     try {
-      const response = await this.config.fetch(url, {
+      response = await this.config.fetch(url, {
         method,
         headers: mergeHeaders(this.defaultHeaders(), options.headers, authHeaders(this.config.apiKey)),
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })
-      const body = await readBody(response)
-      raiseForStatus(response, body)
-      if (response.status === 204 || !body) return null
-      return JSON.parse(body) as unknown
+      body = await response.text()
     } catch (error) {
-      if (error instanceof ModusError) throw error
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw wrapNetworkError(new Error('Request timed out'), baseUrl)
-      }
-      throw wrapNetworkError(error, baseUrl)
+      throw wrapNetworkError(error, baseUrl, method, idempotent)
     }
+    raiseForStatus(response, body, method, idempotent)
+    if (response.status === 204 || !body) return null
+    return parseJsonBody(response, body)
   }
 
   get(path: string, params?: QueryParams, options: RequestOptions = {}): Promise<unknown> {
@@ -239,6 +293,7 @@ export class HttpClient {
   ): AsyncGenerator<string> {
     const baseUrl = options.baseUrl ?? this.config.baseUrl
     const url = buildUrl(baseUrl, path, options.params)
+    const idempotent = options.idempotent ?? false
     try {
       const response = await this.config.fetch(url, {
         method,
@@ -254,8 +309,7 @@ export class HttpClient {
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })
       if (!response.ok) {
-        const body = await readBody(response)
-        raiseForStatus(response, body)
+        raiseForStatus(response, await response.text(), method, idempotent)
         return
       }
       const contentType = response.headers.get('content-type') ?? ''
@@ -285,10 +339,7 @@ export class HttpClient {
       if (buffer.trim()) yield buffer
     } catch (error) {
       if (error instanceof ModusError) throw error
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw wrapNetworkError(new Error('Request timed out'), baseUrl)
-      }
-      throw wrapNetworkError(error, baseUrl)
+      throw wrapNetworkError(error, baseUrl, method, idempotent)
     }
   }
 

@@ -11,6 +11,8 @@ export interface OperationSpec {
   queryParams: readonly string[]
   requestSchema: string | null
   responseSchema: string | null
+  /** A POST that only reads or sets a state, so it is safe to re-send after a 5xx or a timeout. */
+  idempotent: boolean
 }
 
 export const OPERATIONS = {
@@ -23,6 +25,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","type"],
     requestSchema: null,
     responseSchema: "ListConnectionsResponseDto",
+    idempotent: false,
   },
   "ConnectionsController_listSelections": {
     method: "GET",
@@ -33,6 +36,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize"],
     requestSchema: null,
     responseSchema: "ListConnectionSelectionsResponseDto",
+    idempotent: false,
   },
   "ContextCreatorsController_createLink": {
     method: "POST",
@@ -43,6 +47,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateLinkDto",
     responseSchema: "CreatedContextItemResponseDto",
+    idempotent: false,
   },
   "ContextCreatorsController_createNote": {
     method: "POST",
@@ -53,6 +58,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateNoteDto",
     responseSchema: "CreatedContextItemResponseDto",
+    idempotent: false,
   },
   "ContextCreatorsController_createSavedQuery": {
     method: "POST",
@@ -63,6 +69,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateSavedQueryDto",
     responseSchema: "CreatedContextItemResponseDto",
+    idempotent: false,
   },
   "ContextFilesController_finalize": {
     method: "POST",
@@ -73,6 +80,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "FinalizeUploadDto",
     responseSchema: "FileUploadResourceDto",
+    idempotent: false,
   },
   "ContextFilesController_finalizeMany": {
     method: "POST",
@@ -83,6 +91,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "BulkFinalizeDto",
     responseSchema: "BulkFinalizeResponseDto",
+    idempotent: false,
   },
   "ContextFilesController_get": {
     method: "GET",
@@ -93,6 +102,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "FileUploadResourceDto",
+    idempotent: false,
   },
   "ContextFilesController_list": {
     method: "GET",
@@ -103,6 +113,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize"],
     requestSchema: null,
     responseSchema: "ListFilesResponseDto",
+    idempotent: false,
   },
   "ContextFilesController_uploadFromUrl": {
     method: "POST",
@@ -113,6 +124,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UploadFromUrlDto",
     responseSchema: "FileUploadResourceDto",
+    idempotent: false,
   },
   "ContextFilesController_uploadFromUrls": {
     method: "POST",
@@ -123,6 +135,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "BulkUploadFromUrlsDto",
     responseSchema: "BulkUploadFromUrlsResponseDto",
+    idempotent: false,
   },
   "ContextFilesController_uploadUrl": {
     method: "POST",
@@ -133,6 +146,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UploadUrlDto",
     responseSchema: "UploadUrlResponseDto",
+    idempotent: false,
   },
   "ContextFilesController_uploadUrls": {
     method: "POST",
@@ -143,6 +157,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "BulkUploadUrlsDto",
     responseSchema: "BulkUploadUrlsResponseDto",
+    idempotent: false,
   },
   "ContextItemsController_delete": {
     method: "DELETE",
@@ -153,6 +168,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DeleteContextItemResponseDto",
+    idempotent: false,
   },
   "ContextItemsController_get": {
     method: "GET",
@@ -163,6 +179,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ContextItemDto",
+    idempotent: false,
   },
   "ContextItemsController_list": {
     method: "GET",
@@ -173,6 +190,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","contextTypes","verificationStatuses","searchQuery","topics","connectionIds","parentUids","ancestorUids"],
     requestSchema: null,
     responseSchema: "ListContextItemsResponseDto",
+    idempotent: false,
   },
   "ContextItemsController_listValues": {
     method: "GET",
@@ -183,6 +201,7 @@ export const OPERATIONS = {
     queryParams: ["contextType","contentKeyPath","pageSize","offset","pageToken","searchQuery","dataPathPrefix"],
     requestSchema: null,
     responseSchema: "ListContextItemValuesResponseDto",
+    idempotent: false,
   },
   "ContextItemsController_lookup": {
     method: "POST",
@@ -193,6 +212,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "LookupContextItemDto",
     responseSchema: "LookupContextItemResponseDto",
+    idempotent: true,
   },
   "ContextItemsController_move": {
     method: "POST",
@@ -203,6 +223,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "MoveContextItemDto",
     responseSchema: "MoveContextItemResponseDto",
+    idempotent: false,
   },
   "ContextItemsController_update": {
     method: "PATCH",
@@ -213,6 +234,7 @@ export const OPERATIONS = {
     queryParams: ["updateMask"],
     requestSchema: "UpdateContextItemDto",
     responseSchema: null,
+    idempotent: false,
   },
   "CustomContextItemsController_batchCreate": {
     method: "POST",
@@ -223,6 +245,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "BatchCreateCustomContextItemsDto",
     responseSchema: "BatchCreateCustomContextItemsResponseDto",
+    idempotent: false,
   },
   "CustomContextItemsController_create": {
     method: "POST",
@@ -233,6 +256,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateCustomContextItemDto",
     responseSchema: "CreatedCustomContextItemResponseDto",
+    idempotent: false,
   },
   "CustomContextItemsController_createRelations": {
     method: "POST",
@@ -243,6 +267,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "BatchCreateCustomContextItemRelationsDto",
     responseSchema: "BatchCreateCustomContextItemRelationsResponseDto",
+    idempotent: false,
   },
   "CustomContextItemsController_delete": {
     method: "DELETE",
@@ -253,6 +278,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DeleteContextItemResponseDto",
+    idempotent: false,
   },
   "CustomContextItemsController_get": {
     method: "GET",
@@ -263,6 +289,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ContextItemDto",
+    idempotent: false,
   },
   "CustomContextItemsController_list": {
     method: "GET",
@@ -273,6 +300,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","contextTypes","verificationStatuses","searchQuery","topics"],
     requestSchema: null,
     responseSchema: "ListCustomContextItemsResponseDto",
+    idempotent: false,
   },
   "CustomContextItemsController_update": {
     method: "PATCH",
@@ -283,6 +311,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateCustomContextItemDto",
     responseSchema: null,
+    idempotent: false,
   },
   "DashboardsController_acceptOwnership": {
     method: "POST",
@@ -293,6 +322,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_cancelOwnership": {
     method: "DELETE",
@@ -303,6 +333,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_create": {
     method: "POST",
@@ -313,6 +344,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateDashboardDto",
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_createElement": {
     method: "POST",
@@ -323,6 +355,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateDashboardElementDto",
     responseSchema: "DashboardElementResponseDto",
+    idempotent: false,
   },
   "DashboardsController_delete": {
     method: "DELETE",
@@ -333,6 +366,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "DashboardsController_get": {
     method: "GET",
@@ -343,6 +377,7 @@ export const OPERATIONS = {
     queryParams: ["view"],
     requestSchema: null,
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_getElement": {
     method: "GET",
@@ -353,6 +388,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DashboardElementResponseDto",
+    idempotent: false,
   },
   "DashboardsController_getVersion": {
     method: "GET",
@@ -363,6 +399,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_list": {
     method: "GET",
@@ -373,6 +410,7 @@ export const OPERATIONS = {
     queryParams: ["view"],
     requestSchema: null,
     responseSchema: "ListDashboardsResponseDto",
+    idempotent: false,
   },
   "DashboardsController_listDraftSnapshots": {
     method: "GET",
@@ -383,6 +421,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ListDashboardDraftSnapshotsResponseDto",
+    idempotent: false,
   },
   "DashboardsController_listElements": {
     method: "GET",
@@ -393,6 +432,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DashboardElementsListResponseDto",
+    idempotent: false,
   },
   "DashboardsController_listVersions": {
     method: "GET",
@@ -403,6 +443,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ListDashboardVersionsResponseDto",
+    idempotent: false,
   },
   "DashboardsController_publish": {
     method: "POST",
@@ -413,6 +454,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "PublishDashboardDto",
     responseSchema: "PublishDashboardResponseDto",
+    idempotent: false,
   },
   "DashboardsController_restore": {
     method: "POST",
@@ -423,6 +465,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_transferOwnership": {
     method: "POST",
@@ -433,6 +476,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "TransferDashboardOwnershipDto",
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_updateAccess": {
     method: "PATCH",
@@ -443,6 +487,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateDashboardAccessDto",
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_updateDraft": {
     method: "PATCH",
@@ -453,6 +498,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateDashboardDraftDto",
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_updateElement": {
     method: "PATCH",
@@ -463,6 +509,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateDashboardElementDto",
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "DashboardsController_updateLayout": {
     method: "PATCH",
@@ -473,6 +520,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateDashboardLayoutDto",
     responseSchema: "DashboardDto",
+    idempotent: false,
   },
   "EvaluationsController_getConfig": {
     method: "GET",
@@ -483,6 +531,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "EvaluationConfigDto",
+    idempotent: false,
   },
   "EvaluationsController_getRun": {
     method: "GET",
@@ -493,6 +542,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "EvaluationRunWithResultsDto",
+    idempotent: false,
   },
   "EvaluationsController_listRuns": {
     method: "GET",
@@ -503,6 +553,7 @@ export const OPERATIONS = {
     queryParams: ["pageSize","pageToken"],
     requestSchema: null,
     responseSchema: "ListEvaluationRunsResponseDto",
+    idempotent: false,
   },
   "EvaluationsController_triggerRun": {
     method: "POST",
@@ -513,6 +564,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "TriggerEvaluationRunResponseDto",
+    idempotent: false,
   },
   "EvaluationsController_updateConfig": {
     method: "PUT",
@@ -523,6 +575,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateEvaluationConfigDto",
     responseSchema: "EvaluationConfigDto",
+    idempotent: false,
   },
   "IngestedDataController_upload": {
     method: "POST",
@@ -533,6 +586,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateIngestedDataDto",
     responseSchema: "CreatedIngestedDataResponseDto",
+    idempotent: true,
   },
   "MemberGroupsController_list": {
     method: "GET",
@@ -543,6 +597,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ListMemberGroupsResponseDto",
+    idempotent: false,
   },
   "ModusChatController_chat": {
     method: "POST",
@@ -553,6 +608,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ModusChatRequestDto",
     responseSchema: "ModusChatResponseDto",
+    idempotent: false,
   },
   "ModusChatController_chatContinue": {
     method: "POST",
@@ -563,6 +619,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ModusChatRequestDto",
     responseSchema: "ModusChatResponseDto",
+    idempotent: false,
   },
   "ModusContextController_compose": {
     method: "POST",
@@ -573,6 +630,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ModusContextRequestDto",
     responseSchema: "ModusContextResponseDto",
+    idempotent: true,
   },
   "ModusConversationsController_get": {
     method: "GET",
@@ -583,6 +641,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ConversationDto",
+    idempotent: false,
   },
   "ModusConversationsController_list": {
     method: "GET",
@@ -593,6 +652,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","page","pageSize","userId","toolName","source","sourceRef","timeframe","includeTools","kind"],
     requestSchema: null,
     responseSchema: "ListConversationsResponseDto",
+    idempotent: false,
   },
   "ModusRunsController_create": {
     method: "POST",
@@ -603,6 +663,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ModusRunDto",
     responseSchema: null,
+    idempotent: false,
   },
   "OrgMembersController_list": {
     method: "GET",
@@ -613,6 +674,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ListOrgMembersResponseDto",
+    idempotent: false,
   },
   "ResumeRunsController_create": {
     method: "POST",
@@ -623,6 +685,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ResumeRunDto",
     responseSchema: null,
+    idempotent: false,
   },
   "RunLifecycleController_active": {
     method: "GET",
@@ -633,6 +696,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize"],
     requestSchema: null,
     responseSchema: "ActiveRunsResponseDto",
+    idempotent: false,
   },
   "RunLifecycleController_activeBySession": {
     method: "POST",
@@ -643,6 +707,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ActiveRunsBySessionDto",
     responseSchema: "ActiveRunsBySessionResponseDto",
+    idempotent: true,
   },
   "RunLifecycleController_cancel": {
     method: "POST",
@@ -653,6 +718,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CancelRunDto",
     responseSchema: null,
+    idempotent: true,
   },
   "RunLifecycleController_editQueued": {
     method: "POST",
@@ -663,6 +729,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "EditQueuedRunDto",
     responseSchema: "RunAdmissionResponseDto",
+    idempotent: false,
   },
   "RunLifecycleController_events": {
     method: "GET",
@@ -673,6 +740,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "RunLifecycleController_interrupt": {
     method: "POST",
@@ -683,6 +751,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "InterruptRunDto",
     responseSchema: "RunAdmissionResponseDto",
+    idempotent: true,
   },
   "RunLifecycleController_stream": {
     method: "GET",
@@ -693,6 +762,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "ScopeChatController_chat": {
     method: "POST",
@@ -703,6 +773,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "SkillChatRequestDto",
     responseSchema: "SkillChatResponseDto",
+    idempotent: false,
   },
   "ScopeChatController_chatContinue": {
     method: "POST",
@@ -713,6 +784,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "SkillChatRequestDto",
     responseSchema: "SkillChatResponseDto",
+    idempotent: false,
   },
   "ScopeContextController_compose": {
     method: "POST",
@@ -723,6 +795,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ComposeSkillContextRequestDto",
     responseSchema: "ComposeSkillContextResponseDto",
+    idempotent: true,
   },
   "ScopeConversationsController_get": {
     method: "GET",
@@ -733,6 +806,7 @@ export const OPERATIONS = {
     queryParams: ["messageLimit","beforeMessageIndex"],
     requestSchema: null,
     responseSchema: "ConversationDto",
+    idempotent: false,
   },
   "ScopeConversationsController_list": {
     method: "GET",
@@ -743,6 +817,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","page","pageSize","userId","toolName","source","sourceRef","timeframe","includeTools"],
     requestSchema: null,
     responseSchema: "ListConversationsResponseDto",
+    idempotent: false,
   },
   "ScopeInterfacesController_add": {
     method: "POST",
@@ -753,6 +828,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "AddScopeInterfaceDto",
     responseSchema: "ScopeInterfaceDto",
+    idempotent: false,
   },
   "ScopeInterfacesController_delete": {
     method: "DELETE",
@@ -763,6 +839,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "ScopeInterfacesController_list": {
     method: "GET",
@@ -773,6 +850,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ListScopeInterfacesResponseDto",
+    idempotent: false,
   },
   "ScopeInterfacesController_update": {
     method: "PATCH",
@@ -783,6 +861,7 @@ export const OPERATIONS = {
     queryParams: ["updateMask"],
     requestSchema: "UpdateScopeInterfaceDto",
     responseSchema: "ScopeInterfaceDto",
+    idempotent: false,
   },
   "ScopeMemoriesController_delete": {
     method: "DELETE",
@@ -793,6 +872,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "ScopeMemoriesController_list": {
     method: "GET",
@@ -803,6 +883,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","userId","limit"],
     requestSchema: null,
     responseSchema: "ListMemoriesResponseDto",
+    idempotent: false,
   },
   "ScopeMemoriesController_search": {
     method: "POST",
@@ -813,6 +894,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "SearchMemoriesRequestDto",
     responseSchema: "ListMemoriesResponseDto",
+    idempotent: true,
   },
   "ScopeMemoriesController_update": {
     method: "PATCH",
@@ -823,6 +905,7 @@ export const OPERATIONS = {
     queryParams: ["updateMask"],
     requestSchema: "UpdateMemoryRequestDto",
     responseSchema: null,
+    idempotent: false,
   },
   "ScopeRunsController_create": {
     method: "POST",
@@ -833,6 +916,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "SkillRunDto",
     responseSchema: null,
+    idempotent: false,
   },
   "ScopeSupervisionController_get": {
     method: "GET",
@@ -843,6 +927,7 @@ export const OPERATIONS = {
     queryParams: ["view"],
     requestSchema: null,
     responseSchema: "SupervisionDto",
+    idempotent: false,
   },
   "ScopeSupervisionController_set": {
     method: "PUT",
@@ -853,6 +938,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "SetSupervisionRequestDto",
     responseSchema: "SupervisionDto",
+    idempotent: false,
   },
   "ScopeSupervisionController_setActive": {
     method: "PUT",
@@ -863,6 +949,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "SetSupervisionRequestDto",
     responseSchema: "SupervisionDto",
+    idempotent: false,
   },
   "ScopesController_acceptOwnershipTransfer": {
     method: "POST",
@@ -873,6 +960,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_addEvaluationCase": {
     method: "POST",
@@ -883,6 +971,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "EvaluationCaseInputDto",
     responseSchema: "EvaluationCaseDto",
+    idempotent: false,
   },
   "ScopesController_cancelOwnershipTransfer": {
     method: "DELETE",
@@ -893,6 +982,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_create": {
     method: "POST",
@@ -903,6 +993,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateSkillDto",
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_delete": {
     method: "DELETE",
@@ -913,6 +1004,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "ScopesController_deleteEvaluationCase": {
     method: "DELETE",
@@ -923,6 +1015,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "ScopesController_deploy": {
     method: "POST",
@@ -933,6 +1026,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "DeploySkillDto",
     responseSchema: "DeployResponseDto",
+    idempotent: false,
   },
   "ScopesController_get": {
     method: "GET",
@@ -943,6 +1037,7 @@ export const OPERATIONS = {
     queryParams: ["view"],
     requestSchema: null,
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_getVariation": {
     method: "GET",
@@ -953,6 +1048,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_list": {
     method: "GET",
@@ -963,6 +1059,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","view","search","managerId","includeVariation"],
     requestSchema: null,
     responseSchema: "ListSkillsResponseDto",
+    idempotent: false,
   },
   "ScopesController_patchMcpConfig": {
     method: "PATCH",
@@ -973,6 +1070,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "PatchSkillMcpConfigDto",
     responseSchema: "PatchSkillMcpConfigResponseDto",
+    idempotent: false,
   },
   "ScopesController_requestOwnershipTransfer": {
     method: "POST",
@@ -983,6 +1081,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "TransferOwnershipDto",
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_restore": {
     method: "POST",
@@ -993,6 +1092,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_update": {
     method: "PATCH",
@@ -1003,6 +1103,7 @@ export const OPERATIONS = {
     queryParams: ["updateMask"],
     requestSchema: "UpdateSkillDto",
     responseSchema: "ScopeDto",
+    idempotent: false,
   },
   "ScopesController_updateEvaluationCase": {
     method: "PATCH",
@@ -1013,6 +1114,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "UpdateEvaluationCaseDto",
     responseSchema: "EvaluationCaseDto",
+    idempotent: false,
   },
   "SuggestionsController_listApproved": {
     method: "GET",
@@ -1023,6 +1125,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","scopeId","scopeIds"],
     requestSchema: null,
     responseSchema: "ListSuggestionQuestionsResponseDto",
+    idempotent: false,
   },
   "SuggestionsController_recordEvent": {
     method: "POST",
@@ -1033,6 +1136,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "RecordSuggestionEventDto",
     responseSchema: null,
+    idempotent: false,
   },
   "ToolsController_list": {
     method: "GET",
@@ -1043,6 +1147,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize"],
     requestSchema: null,
     responseSchema: "ListToolsResponseDto",
+    idempotent: false,
   },
   "UsageController_list": {
     method: "GET",
@@ -1053,6 +1158,7 @@ export const OPERATIONS = {
     queryParams: ["since","until","rollup","model","group_by","skill_id","agent_id","user_id","interface","user_email"],
     requestSchema: null,
     responseSchema: "ListUsageResponseDto",
+    idempotent: false,
   },
   "UsageController_listUsers": {
     method: "GET",
@@ -1063,6 +1169,7 @@ export const OPERATIONS = {
     queryParams: ["since","until"],
     requestSchema: null,
     responseSchema: "ListUsageUsersResponseDto",
+    idempotent: false,
   },
   "WorkflowActionsController_cancel": {
     method: "POST",
@@ -1073,6 +1180,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CancelRunDto",
     responseSchema: null,
+    idempotent: true,
   },
   "WorkflowActionsController_execute": {
     method: "POST",
@@ -1083,6 +1191,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "WorkflowActionDto",
     responseSchema: null,
+    idempotent: false,
   },
   "WorkflowInterfacesController_add": {
     method: "POST",
@@ -1093,6 +1202,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "AddAgentInterfaceDto",
     responseSchema: "AgentInterfaceDto",
+    idempotent: false,
   },
   "WorkflowInterfacesController_delete": {
     method: "DELETE",
@@ -1103,6 +1213,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "WorkflowInterfacesController_deleteAll": {
     method: "DELETE",
@@ -1113,6 +1224,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "WorkflowInterfacesController_list": {
     method: "GET",
@@ -1123,6 +1235,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "ListAgentInterfacesResponseDto",
+    idempotent: false,
   },
   "WorkflowInterfacesController_update": {
     method: "PATCH",
@@ -1133,6 +1246,7 @@ export const OPERATIONS = {
     queryParams: ["updateMask"],
     requestSchema: "UpdateAgentInterfaceDto",
     responseSchema: "AgentInterfaceDto",
+    idempotent: false,
   },
   "WorkflowRunsController_create": {
     method: "POST",
@@ -1143,6 +1257,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "AgentRunDto",
     responseSchema: null,
+    idempotent: false,
   },
   "WorkflowRunsController_get": {
     method: "GET",
@@ -1153,6 +1268,7 @@ export const OPERATIONS = {
     queryParams: ["temporalRunId"],
     requestSchema: null,
     responseSchema: "GetAutomationRunResponseDto",
+    idempotent: false,
   },
   "WorkflowRunsController_list": {
     method: "GET",
@@ -1163,6 +1279,7 @@ export const OPERATIONS = {
     queryParams: ["status","timeframe","approvalScope","search","pageSize","pageToken"],
     requestSchema: null,
     responseSchema: "ListAutomationRunsResponseDto",
+    idempotent: false,
   },
   "WorkflowsController_acceptOwnershipTransfer": {
     method: "POST",
@@ -1173,6 +1290,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
   "WorkflowsController_cancelOwnershipTransfer": {
     method: "DELETE",
@@ -1183,6 +1301,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
   "WorkflowsController_create": {
     method: "POST",
@@ -1193,6 +1312,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "CreateAgentDto",
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
   "WorkflowsController_delete": {
     method: "DELETE",
@@ -1203,6 +1323,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: null,
+    idempotent: false,
   },
   "WorkflowsController_deploy": {
     method: "POST",
@@ -1213,6 +1334,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "DeployAgentDto",
     responseSchema: "AgentDeployResponseDto",
+    idempotent: false,
   },
   "WorkflowsController_get": {
     method: "GET",
@@ -1223,6 +1345,7 @@ export const OPERATIONS = {
     queryParams: ["view"],
     requestSchema: null,
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
   "WorkflowsController_list": {
     method: "GET",
@@ -1233,6 +1356,7 @@ export const OPERATIONS = {
     queryParams: ["pageToken","pageSize","view","type","search","includeVariation"],
     requestSchema: null,
     responseSchema: "ListAgentsResponseDto",
+    idempotent: false,
   },
   "WorkflowsController_requestOwnershipTransfer": {
     method: "POST",
@@ -1243,6 +1367,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "TransferOwnershipDto",
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
   "WorkflowsController_restore": {
     method: "POST",
@@ -1253,6 +1378,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: null,
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
   "WorkflowsController_toggle": {
     method: "POST",
@@ -1263,6 +1389,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ToggleAgentDto",
     responseSchema: "WorkflowDto",
+    idempotent: true,
   },
   "WorkflowsController_update": {
     method: "PATCH",
@@ -1273,6 +1400,7 @@ export const OPERATIONS = {
     queryParams: ["updateMask"],
     requestSchema: "UpdateAgentDto",
     responseSchema: "WorkflowDto",
+    idempotent: false,
   },
 } as const satisfies Record<string, OperationSpec>
 

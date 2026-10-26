@@ -176,7 +176,10 @@ describe('ModusManagement.scopes.evaluations cases', () => {
     const fetch = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
       bodies.push(JSON.parse(String(init?.body)))
       if (bodies.length === 1) {
-        return new Response(JSON.stringify({ error: { message: 'upstream' } }), { status: 500 })
+        return new Response(JSON.stringify({ error: { message: 'slow down' } }), {
+          status: 429,
+          headers: { 'retry-after': '0' },
+        })
       }
       return new Response(
         JSON.stringify({ error: { message: 'An evaluation case with this id already exists.' } }),

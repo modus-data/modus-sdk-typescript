@@ -9,6 +9,7 @@ export { OPERATIONS } from './_generated/operations.js'
 export {
   APIConnectionError,
   AuthenticationError,
+  BadRequestError,
   ConflictError,
   InternalServerError,
   ModusError,

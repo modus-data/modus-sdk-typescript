@@ -46,6 +46,7 @@ describe('openapi invoke', () => {
     expect(http.post).toHaveBeenCalledWith('/api/v1/scopes', { name: 'x' }, {
       baseUrl: 'https://api.getmodus.com',
       headers: undefined,
+      idempotent: false,
     })
   })
 
@@ -76,6 +77,7 @@ describe('openapi invoke', () => {
       {
         baseUrl: 'https://agent.getmodus.com',
         headers: undefined,
+        idempotent: false,
       },
     )
   })
@@ -97,6 +99,7 @@ describe('openapi invoke', () => {
       {
         baseUrl: 'http://localhost:3130',
         headers: undefined,
+        idempotent: false,
       },
     )
   })

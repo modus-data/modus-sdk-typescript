@@ -53,6 +53,7 @@
         "{workspaceRoot}/distribution/clients/typescript/scripts/**",
         "{workspaceRoot}/distribution/clients/sdk-surface.json",
         "{workspaceRoot}/distribution/clients/sdk-surface.schema.json",
+        "{workspaceRoot}/distribution/clients/error-responses.json",
         "{workspaceRoot}/vitest.repo-specs.ts",
         { "externalDependencies": ["vitest", "typescript"] }
       ]
