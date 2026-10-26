@@ -65,7 +65,7 @@ export interface paths {
         put?: never;
         /**
          * Create a custom context item
-         * @description Creates a customer-owned context item for internal systems or custom databases. Supply `idempotencyKey` to make repeated creates update the same item.
+         * @description Creates a customer-owned context item for internal or custom systems; delete and re-create an item to change its `access`. With an `idempotencyKey`, a repeat updates the item only when you can read it and the requested `access` matches, otherwise it returns `409 CONFLICT` and writes nothing.
          *
          *     **Requires:** `context:write`
          */
@@ -87,7 +87,7 @@ export interface paths {
         put?: never;
         /**
          * Create custom context items
-         * @description Creates or updates a batch of customer-owned custom context items. Batch imports are idempotent by source, collection, entity, and field identifiers. Identifiers that match an existing item you cannot read return `409 CONFLICT`.
+         * @description Creates or updates custom context items, idempotent by source, collection, entity and field identifiers. A match you cannot read, or whose requested `access` differs, returns `409 CONFLICT`; items are written in order and not in one transaction, so earlier items stay written.
          *
          *     **Requires:** `context:write`
          */
