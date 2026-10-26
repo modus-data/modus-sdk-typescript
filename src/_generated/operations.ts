@@ -198,7 +198,7 @@ export const OPERATIONS = {
     service: "modus-api",
     serverUrl: "https://api.getmodus.com",
     pathParams: ["uid"],
-    queryParams: ["contextType","contentKeyPath","pageSize","offset","pageToken","searchQuery","dataPathPrefix"],
+    queryParams: ["contextType","contentKeyPath","pageSize","pageToken","searchQuery"],
     requestSchema: null,
     responseSchema: "ListContextItemValuesResponseDto",
     idempotent: false,

@@ -31,7 +31,7 @@ const SAMPLE_SUGGESTION = {
   label: 'Revenue',
   prompt: 'Show me revenue',
 }
-const SAMPLE_VALUE_ENTRY = { value: 123 }
+const SAMPLE_VALUE_ENTRY = { index: 0, value: 123 }
 const SAMPLE_MEMORY = { id: 'mem_01', memory: 'User prefers bullet points.' }
 const SAMPLE_FILE_UPLOAD = { uploadId: '7a3f9d2c-1111-4000-a000-000000000abc', status: 'ready' }
 const SAMPLE_CONVERSATION_LIST_ITEM = {

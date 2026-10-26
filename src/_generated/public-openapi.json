@@ -744,7 +744,7 @@
             }
           },
           "403": {
-            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.\n\nAlso returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.",
             "content": {
               "application/json": {
                 "schema": {
@@ -754,13 +754,8 @@
                   "error": {
                     "code": "FORBIDDEN",
                     "status": "PERMISSION_DENIED",
-                    "message": "Missing required scope(s) for this operation.",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                    "info": {
-                      "missing": [
-                        "<required-scope>"
-                      ]
-                    }
+                    "message": "Custom context item writes are not enabled",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -796,6 +791,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -972,7 +985,7 @@
             }
           },
           "403": {
-            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.\n\nAlso returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.",
             "content": {
               "application/json": {
                 "schema": {
@@ -982,13 +995,8 @@
                   "error": {
                     "code": "FORBIDDEN",
                     "status": "PERMISSION_DENIED",
-                    "message": "Missing required scope(s) for this operation.",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                    "info": {
-                      "missing": [
-                        "<required-scope>"
-                      ]
-                    }
+                    "message": "Custom context item writes are not enabled",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -1024,6 +1032,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -1185,7 +1211,7 @@
             }
           },
           "403": {
-            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.\n\nAlso returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1195,13 +1221,8 @@
                   "error": {
                     "code": "FORBIDDEN",
                     "status": "PERMISSION_DENIED",
-                    "message": "Missing required scope(s) for this operation.",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                    "info": {
-                      "missing": [
-                        "<required-scope>"
-                      ]
-                    }
+                    "message": "Custom context item writes are not enabled",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -1237,6 +1258,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -1571,7 +1610,7 @@
             }
           },
           "403": {
-            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.\n\nAlso returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1581,13 +1620,8 @@
                   "error": {
                     "code": "FORBIDDEN",
                     "status": "PERMISSION_DENIED",
-                    "message": "Missing required scope(s) for this operation.",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                    "info": {
-                      "missing": [
-                        "<required-scope>"
-                      ]
-                    }
+                    "message": "Custom context item writes are not enabled",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -1623,6 +1657,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -1766,7 +1818,7 @@
             }
           },
           "403": {
-            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.\n\nAlso returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1776,13 +1828,8 @@
                   "error": {
                     "code": "FORBIDDEN",
                     "status": "PERMISSION_DENIED",
-                    "message": "Missing required scope(s) for this operation.",
-                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                    "info": {
-                      "missing": [
-                        "<required-scope>"
-                      ]
-                    }
+                    "message": "Custom context item writes are not enabled",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -2014,6 +2061,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -2815,6 +2880,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -3016,6 +3099,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -3621,6 +3722,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -4045,6 +4164,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -4246,6 +4383,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -4459,6 +4614,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -4660,6 +4833,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -6037,6 +6228,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -6234,6 +6443,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -6469,6 +6696,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -6668,6 +6913,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -6882,6 +7145,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -7257,6 +7538,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -7748,6 +8047,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -8146,6 +8463,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -8566,6 +8901,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -8643,14 +8996,14 @@
     },
     "/api/v1/context/items/{uid}/values": {
       "get": {
-        "description": "Returns a page of values from the item’s `content` at the given `contentKeyPath` — useful for paging through array-valued fields. Pass `nextPageToken` as `pageToken` to fetch the next page.\n\n**Requires:** `context:read`",
+        "description": "Pages the elements of the array at `contentKeyPath` in one item’s `content`, as `{ index, value }` rows. A non-array field reads as one element. Returns 404 if the item does not exist, you cannot access it, or its type is not `contextType`. Pass `nextPageToken` as `pageToken` for the next page.\n\n**Requires:** `context:read`",
         "operationId": "ContextItemsController_listValues",
         "parameters": [
           {
             "name": "uid",
             "required": true,
             "in": "path",
-            "description": "UUID of the context item (unused on the underlying reader but kept for URL consistency).",
+            "description": "UUID of the context item.",
             "schema": {
               "example": "7a3f9d2c-1111-4000-a000-000000000abc",
               "type": "string"
@@ -8660,7 +9013,7 @@
             "name": "contextType",
             "required": true,
             "in": "query",
-            "description": "Context type of the item (required for partition-aware reads).",
+            "description": "Context type of the item. A mismatch with the item returns 404.",
             "schema": {
               "example": "salesforce_object_field",
               "type": "string"
@@ -8670,7 +9023,7 @@
             "name": "contentKeyPath",
             "required": true,
             "in": "query",
-            "description": "Dot-separated JSON path to the array of values inside `content`. Example: `enumValues` or `sample.values`.",
+            "description": "Dot-separated JSON path to the array inside `content`. Example: `enumValues` or `sample.values`.",
             "schema": {
               "example": "enumValues",
               "type": "string"
@@ -8690,21 +9043,10 @@
             }
           },
           {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "Cursor offset (numeric). Legacy semantics — prefer `pageToken` for deep pages.",
-            "schema": {
-              "minimum": 0,
-              "example": 0,
-              "type": "number"
-            }
-          },
-          {
             "name": "pageToken",
             "required": false,
             "in": "query",
-            "description": "Opaque page token from a previous response's `nextPageToken`.",
+            "description": "Opaque page token from a previous response's `nextPageToken` for the same item.",
             "schema": {
               "type": "string"
             }
@@ -8713,26 +9055,10 @@
             "name": "searchQuery",
             "required": false,
             "in": "query",
-            "description": "Case-insensitive substring search over each value.",
+            "description": "Case-insensitive substring search over each element (non-string elements are matched as JSON text).",
             "schema": {
               "example": "open",
               "type": "string"
-            }
-          },
-          {
-            "name": "dataPathPrefix",
-            "required": false,
-            "in": "query",
-            "description": "Optional prefix path applied to the data-path filter before slicing values (advanced).",
-            "schema": {
-              "example": [
-                "salesforce",
-                "Account"
-              ],
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           }
         ],
@@ -8883,7 +9209,7 @@
     },
     "/api/v1/context/links": {
       "post": {
-        "description": "Invokes the Tavily access Lambda to extract content from the supplied URL (single-page) or crawl up to `pageLimit` pages when `isCrawl` is true. The extracted markdown is stored in tenant S3; only metadata is kept on the context_items row.\n\n**Requires:** `context:write`",
+        "description": "Extracts the content of the page at `url` and stores it as a link context item. When `isCrawl` is true it instead runs a web search for the URL and stores up to `pageLimit` results, which may come from other sites; this is not a crawl of the site.\n\n**Requires:** `context:write`",
         "operationId": "ContextCreatorsController_createLink",
         "parameters": [],
         "requestBody": {
@@ -9010,6 +9336,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -9220,6 +9564,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -9419,6 +9781,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -9835,6 +10215,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -10032,6 +10430,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -10679,6 +11095,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -11081,6 +11515,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -11493,6 +11945,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -11895,6 +12365,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -12109,6 +12597,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -12810,6 +13316,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -13027,6 +13551,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -13228,6 +13770,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -13444,6 +14004,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -14023,6 +14601,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -14961,6 +15557,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -15199,6 +15813,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -15646,6 +16278,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -16073,6 +16723,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -16301,6 +16969,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -17097,6 +17783,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -17320,6 +18024,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -17528,6 +18250,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -18214,7 +18954,7 @@
             "name": "scopeIds",
             "required": false,
             "in": "query",
-            "description": "Comma-separated numeric scope ids. Returns approved suggestions for these scopes plus org-general suggestions.",
+            "description": "Comma-separated numeric scope ids, at most 100. Returns approved suggestions for these scopes plus org-general suggestions.",
             "schema": {
               "example": "7,42",
               "type": "string"
@@ -18500,6 +19240,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -18748,7 +19506,7 @@
             "name": "until",
             "required": true,
             "in": "query",
-            "description": "ISO8601 end of the query window (exclusive).",
+            "description": "ISO8601 end of the query window (exclusive). At most 400 days after `since`.",
             "schema": {
               "example": "2026-05-08T00:00:00.000Z",
               "type": "string"
@@ -19765,6 +20523,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -20167,6 +20943,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -20578,6 +21372,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -20957,6 +21769,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -21388,6 +22218,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -22404,6 +23252,24 @@
               }
             }
           },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
           "422": {
             "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
             "content": {
@@ -22612,6 +23478,24 @@
                     "code": "CONFLICT",
                     "status": "ALREADY_EXISTS",
                     "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
                     "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
@@ -24662,6 +25546,7 @@
           "FORBIDDEN",
           "NOT_FOUND",
           "CONFLICT",
+          "PAYLOAD_TOO_LARGE",
           "RATE_LIMITED",
           "INTERNAL_ERROR",
           "UPSTREAM_ERROR",
@@ -25548,7 +26433,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message content. Usually a string for human turns; AI turns from newer LangChain versions may carry an array of content blocks (e.g. `[{type:\"text\",text:\"…\"}]`) instead. Consumers should handle both shapes.",
+            "description": "Text of the message. Tool calls an AI turn made are listed separately in `toolCalls`.",
             "example": "Run the churn analysis for last 30 days."
           },
           "id": {
@@ -25956,13 +26841,13 @@
           },
           "isCrawl": {
             "type": "boolean",
-            "description": "When true, crawls multiple pages starting from the supplied URL.",
+            "description": "When true, runs a web search for the supplied URL and stores up to `pageLimit` results, which may come from other sites. It does not crawl the site’s pages.",
             "example": false,
             "default": false
           },
           "pageLimit": {
             "type": "number",
-            "description": "Maximum number of pages to crawl when `isCrawl` is true. Ignored otherwise.",
+            "description": "Maximum number of search results to store when `isCrawl` is true. Ignored otherwise.",
             "minimum": 1,
             "maximum": 200,
             "example": 10
@@ -28348,9 +29233,9 @@
         "properties": {
           "values": {
             "type": "array",
-            "description": "Page of values extracted from the context item at the supplied `contentKeyPath`. Each entry is opaque JSON whose shape depends on the source item.",
+            "description": "Page of elements from the array field at `contentKeyPath`, in array order. Each entry is `{ \"index\": <0-based position in the array>, \"value\": <the element, as JSON of any type> }`.",
             "items": {
-              "description": "Arbitrary JSON value."
+              "description": "One element: `{ index, value }`."
             }
           },
           "nextPageToken": {
