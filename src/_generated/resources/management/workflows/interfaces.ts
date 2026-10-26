@@ -19,7 +19,7 @@ export class WorkflowsInterfacesResourceBase {
    * List interfaces attached to a workflow.
    *
    * Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission
-   * on the workflow.
+   * on the workflow: returns 403 if you can only use it, and 404 if you cannot access it.
    *
    * **Requires:** `workflows:read`
    */

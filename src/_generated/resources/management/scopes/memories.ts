@@ -121,7 +121,7 @@ export class ScopesMemoriesResourceBase {
   /**
    * Delete a memory.
    *
-   * Deletes one memory. Deleting an already-deleted memory is a no-op.
+   * Deletes one memory. Returns 404 if the memory does not exist or is already deleted.
    *
    * **Requires:** `scopes:write`
    *

@@ -270,6 +270,10 @@ export class ManagementScopesResource extends ScopesResourceBase {
   /**
    * Start transferring ownership of a scope to another organization member.
    *
+   * The current owner calls this, and the recipient accepts. A scope with no owner (one
+   * created with a service-account token) can be given one by an organization owner;
+   * assigning yourself takes effect at once.
+   *
    * @param scopeId - Scope id.
    * @param options.newOwnerUserId - User id of the proposed new owner.
    * @returns The scope with a pending ownership transfer.

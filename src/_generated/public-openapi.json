@@ -1901,7 +1901,7 @@
     },
     "/api/v1/context/dashboards": {
       "post": {
-        "description": "Creates a dashboard draft with the given title, definition and access settings. Returns the draft view.\n\n**Requires:** `context:write`",
+        "description": "Creates a dashboard draft with the given title, definition and access settings and returns the draft view. A service-account token cannot create one (403), because a dashboard needs an owner; use a personal access token.\n\n**Requires:** `context:write`",
         "operationId": "DashboardsController_create",
         "parameters": [],
         "requestBody": {
@@ -11568,7 +11568,7 @@
         ]
       },
       "delete": {
-        "description": "Deletes a scope. The scope can be restored later with POST /scopes/{id}/restore. Deleting an already-deleted scope is a no-op.\n\n**Requires:** `scopes:write`",
+        "description": "Deletes a scope. The scope can be restored later with POST /scopes/{id}/restore. Returns 404 if the scope does not exist or is already deleted.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_delete",
         "parameters": [
           {
@@ -16382,7 +16382,7 @@
         ]
       },
       "delete": {
-        "description": "Deletes one memory. Deleting an already-deleted memory is a no-op.\n\n**Requires:** `scopes:write`",
+        "description": "Deletes one memory. Returns 404 if the memory does not exist or is already deleted.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopeMemoriesController_delete",
         "parameters": [
           {
@@ -17397,7 +17397,7 @@
     },
     "/api/v1/scopes/{id}/transfer-ownership": {
       "post": {
-        "description": "Requests ownership transfer to another organization member. Only the current owner may invoke this action. The recipient must accept before ownership changes.\n\n**Requires:** `scopes:write`",
+        "description": "Asks another organization member to take ownership; nothing changes until they accept. The current owner may call this, or, for a scope with no owner, an organization owner, whose assignment of themselves takes effect at once.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_requestOwnershipTransfer",
         "parameters": [
           {
@@ -17609,7 +17609,7 @@
         ]
       },
       "delete": {
-        "description": "Cancels a pending ownership transfer. The current owner may cancel; the pending recipient may decline.\n\n**Requires:** `scopes:write`",
+        "description": "Cancels a pending ownership transfer. The current owner may cancel, the pending recipient may decline, and for a scope with no owner an organization owner may cancel.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_cancelOwnershipTransfer",
         "parameters": [
           {
@@ -19842,7 +19842,7 @@
     },
     "/api/v1/workflows/{id}": {
       "get": {
-        "description": "Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Returns 404 if you cannot access the workflow.\n\n**Requires:** `workflows:read`",
+        "description": "Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.\n\n**Requires:** `workflows:read`",
         "operationId": "WorkflowsController_get",
         "parameters": [
           {
@@ -20248,7 +20248,7 @@
         ]
       },
       "delete": {
-        "description": "Deletes a workflow and stops its schedule. The workflow can be restored later with POST /workflows/{id}/restore. Deleting an already-deleted workflow is a no-op.\n\n**Requires:** `workflows:write`",
+        "description": "Deletes a workflow and stops its schedule. The workflow can be restored later with POST /workflows/{id}/restore. Returns 404 if the workflow does not exist or is already deleted.\n\n**Requires:** `workflows:write`",
         "operationId": "WorkflowsController_delete",
         "parameters": [
           {
@@ -20438,7 +20438,7 @@
     },
     "/api/v1/workflows/{id}/deploy": {
       "post": {
-        "description": "Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp. Returns `422` when an action node is unconfigured; `info.invalidNodes` names each node and field.\n\n**Requires:** `workflows:write`",
+        "description": "Publishes the latest draft as the active version and returns it with `deployedAt`; the first deploy enables the schedule. Returns `422` for an unconfigured action node (see `info.invalidNodes`) and `409` when it would enable a schedule on a workflow with no owner.\n\n**Requires:** `workflows:write`",
         "operationId": "WorkflowsController_deploy",
         "parameters": [
           {
@@ -20655,7 +20655,7 @@
     },
     "/api/v1/workflows/{id}/interfaces": {
       "get": {
-        "description": "Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission on the workflow.\n\n**Requires:** `workflows:read`",
+        "description": "Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission on the workflow: returns 403 if you can only use it, and 404 if you cannot access it.\n\n**Requires:** `workflows:read`",
         "operationId": "WorkflowInterfacesController_list",
         "parameters": [
           {
@@ -22262,7 +22262,7 @@
     },
     "/api/v1/workflows/{id}/toggle": {
       "post": {
-        "description": "Flips the `isEnabled` flag for a deployed workflow. Enabling an unpublished workflow is rejected (422) — call POST /api/v1/workflows/{id}/deploy first. Schedule create/delete side effects run best-effort after the flag changes.\n\n**Requires:** `workflows:write`",
+        "description": "Turns a workflow on or off; enabling a never-deployed workflow deploys its draft first. Enabling a schedule needs an owner (409 otherwise) and leaves the workflow off if the schedule cannot be created.\n\n**Requires:** `workflows:write`",
         "operationId": "WorkflowsController_toggle",
         "parameters": [
           {
@@ -24664,7 +24664,8 @@
           "CONFLICT",
           "RATE_LIMITED",
           "INTERNAL_ERROR",
-          "UPSTREAM_ERROR"
+          "UPSTREAM_ERROR",
+          "UPSTREAM_TIMEOUT"
         ],
         "description": "Modus-specific machine code."
       },
@@ -24678,7 +24679,8 @@
           "ALREADY_EXISTS",
           "RESOURCE_EXHAUSTED",
           "INTERNAL",
-          "UNAVAILABLE"
+          "UNAVAILABLE",
+          "DEADLINE_EXCEEDED"
         ],
         "description": "Canonical status string for the error."
       },
@@ -25837,7 +25839,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 500,
-            "description": "Dashboard title."
+            "description": "Dashboard title. Must contain a non-whitespace character."
           },
           "description": {
             "type": "string",
@@ -25886,7 +25888,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 500,
-            "description": "Title shown on the element."
+            "description": "Title shown on the element. Must contain a non-whitespace character."
           },
           "layout": {
             "description": "Grid position of the new element.",
@@ -26691,7 +26693,7 @@
           "title": {
             "type": "string",
             "maxLength": 500,
-            "description": "Element title."
+            "description": "Element title. Must contain a non-whitespace character."
           },
           "connectionId": {
             "type": "string",
@@ -30383,8 +30385,8 @@
             "maxLength": 200
           },
           "type": {
-            "description": "Updated workflow type. Rarely changed after creation.",
-            "example": "task",
+            "description": "Workflow type. Only `workflow` is accepted; `task` is a legacy value that create upgrades to `workflow` and update rejects (422).",
+            "example": "workflow",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentType"
@@ -30608,7 +30610,7 @@
           "title": {
             "type": "string",
             "maxLength": 500,
-            "description": "New dashboard title."
+            "description": "New dashboard title. Must contain a non-whitespace character."
           },
           "description": {
             "type": "string",

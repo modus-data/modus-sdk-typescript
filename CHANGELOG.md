@@ -19,6 +19,7 @@ release, including pre-1.0 (`0.x`) releases.
   `info.missing` (the token scopes a 403 lacks) or `info.violations` on a 422.
 - **`ModusError.retryable`** says whether the SDK's retry rule allowed re-sending the failed call.
 - **`Retry-After` as an HTTP date, and `retry-after-ms`,** fill `RateLimitError.retryAfter`.
+- **An organization owner can give an ownerless scope an owner.** A scope created with a service-account token has no owner. `scopes.requestOwnershipTransfer(id, { newOwnerUserId })` by an organization owner now assigns one: naming yourself takes effect at once, naming another member waits for them to accept. `scopes.cancelOwnershipTransfer(id)` lets the organization owner withdraw that request.
 
 ### Changed
 
@@ -37,6 +38,11 @@ release, including pre-1.0 (`0.x`) releases.
   create a second scope; now it throws and you decide whether to re-create.
 - **A `Retry-After` over 60 s throws `RateLimitError` at once** (with `retryAfter` set)
   instead of sleeping that long. Up to 60 s is still waited out.
+- **Reading a workflow needs use or manage permission, not manage alone.** `workflows.get(id)` returns a workflow you can run or change; `canUse` and `canManage` say which. A workflow you cannot access is a 404 `NotFoundError` instead of a 403. `workflows.interfaces(id).list()` still needs manage permission (403), and is a 404 when you cannot access the workflow.
+- **Deploying a scheduled workflow with no owner is a 409.** `workflows.deploy(id)` no longer reports an ownerless scheduled workflow as enabled when no schedule could be created.
+- **A non-UUID interface id is a 400.** `workflows.interfaces(id).update()` and `.delete()` with an id that is not a UUID return 400 instead of a retried 500.
+- **Dashboard and element titles must contain a non-whitespace character.** A blank title on `context.dashboards.create`, `.updateDraft`, and `.elements(id).create` / `.update` returns 400.
+- **Delete docs match the server.** Deleting a workflow or scope that is already deleted returns 404; deleting a memory that no longer exists returns 404 (it returned 422). Neither is a no-op.
 - **Breaking (pre-1.0): `runs.interrupt` and `runs.editQueued` take the turn to send.** `runs.interrupt(runId, nextRun, { lastSeenEventId? })` and `runs.editQueued(runId, nextRun)` send `nextRun` (`message` and `sessionId`, the run's conversation id) and return the admitted run as `RunAdmission` (`{ runId, status }`). For `interrupt`, that is the new run that carries the follow-up turn; stream it with `runs.stream(runId)`. The old signatures sent an empty body, which the server always rejected, so no working call changes behaviour. `interrupt` sets `nextRun.runId` when you omit it, so a retried request returns the same run instead of starting a second turn. On a run that has already finished, `interrupt` starts a follow-up turn.
 - **`runs.resume` sends no message.** The documented example now sends only `decision` and `sessionId`; a non-empty `message` is rejected by the server. A blank `sessionId` is refused before any request instead of being replaced by a new random conversation.
 

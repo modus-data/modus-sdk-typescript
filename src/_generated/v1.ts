@@ -171,7 +171,7 @@ export interface paths {
         put?: never;
         /**
          * Create a dashboard
-         * @description Creates a dashboard draft with the given title, definition and access settings. Returns the draft view.
+         * @description Creates a dashboard draft with the given title, definition and access settings and returns the draft view. A service-account token cannot create one (403), because a dashboard needs an owner; use a personal access token.
          *
          *     **Requires:** `context:write`
          */
@@ -1034,7 +1034,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a scope
-         * @description Deletes a scope. The scope can be restored later with POST /scopes/{id}/restore. Deleting an already-deleted scope is a no-op.
+         * @description Deletes a scope. The scope can be restored later with POST /scopes/{id}/restore. Returns 404 if the scope does not exist or is already deleted.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1444,7 +1444,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a memory
-         * @description Deletes one memory. Deleting an already-deleted memory is a no-op.
+         * @description Deletes one memory. Returns 404 if the memory does not exist or is already deleted.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1543,14 +1543,14 @@ export interface paths {
         put?: never;
         /**
          * Request ownership transfer
-         * @description Requests ownership transfer to another organization member. Only the current owner may invoke this action. The recipient must accept before ownership changes.
+         * @description Asks another organization member to take ownership; nothing changes until they accept. The current owner may call this, or, for a scope with no owner, an organization owner, whose assignment of themselves takes effect at once.
          *
          *     **Requires:** `scopes:write`
          */
         post: operations["ScopesController_requestOwnershipTransfer"];
         /**
          * Cancel ownership transfer
-         * @description Cancels a pending ownership transfer. The current owner may cancel; the pending recipient may decline.
+         * @description Cancels a pending ownership transfer. The current owner may cancel, the pending recipient may decline, and for a scope with no owner an organization owner may cancel.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1795,7 +1795,7 @@ export interface paths {
         };
         /**
          * Get a workflow
-         * @description Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Returns 404 if you cannot access the workflow.
+         * @description Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.
          *
          *     **Requires:** `workflows:read`
          */
@@ -1804,7 +1804,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a workflow
-         * @description Deletes a workflow and stops its schedule. The workflow can be restored later with POST /workflows/{id}/restore. Deleting an already-deleted workflow is a no-op.
+         * @description Deletes a workflow and stops its schedule. The workflow can be restored later with POST /workflows/{id}/restore. Returns 404 if the workflow does not exist or is already deleted.
          *
          *     **Requires:** `workflows:write`
          */
@@ -1831,7 +1831,7 @@ export interface paths {
         put?: never;
         /**
          * Deploy a workflow
-         * @description Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp. Returns `422` when an action node is unconfigured; `info.invalidNodes` names each node and field.
+         * @description Publishes the latest draft as the active version and returns it with `deployedAt`; the first deploy enables the schedule. Returns `422` for an unconfigured action node (see `info.invalidNodes`) and `409` when it would enable a schedule on a workflow with no owner.
          *
          *     **Requires:** `workflows:write`
          */
@@ -1851,7 +1851,7 @@ export interface paths {
         };
         /**
          * List interfaces attached to a workflow
-         * @description Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission on the workflow.
+         * @description Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission on the workflow: returns 403 if you can only use it, and 404 if you cannot access it.
          *
          *     **Requires:** `workflows:read`
          */
@@ -1981,7 +1981,7 @@ export interface paths {
         put?: never;
         /**
          * Enable or disable the workflow schedule
-         * @description Flips the `isEnabled` flag for a deployed workflow. Enabling an unpublished workflow is rejected (422) — call POST /api/v1/workflows/{id}/deploy first. Schedule create/delete side effects run best-effort after the flag changes.
+         * @description Turns a workflow on or off; enabling a never-deployed workflow deploys its draft first. Enabling a schedule needs an owner (409 otherwise) and leaves the workflow off if the schedule cannot be created.
          *
          *     **Requires:** `workflows:write`
          */
@@ -2611,12 +2611,12 @@ export interface components {
          * @description Modus-specific machine code.
          * @enum {string}
          */
-        ApiErrorCode: "VALIDATION" | "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "RATE_LIMITED" | "INTERNAL_ERROR" | "UPSTREAM_ERROR";
+        ApiErrorCode: "VALIDATION" | "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "RATE_LIMITED" | "INTERNAL_ERROR" | "UPSTREAM_ERROR" | "UPSTREAM_TIMEOUT";
         /**
          * @description Canonical status string for the error.
          * @enum {string}
          */
-        ApiErrorStatus: "INVALID_ARGUMENT" | "UNAUTHENTICATED" | "PERMISSION_DENIED" | "NOT_FOUND" | "ALREADY_EXISTS" | "RESOURCE_EXHAUSTED" | "INTERNAL" | "UNAVAILABLE";
+        ApiErrorStatus: "INVALID_ARGUMENT" | "UNAUTHENTICATED" | "PERMISSION_DENIED" | "NOT_FOUND" | "ALREADY_EXISTS" | "RESOURCE_EXHAUSTED" | "INTERNAL" | "UNAVAILABLE" | "DEADLINE_EXCEEDED";
         AutomationRunListItemDto: {
             /**
              * @description Composite run identifier (`workflowId:temporalRunId`).
@@ -3310,7 +3310,7 @@ export interface components {
             };
         };
         CreateDashboardDto: {
-            /** @description Dashboard title. */
+            /** @description Dashboard title. Must contain a non-whitespace character. */
             title: string;
             /** @description Dashboard description. */
             description?: string;
@@ -3324,7 +3324,7 @@ export interface components {
             expectedRevision: number;
             /** @description Element to create: a chart, KPI, table or markdown tile, or a filter. */
             kind: components["schemas"]["DashboardElementKind"];
-            /** @description Title shown on the element. */
+            /** @description Title shown on the element. Must contain a non-whitespace character. */
             title: string;
             /** @description Grid position of the new element. */
             layout: components["schemas"]["DashboardElementLayoutDto"];
@@ -3686,7 +3686,7 @@ export interface components {
             h: number;
         };
         DashboardElementPatchDto: {
-            /** @description Element title. */
+            /** @description Element title. Must contain a non-whitespace character. */
             title?: string;
             /** @description Connection the tile query runs on. */
             connectionId?: string;
@@ -5346,8 +5346,8 @@ export interface components {
              */
             name?: string;
             /**
-             * @description Updated workflow type. Rarely changed after creation.
-             * @example task
+             * @description Workflow type. Only `workflow` is accepted; `task` is a legacy value that create upgrades to `workflow` and update rejects (422).
+             * @example workflow
              */
             type?: components["schemas"]["AgentType"];
             /**
@@ -5479,7 +5479,7 @@ export interface components {
         UpdateDashboardDraftDto: {
             /** @description Draft revision the change is based on; a stale value is rejected with 409. */
             expectedRevision: number;
-            /** @description New dashboard title. */
+            /** @description New dashboard title. Must contain a non-whitespace character. */
             title?: string;
             /** @description New dashboard description. */
             description?: string;
