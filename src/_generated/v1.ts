@@ -1005,7 +1005,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper.
+         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1043,7 +1043,7 @@ export interface paths {
         head?: never;
         /**
          * Update a scope
-         * @description Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper. Lists replace the stored list. Cannot remove your own access.
+         * @description Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated. Lists replace the stored list. Cannot remove your own access.
          *
          *     **Requires:** `scopes:write`
          */
@@ -2892,20 +2892,110 @@ export interface components {
         };
         ConnectionSetItemDto: {
             /**
-             * @description Id of the connection this row selects.
+             * @description Id of the connection.
              * @example 11111111-1111-4111-8111-111111111111
              */
             connection_id: string;
             /**
-             * @description Path of the selected unit. An empty array selects the whole connection.
+             * @deprecated
+             * @description Deprecated. Use `preferences`. Path of one selected unit; an empty array selects the whole connection. Ignored when `preferences` is sent, required otherwise.
              * @example []
              */
-            path: string[];
-            /** @description Which objects under this connection the scope includes or excludes. */
+            path?: string[];
+            /**
+             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down.
+             * @example {
+             *       "mode": "manual",
+             *       "include": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             }
+             *           ]
+             *         }
+             *       ],
+             *       "exclude": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             },
+             *             {
+             *               "type": "schema",
+             *               "by": "id",
+             *               "id": "staging"
+             *             }
+             *           ]
+             *         }
+             *       ]
+             *     }
+             */
             preferences?: {
                 [key: string]: unknown;
             };
-            /** @description Whether the scope reads context from this connection. Defaults to true. */
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.
+             */
+            context_enabled?: boolean;
+        };
+        ConnectionSetItemReadDto: {
+            /**
+             * @description Id of the connection.
+             * @example 11111111-1111-4111-8111-111111111111
+             */
+            connection_id: string;
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.
+             * @example []
+             */
+            path: string[];
+            /**
+             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.
+             * @example {
+             *       "mode": "manual",
+             *       "include": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             }
+             *           ]
+             *         }
+             *       ],
+             *       "exclude": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             },
+             *             {
+             *               "type": "schema",
+             *               "by": "id",
+             *               "id": "staging"
+             *             }
+             *           ]
+             *         }
+             *       ]
+             *     }
+             */
+            preferences?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.
+             */
             context_enabled?: boolean;
         };
         ContentProjectionDto: {
@@ -3457,11 +3547,25 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description Connections this scope can use. Each entry is a connection id and a path; an empty path selects the whole connection.
+             * @description Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.
              * @example [
              *       {
              *         "connection_id": "11111111-1111-4111-8111-111111111111",
-             *         "path": []
+             *         "preferences": {
+             *           "mode": "manual",
+             *           "include": [
+             *             {
+             *               "path": [
+             *                 {
+             *                   "type": "database",
+             *                   "by": "id",
+             *                   "id": "analytics"
+             *                 }
+             *               ]
+             *             }
+             *           ],
+             *           "exclude": []
+             *         }
              *       }
              *     ]
              */
@@ -5135,8 +5239,8 @@ export interface components {
             toolset: {
                 [key: string]: unknown;
             };
-            /** @description Connections attached to this variation. Each entry is a connection id and a path; an empty path selects the whole connection. */
-            connectionSet: components["schemas"]["ConnectionSetItemDto"][];
+            /** @description Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths. */
+            connectionSet: components["schemas"]["ConnectionSetItemReadDto"][];
             /** @description Context selections attached to the variation. Free-form builder objects. */
             contextSelections: {
                 [key: string]: unknown;
@@ -5591,11 +5695,25 @@ export interface components {
             /** @description Updated model-specific runtime controls. Pass `null` to clear. */
             modelSettings?: components["schemas"]["ModelSettingsDto"] | null;
             /**
-             * @description Replacement connection list. Each entry is a connection id and a path; an empty path selects the whole connection.
+             * @description Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.
              * @example [
              *       {
              *         "connection_id": "11111111-1111-4111-8111-111111111111",
-             *         "path": []
+             *         "preferences": {
+             *           "mode": "manual",
+             *           "include": [
+             *             {
+             *               "path": [
+             *                 {
+             *                   "type": "database",
+             *                   "by": "id",
+             *                   "id": "analytics"
+             *                 }
+             *               ]
+             *             }
+             *           ],
+             *           "exclude": []
+             *         }
              *       }
              *     ]
              */

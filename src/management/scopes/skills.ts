@@ -33,7 +33,7 @@ interface ManagementScopesOperations {
   readonly getVariation: OperationId
 }
 
-/** A connectionSet row from `scopes.get`, or a plain `{ connection_id, path }` object. */
+/** A connectionSet row from `scopes.get`, or a plain `{ connection_id, preferences }` object. */
 type ConnectionSetRowInput = components['schemas']['ConnectionSetItemDto']
 
 const MANAGEMENT_SCOPE_OPERATIONS: ManagementScopesOperations = {

@@ -11386,7 +11386,7 @@
         ]
       },
       "post": {
-        "description": "Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper.\n\n**Requires:** `scopes:write`",
+        "description": "Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_create",
         "parameters": [],
         "requestBody": {
@@ -11788,7 +11788,7 @@
         ]
       },
       "patch": {
-        "description": "Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries select a whole connection (`path: []`) or one unit listed by `GET /connections/{id}/selections`, nothing deeper. Lists replace the stored list. Cannot remove your own access.\n\n**Requires:** `scopes:write`",
+        "description": "Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated. Lists replace the stored list. Cannot remove your own access.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_update",
         "parameters": [
           {
@@ -26285,11 +26285,12 @@
         "properties": {
           "connection_id": {
             "type": "string",
-            "description": "Id of the connection this row selects.",
+            "description": "Id of the connection.",
             "example": "11111111-1111-4111-8111-111111111111"
           },
           "path": {
-            "description": "Path of the selected unit. An empty array selects the whole connection.",
+            "description": "Deprecated. Use `preferences`. Path of one selected unit; an empty array selects the whole connection. Ignored when `preferences` is sent, required otherwise.",
+            "deprecated": true,
             "example": [],
             "type": "array",
             "items": {
@@ -26298,12 +26299,105 @@
           },
           "preferences": {
             "type": "object",
-            "description": "Which objects under this connection the scope includes or excludes.",
-            "additionalProperties": true
+            "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down.",
+            "additionalProperties": true,
+            "example": {
+              "mode": "manual",
+              "include": [
+                {
+                  "path": [
+                    {
+                      "type": "database",
+                      "by": "id",
+                      "id": "analytics"
+                    }
+                  ]
+                }
+              ],
+              "exclude": [
+                {
+                  "path": [
+                    {
+                      "type": "database",
+                      "by": "id",
+                      "id": "analytics"
+                    },
+                    {
+                      "type": "schema",
+                      "by": "id",
+                      "id": "staging"
+                    }
+                  ]
+                }
+              ]
+            }
           },
           "context_enabled": {
             "type": "boolean",
-            "description": "Whether the scope reads context from this connection. Defaults to true."
+            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.",
+            "deprecated": true
+          }
+        },
+        "required": [
+          "connection_id"
+        ]
+      },
+      "ConnectionSetItemReadDto": {
+        "type": "object",
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "description": "Id of the connection.",
+            "example": "11111111-1111-4111-8111-111111111111"
+          },
+          "path": {
+            "description": "Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.",
+            "deprecated": true,
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferences": {
+            "type": "object",
+            "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.",
+            "additionalProperties": true,
+            "example": {
+              "mode": "manual",
+              "include": [
+                {
+                  "path": [
+                    {
+                      "type": "database",
+                      "by": "id",
+                      "id": "analytics"
+                    }
+                  ]
+                }
+              ],
+              "exclude": [
+                {
+                  "path": [
+                    {
+                      "type": "database",
+                      "by": "id",
+                      "id": "analytics"
+                    },
+                    {
+                      "type": "schema",
+                      "by": "id",
+                      "id": "staging"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "context_enabled": {
+            "type": "boolean",
+            "description": "Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.",
+            "deprecated": true
           }
         },
         "required": [
@@ -27186,11 +27280,25 @@
             ]
           },
           "connectionSet": {
-            "description": "Connections this scope can use. Each entry is a connection id and a path; an empty path selects the whole connection.",
+            "description": "Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.",
             "example": [
               {
                 "connection_id": "11111111-1111-4111-8111-111111111111",
-                "path": []
+                "preferences": {
+                  "mode": "manual",
+                  "include": [
+                    {
+                      "path": [
+                        {
+                          "type": "database",
+                          "by": "id",
+                          "id": "analytics"
+                        }
+                      ]
+                    }
+                  ],
+                  "exclude": []
+                }
               }
             ],
             "type": "array",
@@ -31060,10 +31168,10 @@
             }
           },
           "connectionSet": {
-            "description": "Connections attached to this variation. Each entry is a connection id and a path; an empty path selects the whole connection.",
+            "description": "Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths.",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ConnectionSetItemDto"
+              "$ref": "#/components/schemas/ConnectionSetItemReadDto"
             }
           },
           "contextSelections": {
@@ -31912,11 +32020,25 @@
             ]
           },
           "connectionSet": {
-            "description": "Replacement connection list. Each entry is a connection id and a path; an empty path selects the whole connection.",
+            "description": "Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.",
             "example": [
               {
                 "connection_id": "11111111-1111-4111-8111-111111111111",
-                "path": []
+                "preferences": {
+                  "mode": "manual",
+                  "include": [
+                    {
+                      "path": [
+                        {
+                          "type": "database",
+                          "by": "id",
+                          "id": "analytics"
+                        }
+                      ]
+                    }
+                  ],
+                  "exclude": []
+                }
               }
             ],
             "type": "array",

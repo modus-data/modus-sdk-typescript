@@ -11,6 +11,9 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **Connection selection preferences on scopes.** A `connectionSet` entry on create and update takes
+  `preferences` (`mode` `all` or `manual`, `include` / `exclude` rules of id steps); reads return
+  `preferences` on the connection's first row.
 - **`deepseek-v4.1-flash-1017` model.** The October 17, 2026 snapshot of DeepSeek V4.1 Flash is an
   accepted chat model id.
 - **`BadRequestError`** for HTTP 400 (a schema or parse failure), a `ModusError` subclass, so
@@ -79,6 +82,12 @@ release, including pre-1.0 (`0.x`) releases.
   limit fails with HTTP 413 and error code `PAYLOAD_TOO_LARGE` instead of
   `BAD_REQUEST`. Dashboards, a custom context item and a note now accept up to
   1 MiB, and `customItems.batchCreate` up to 8 MiB.
+
+### Deprecated
+
+- **`connectionSet[].path`.** Send `preferences` instead; `path` is derived from it on reads.
+- **`connectionSet[].context_enabled`.** A scope always reads context from its connections; omit the field.
+  `false` is accepted only when the connection is already stored with `false`.
 
 ## [0.9.0] — 2026-10-24
 
