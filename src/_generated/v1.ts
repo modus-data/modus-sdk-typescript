@@ -87,7 +87,7 @@ export interface paths {
         put?: never;
         /**
          * Create custom context items
-         * @description Creates or updates a batch of customer-owned custom context items. Batch imports are idempotent by source, collection, entity, and field identifiers.
+         * @description Creates or updates a batch of customer-owned custom context items. Batch imports are idempotent by source, collection, entity, and field identifiers. Identifiers that match an existing item you cannot read return `409 CONFLICT`.
          *
          *     **Requires:** `context:write`
          */

@@ -879,7 +879,7 @@
     },
     "/api/v1/context/custom-items/batch": {
       "post": {
-        "description": "Creates or updates a batch of customer-owned custom context items. Batch imports are idempotent by source, collection, entity, and field identifiers.\n\n**Requires:** `context:write`",
+        "description": "Creates or updates a batch of customer-owned custom context items. Batch imports are idempotent by source, collection, entity, and field identifiers. Identifiers that match an existing item you cannot read return `409 CONFLICT`.\n\n**Requires:** `context:write`",
         "operationId": "CustomContextItemsController_batchCreate",
         "parameters": [],
         "requestBody": {
