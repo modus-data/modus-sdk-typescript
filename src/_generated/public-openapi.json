@@ -31588,8 +31588,9 @@
           },
           "description": {
             "type": "string",
-            "description": "Updated description.",
-            "example": "Generates a daily sales report broken down by region."
+            "description": "Updated description. `null` clears it to an empty string.",
+            "example": "Generates a daily sales report broken down by region.",
+            "nullable": true
           },
           "trigger": {
             "description": "Updated trigger configuration. Schedule shape is fully validated; other trigger types are opaque.",
@@ -31663,25 +31664,28 @@
           },
           "description": {
             "type": "string",
-            "description": "Replacement description text.",
-            "example": "Updated description after review"
+            "description": "Replacement description text. `null` clears it.",
+            "example": "Updated description after review",
+            "nullable": true
           },
           "userFeedback": {
             "type": "string",
-            "description": "User-supplied verification verdict.",
+            "description": "User-supplied verification verdict. `null` resets it to `neutral`.",
             "enum": [
               "negative",
               "neutral",
               "positive"
             ],
-            "example": "positive"
+            "example": "positive",
+            "nullable": true
           },
           "topics": {
-            "description": "Replacement topic tags. Pass `[]` to clear all tags.",
+            "description": "Replacement topic tags. Pass `[]` or `null` to clear all tags.",
             "example": [
               "analytics",
               "verified"
             ],
+            "nullable": true,
             "type": "array",
             "items": {
               "type": "string"
@@ -31928,11 +31932,12 @@
           "metadata": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Replacement metadata bag. Optional.",
+            "description": "Replacement metadata bag. Optional; `null` clears it to `{}`.",
             "example": {
               "topic": "preferences",
               "confidence": "high"
-            }
+            },
+            "nullable": true
           }
         }
       },
@@ -31968,19 +31973,22 @@
           },
           "description": {
             "type": "string",
-            "description": "Updated description.",
-            "example": "Predicts churn risk over a 180-day window."
+            "description": "Updated description. `null` clears it to an empty string.",
+            "example": "Predicts churn risk over a 180-day window.",
+            "nullable": true
           },
           "expectedOutput": {
             "type": "string",
-            "description": "Updated expected-output summary, used when this scope is supervised.",
-            "example": "JSON: { churn_probability: number }"
+            "description": "Updated expected-output summary, used when this scope is supervised. `null` clears it to an empty string.",
+            "example": "JSON: { churn_probability: number }",
+            "nullable": true
           },
           "instructions": {
-            "description": "Updated instruction fragments. Replaces the prior list when present.",
+            "description": "Updated instruction fragments. Replaces the prior list when present; `null` clears it.",
             "example": [
               "You are a senior data analyst."
             ],
+            "nullable": true,
             "type": "array",
             "items": {
               "type": "string"
@@ -32020,7 +32028,7 @@
             ]
           },
           "connectionSet": {
-            "description": "Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.",
+            "description": "Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated. `null` clears it.",
             "example": [
               {
                 "connection_id": "11111111-1111-4111-8111-111111111111",
@@ -32041,6 +32049,7 @@
                 }
               }
             ],
+            "nullable": true,
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConnectionSetItemDto"
@@ -32048,22 +32057,25 @@
           },
           "contextSelections": {
             "type": "array",
-            "description": "Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings.",
+            "description": "Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.",
             "items": {
               "type": "object",
               "additionalProperties": true
             },
-            "example": []
+            "example": [],
+            "nullable": true
           },
           "interfaces": {
-            "description": "Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list.",
+            "description": "Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list; `null` clears it.",
+            "nullable": true,
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ScopeMcpInterfaceInputDto"
             }
           },
           "evaluations": {
-            "description": "Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases.",
+            "description": "Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases. `null` clears it.",
+            "nullable": true,
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EvaluationCaseInputDto"
@@ -32071,14 +32083,15 @@
           },
           "supervisionSubordinateDescriptions": {
             "type": "object",
-            "description": "Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present.",
+            "description": "Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present; `null` clears it.",
             "additionalProperties": {
               "type": "string"
             },
             "example": {
               "12": "Reads warehouse facts",
               "17": "Drafts the report"
-            }
+            },
+            "nullable": true
           },
           "accessConfig": {
             "description": "Updated access configuration. The service rejects changes that would lock the caller out of use + manage.",

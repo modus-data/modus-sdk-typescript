@@ -5455,10 +5455,10 @@ export interface components {
              */
             type?: components["schemas"]["AgentType"];
             /**
-             * @description Updated description.
+             * @description Updated description. `null` clears it to an empty string.
              * @example Generates a daily sales report broken down by region.
              */
-            description?: string;
+            description?: string | null;
             /** @description Updated trigger configuration. Schedule shape is fully validated; other trigger types are opaque. */
             trigger?: components["schemas"]["TriggerDto"];
             /** @description Updated workflow selection. */
@@ -5498,24 +5498,24 @@ export interface components {
                 [key: string]: unknown;
             };
             /**
-             * @description Replacement description text.
+             * @description Replacement description text. `null` clears it.
              * @example Updated description after review
              */
-            description?: string;
+            description?: string | null;
             /**
-             * @description User-supplied verification verdict.
+             * @description User-supplied verification verdict. `null` resets it to `neutral`.
              * @example positive
-             * @enum {string}
+             * @enum {string|null}
              */
-            userFeedback?: "negative" | "neutral" | "positive";
+            userFeedback?: "negative" | "neutral" | "positive" | null;
             /**
-             * @description Replacement topic tags. Pass `[]` to clear all tags.
+             * @description Replacement topic tags. Pass `[]` or `null` to clear all tags.
              * @example [
              *       "analytics",
              *       "verified"
              *     ]
              */
-            topics?: string[];
+            topics?: string[] | null;
         };
         UpdateCustomContextItemDto: {
             /**
@@ -5627,7 +5627,7 @@ export interface components {
              */
             memory?: string;
             /**
-             * @description Replacement metadata bag. Optional.
+             * @description Replacement metadata bag. Optional; `null` clears it to `{}`.
              * @example {
              *       "topic": "preferences",
              *       "confidence": "high"
@@ -5635,7 +5635,7 @@ export interface components {
              */
             metadata?: {
                 [key: string]: unknown;
-            };
+            } | null;
         };
         UpdateScopeInterfaceDto: {
             /**
@@ -5653,22 +5653,22 @@ export interface components {
              */
             name?: string;
             /**
-             * @description Updated description.
+             * @description Updated description. `null` clears it to an empty string.
              * @example Predicts churn risk over a 180-day window.
              */
-            description?: string;
+            description?: string | null;
             /**
-             * @description Updated expected-output summary, used when this scope is supervised.
+             * @description Updated expected-output summary, used when this scope is supervised. `null` clears it to an empty string.
              * @example JSON: { churn_probability: number }
              */
-            expectedOutput?: string;
+            expectedOutput?: string | null;
             /**
-             * @description Updated instruction fragments. Replaces the prior list when present.
+             * @description Updated instruction fragments. Replaces the prior list when present; `null` clears it.
              * @example [
              *       "You are a senior data analyst."
              *     ]
              */
-            instructions?: string[];
+            instructions?: string[] | null;
             /**
              * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
              * @example {
@@ -5695,7 +5695,7 @@ export interface components {
             /** @description Updated model-specific runtime controls. Pass `null` to clear. */
             modelSettings?: components["schemas"]["ModelSettingsDto"] | null;
             /**
-             * @description Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.
+             * @description Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated. `null` clears it.
              * @example [
              *       {
              *         "connection_id": "11111111-1111-4111-8111-111111111111",
@@ -5717,20 +5717,20 @@ export interface components {
              *       }
              *     ]
              */
-            connectionSet?: components["schemas"]["ConnectionSetItemDto"][];
+            connectionSet?: components["schemas"]["ConnectionSetItemDto"][] | null;
             /**
-             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings.
+             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.
              * @example []
              */
             contextSelections?: {
                 [key: string]: unknown;
-            }[];
-            /** @description Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list. */
-            interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
-            /** @description Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases. */
-            evaluations?: components["schemas"]["EvaluationCaseInputDto"][];
+            }[] | null;
+            /** @description Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list; `null` clears it. */
+            interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][] | null;
+            /** @description Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases. `null` clears it. */
+            evaluations?: components["schemas"]["EvaluationCaseInputDto"][] | null;
             /**
-             * @description Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present.
+             * @description Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present; `null` clears it.
              * @example {
              *       "12": "Reads warehouse facts",
              *       "17": "Drafts the report"
@@ -5738,7 +5738,7 @@ export interface components {
              */
             supervisionSubordinateDescriptions?: {
                 [key: string]: string;
-            };
+            } | null;
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AccessConfigDto"];
             /**
