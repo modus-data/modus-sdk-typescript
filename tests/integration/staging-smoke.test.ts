@@ -206,20 +206,21 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
       timeoutMs: 180_000,
     })
 
-    const buffered = await c.modus.chat('sdk staging smoke — reply with one short word', {
+    const awaited = await c.modus.chat('sdk staging smoke — reply with one short word', {
       model,
     })
-    expect(buffered.content?.length).toBeGreaterThan(0)
-    expect(buffered.threadId).toBeTruthy()
+    expect(awaited.content?.length).toBeGreaterThan(0)
+    expect(awaited.threadId).toBeTruthy()
 
-    const stream = c.modus.chatStream('sdk staging smoke — stream one short word', {
+    const stream = c.modus.chat('sdk staging smoke — stream one short word', {
       model,
+      threadId: awaited.threadId,
     })
     let tokens = 0
     for await (const chunk of stream.textStream()) {
       if (chunk.length > 0) tokens += 1
     }
-    const final = stream.getFinalResult()
+    const final = await stream
     expect(tokens).toBeGreaterThan(0)
     expect(final.content?.length).toBeGreaterThan(0)
     expect(final.threadId || final.runId).toBeTruthy()

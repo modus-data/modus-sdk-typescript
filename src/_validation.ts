@@ -22,8 +22,8 @@ export function validateId(resourceId: number | string, name = 'id'): void {
   }
 }
 
-// Keep in sync with SkillChatRequestDto.model in the public API contract.
-const ALLOWED_CHAT_MODELS = new Set([
+// The canonical model ids the agent host accepts for `config.model`.
+export const CHAT_MODELS = [
   'claude-sonnet-5',
   'claude-sonnet-5.5',
   'claude-sonnet-4.6',
@@ -53,7 +53,9 @@ const ALLOWED_CHAT_MODELS = new Set([
   'grok-4.3',
   'grok-4.7',
   'kimi-k3',
-])
+] as const
+
+const ALLOWED_CHAT_MODELS: ReadonlySet<string> = new Set(CHAT_MODELS)
 
 export function validateChatModel(model: string): void {
   if (!ALLOWED_CHAT_MODELS.has(model)) {

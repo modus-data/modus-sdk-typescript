@@ -1,4 +1,5 @@
 import type {
+  ApprovalRequiredEvent,
   AssistantContentResetEvent,
   CancelledEvent,
   DoneEvent,
@@ -39,23 +40,50 @@ function isAsyncIterable<T>(value: Iterable<T> | AsyncIterable<T>): value is Asy
   return Symbol.asyncIterator in Object(value)
 }
 
+const NODE_TERMINAL_TYPES = new Set<unknown>(['done', 'error', 'cancelled', 'stream_timeout'])
+
 function* parseData(data: Record<string, unknown>): Generator<RunEvent> {
   const eventType = typeof data.type === 'string' ? data.type : 'unknown'
 
-  if (eventType === 'token') {
+  if (eventType === 'node_content') {
+    // A workflow wraps each node's frames; the inner frame is a normal run event.
+    // A node's own terminal frame does not end the workflow: only workflow_* does.
+    const inner = data.event
+    if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+      const frame = inner as Record<string, unknown>
+      if (!NODE_TERMINAL_TYPES.has(frame.type)) yield* parseData(frame)
+    }
+  } else if (eventType === 'token') {
     const event: TokenEvent = {
       type: 'token',
       content: typeof data.content === 'string' ? data.content : '',
+      ...(typeof data.subAgent === 'string' ? { subAgent: data.subAgent } : {}),
     }
     yield event
-  } else if (eventType === 'done') {
+  } else if (eventType === 'done' || eventType === 'workflow_done') {
+    const content = eventType === 'done' ? data.content : data.finalOutput
     const event: DoneEvent = {
       type: 'done',
       runId: typeof data.runId === 'string' ? data.runId : '',
       threadId: typeof data.threadId === 'string' ? data.threadId : '',
+      ...(typeof content === 'string' ? { content } : {}),
     }
     yield event
-  } else if (eventType === 'error') {
+  } else if (eventType === 'approval_required') {
+    // Project to the declared fields, as the Python parser does: unknown or mistyped frame data never reaches callers.
+    const event: ApprovalRequiredEvent = { type: 'approval_required' }
+    for (const key of ['toolId', 'toolName', 'title', 'description', 'nodeId', 'prompt'] as const) {
+      const value = data[key]
+      if (typeof value === 'string') event[key] = value
+    }
+    const { args, options } = data
+    if (args && typeof args === 'object' && !Array.isArray(args)) event.args = args as Record<string, unknown>
+    if (Array.isArray(options)) event.options = options as ApprovalRequiredEvent['options']
+    yield event
+  } else if (eventType === 'workflow_cancelled') {
+    const event: CancelledEvent = { type: 'cancelled' }
+    yield event
+  } else if (eventType === 'error' || eventType === 'workflow_error') {
     const msg =
       data.error ?? data.message ?? data.content ?? 'Unknown run error'
     const event: ErrorEvent = { type: 'error', message: String(msg) }
@@ -76,6 +104,9 @@ function* parseData(data: Record<string, unknown>): Generator<RunEvent> {
         : {}),
       attempt: typeof data.attempt === 'number' ? data.attempt : 1,
       reason: 'provider_stream_failed',
+      ...(data.subAgent && typeof data.subAgent === 'object' && !Array.isArray(data.subAgent)
+        ? { subAgent: data.subAgent as Record<string, unknown> }
+        : {}),
     }
     yield event
   } else if (!SILENTLY_IGNORED.has(eventType)) {

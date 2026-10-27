@@ -3,7 +3,6 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import {
-  REUSES_BASE_REQUEST_BODY,
   SDK_REQUEST_BODY_FIELDS,
 } from '../../contract/write-body-fields.js'
 import {
@@ -38,8 +37,7 @@ describe('request body contract', () => {
     const missing = Object.keys(operations).filter(
       (oid) =>
         operationHasRequestBody(openapi, oid) &&
-        !(oid in SDK_REQUEST_BODY_FIELDS) &&
-        !REUSES_BASE_REQUEST_BODY.has(oid),
+        !(oid in SDK_REQUEST_BODY_FIELDS)
     )
     expect(missing).toEqual([])
   })

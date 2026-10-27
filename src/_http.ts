@@ -294,6 +294,10 @@ export class HttpClient {
     const baseUrl = options.baseUrl ?? this.config.baseUrl
     const url = buildUrl(baseUrl, path, options.params)
     const idempotent = options.idempotent ?? false
+    // A run streams for as long as the agent works on it, so timeoutMs bounds
+    // silence between chunks (keepalives included), not the whole stream.
+    const idle = new IdleTimeout(this.config.timeoutMs)
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
     try {
       const response = await this.config.fetch(url, {
         method,
@@ -306,8 +310,9 @@ export class HttpClient {
           authHeaders(this.config.apiKey),
         ),
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
-        signal: AbortSignal.timeout(this.config.timeoutMs),
+        signal: idle.signal,
       })
+      idle.touch()
       if (!response.ok) {
         raiseForStatus(response, await response.text(), method, idempotent)
         return
@@ -323,12 +328,13 @@ export class HttpClient {
         )
       }
       if (!response.body) return
-      const reader = response.body.getReader()
+      reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
+        idle.touch()
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() ?? ''
@@ -340,6 +346,10 @@ export class HttpClient {
     } catch (error) {
       if (error instanceof ModusError) throw error
       throw wrapNetworkError(error, baseUrl, method, idempotent)
+    } finally {
+      idle.clear()
+      // A consumer that stops early must not leave the connection open.
+      await reader?.cancel().catch(() => undefined)
     }
   }
 
@@ -349,5 +359,30 @@ export class HttpClient {
 
   streamPost(path: string, json?: unknown, options: RequestOptions = {}): AsyncGenerator<string> {
     return this.stream('POST', path, { json, ...options })
+  }
+}
+
+class IdleTimeout {
+  private readonly controller = new AbortController()
+  private timer: ReturnType<typeof setTimeout> | undefined
+
+  constructor(private readonly ms: number) {
+    this.touch()
+  }
+
+  get signal(): AbortSignal {
+    return this.controller.signal
+  }
+
+  touch(): void {
+    this.clear()
+    this.timer = setTimeout(
+      () => this.controller.abort(new DOMException('Stream idle timeout', 'TimeoutError')),
+      this.ms,
+    )
+  }
+
+  clear(): void {
+    if (this.timer !== undefined) clearTimeout(this.timer)
   }
 }

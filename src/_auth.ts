@@ -30,7 +30,11 @@ export function resolveBaseUrl(baseUrl?: string): string | undefined {
 }
 
 export function resolveAgentHost(agentHost?: string): string | undefined {
-  return agentHost ?? process.env[ENV_AGENT_HOST] ?? undefined
+  // A blank value counts as unset, so it can never become a request URL.
+  for (const value of [agentHost, process.env[ENV_AGENT_HOST]]) {
+    if (value?.trim()) return value.trim()
+  }
+  return undefined
 }
 
 /** Modus-owned API hosts only: `api.getmodus.com` or `api.<env>.getmodus.com`. */

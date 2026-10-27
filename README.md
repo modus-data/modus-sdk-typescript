@@ -107,10 +107,12 @@ const followUp = await client.modus.chat('Break that down by region.', {
 })
 console.log(followUp.content)
 
-const stream = client.modus.chatStream('Summarize this week', { model: MODEL })
-for await (const chunk of stream.textStream()) {
+// Every chat streams live from the agent host; iterate it to print tokens as they arrive.
+const live = client.modus.chat('Summarize this week', { model: MODEL })
+for await (const chunk of live.textStream()) {
   process.stdout.write(chunk)
 }
+const { threadId } = await live
 
 const ctx = await client.modus.getContext('What tables describe customer churn?', { limit: 10 })
 console.log(ctx.originalCount, ctx.sessionId)
@@ -130,8 +132,8 @@ const MODEL = 'claude-sonnet-5'
 const result = await client.scopes.chat(scopeId, 'Hello', { model: MODEL })
 console.log(result.content, result.threadId)
 
-const stream = client.scopes.chatStream(scopeId, 'Hi', { model: MODEL })
-for await (const chunk of stream.textStream()) {
+const live = client.scopes.chat(scopeId, 'Hi', { model: MODEL, threadId: result.threadId })
+for await (const chunk of live.textStream()) {
   process.stdout.write(chunk)
 }
 ```
@@ -153,7 +155,22 @@ for await (const run of (await client.workflows.runs.list(workflowId, { pageSize
 }
 ```
 
-Workflow chat is not on the public PAT surface. Use `client.modus.chat()` for org-wide conversation or `client.scopes.chat()` for a published scope.
+```ts
+const { content } = await client.workflows.chat(workflowId, 'Run this week\'s digest', { model: 'claude-sonnet-5' })
+```
+
+### Approvals
+
+A run that needs approval for a write stops with `result.approval` set. Continue it with `resume`:
+
+```ts
+const chat = client.modus.chat('Fix the typo in the accounts table', { model: 'claude-sonnet-5' })
+const first = await chat
+if (first.approval) {
+  const done = await chat.resume({ decision: 'approve' })
+  console.log(done.content)
+}
+```
 
 ## Managing your org
 

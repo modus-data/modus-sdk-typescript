@@ -20,8 +20,8 @@ describe('@getmodus/sdk scaffold', () => {
     // Canonical scopes/workflows surfaces on the consumption client.
     expect(client.scopes).toBeDefined()
     expect(typeof client.scopes.chat).toBe('function')
-    expect(typeof client.scopes.chatStream).toBe('function')
     expect(client.workflows).toBeDefined()
+    expect(typeof client.workflows.chat).toBe('function')
     expect(client.workflows.runs).toBeDefined()
     expect(client.workflows.workflowActions).toBeDefined()
     const mgmt = new ModusManagement({ apiKey: TEST_KEY })
@@ -36,7 +36,7 @@ describe('@getmodus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(126)
+    expect(Object.keys(OPERATIONS).length).toBe(122)
     expect(OPERATIONS.ConnectionsController_listSelections).toMatchObject({
       method: 'GET',
       path: '/api/v1/connections/{connectionId}/selections',

@@ -22,7 +22,8 @@ export {
   ValidationError,
 } from './_exceptions.js'
 
-export { ChatStream } from './_chat.js'
+export { ChatSession } from './_chat.js'
+export type { ChatOptions } from './_chat.js'
 export { Page } from './_pagination.js'
 export type {
   AssistantContentResetEvent,
@@ -30,10 +31,11 @@ export type {
   DoneEvent,
   ErrorEvent,
   RunEvent,
+  ApprovalRequiredEvent,
   StreamTimeoutEvent,
   TokenEvent,
 } from './types/runs.js'
-export type { ChatModel, ChatRequest, ChatResult } from './types/chat.js'
+export type { ChatModel, ChatResult } from './types/chat.js'
 export type { ModusOptions } from './_config.js'
 export type { Scope, ScopeStatus, ScopeVariation, Skill, SkillStatus, SkillVariation } from './types/scopes.js'
 export type { Workflow, Agent } from './types/workflows.js'

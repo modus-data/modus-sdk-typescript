@@ -83,3 +83,56 @@ describe('HttpClient.streamPost', () => {
     }).rejects.toBeInstanceOf(AuthenticationError)
   })
 })
+
+describe('HttpClient.streamPost timeouts', () => {
+  function tickingStream(ticks: number, everyMs: number, signal: AbortSignal | null | undefined): Response {
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        signal?.addEventListener('abort', () => controller.error(signal.reason))
+        for (let i = 0; i < ticks; i++) {
+          await new Promise((resolve) => setTimeout(resolve, everyMs))
+          if (signal?.aborted) return
+          controller.enqueue(encoder.encode(': keepalive\n'))
+        }
+        if (signal?.aborted) return
+        controller.enqueue(encoder.encode('data: {"type":"done"}\n\n'))
+        controller.close()
+      },
+    })
+    return new Response(stream, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+  }
+
+  it('a stream with keepalives outlives timeoutMs', async () => {
+    const config = createModusConfig({
+      apiKey: TEST_KEY,
+      maxRetries: 0,
+      timeoutMs: 100,
+      fetch: vi.fn().mockImplementation(async (_url: string, init: RequestInit) => tickingStream(6, 40, init.signal)),
+    })
+    const lines: string[] = []
+    for await (const line of new HttpClient(config).streamPost('/agent/v1/modus/runs', {})) lines.push(line)
+    expect(lines.at(-1)).toBe('data: {"type":"done"}')
+  })
+
+  it('a stream silent for longer than timeoutMs fails as a timeout', async () => {
+    const config = createModusConfig({
+      apiKey: TEST_KEY,
+      maxRetries: 0,
+      timeoutMs: 50,
+      fetch: vi.fn().mockImplementation(async (_url: string, init: RequestInit) => {
+        const stream = new ReadableStream({
+          start(controller) {
+            init.signal?.addEventListener('abort', () => controller.error(init.signal?.reason))
+          },
+        })
+        return new Response(stream, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+      }),
+    })
+    await expect(async () => {
+      for await (const _ of new HttpClient(config).streamPost('/agent/v1/modus/runs', {})) {
+        // drain
+      }
+    }).rejects.toThrow(/timed out/)
+  })
+})

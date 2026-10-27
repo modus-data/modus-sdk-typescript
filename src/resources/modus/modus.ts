@@ -1,8 +1,7 @@
-import { modusChatBuffered, modusChatStreamSession, type ChatStream } from '../../_chat.js'
+import { startChat, type ChatOptions, type ChatSession } from '../../_chat.js'
 import type { ModusConfig } from '../../_config.js'
 import type { HttpClient } from '../../_http.js'
 import { invokeWithRetry, omitUndefined } from '../../_request.js'
-import type { ChatModel, ChatResult } from '../../types/chat.js'
 import type { ModusContextComposition } from '../../types/context-compose.js'
 
 import { ModusConversationsResource } from './conversations.js'
@@ -13,8 +12,7 @@ import { ModusConversationsResource } from './conversations.js'
  * Prefer `client.modus` over `client.scopes` when the question is not tied to one
  * published scope. Construct with `new Modus()` (reads `MODUS_API_KEY`).
  *
- * - `chat` — one complete reply
- * - `chatStream` — print tokens as they arrive (consume `textStream()`)
+ * - `chat` — stream a reply live, or `await` it for the complete answer
  * - `getContext` — preview composed context without a chat turn
  * - `conversations` — list/get prior Modus threads
  *
@@ -62,51 +60,30 @@ export class ModusResource {
   }
 
   /**
-   * Send a message to Modus and wait for the complete reply.
+   * Chat with Modus, the org-wide assistant. The reply streams live from the
+   * agent host: iterate `textStream()` for tokens, or `await` the result for
+   * the final answer. Pass the returned `threadId` back to continue.
    *
    * @param message - User message text.
-   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5.5"`).
    * @param options.threadId - Continue an existing conversation; omit to start new.
-   * @returns Chat result: `content`, `threadId` (for follow-ups), `runId`.
+   * @returns A chat session — iterate it or `await` it for `content`, `threadId`, `runId`.
+   * @throws {ModusError} When no agent host is known for a custom `baseUrl`.
    *
    * @example
    * ```ts
    * const result = await client.modus.chat('What tables describe revenue?', {
-   *   model: 'claude-sonnet-5',
+   *   model: 'claude-sonnet-5.5',
    * })
-   * console.log(result.content, result.threadId)
-   * const follow = await client.modus.chat('Break that down by region.', {
-   *   model: 'claude-sonnet-5',
+   * console.log(result.content)
+   * const follow = client.modus.chat('Break that down by region.', {
+   *   model: 'claude-sonnet-5.5',
    *   threadId: result.threadId,
    * })
+   * for await (const token of follow.textStream()) process.stdout.write(token)
    * ```
    */
-  chat(message: string, options: { model: ChatModel; threadId?: string }): Promise<ChatResult> {
-    return modusChatBuffered(this.http, message, options)
-  }
-
-  /**
-   * Stream a Modus reply token by token (SSE).
-   *
-   * The request starts when you consume `textStream()` or `eventStream()`.
-   *
-   * @param message - User message text.
-   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
-   * @param options.threadId - Continue an existing conversation; omit to start new.
-   * @returns Chat stream — iterate `textStream()` for tokens.
-   *
-   * @example
-   * ```ts
-   * const stream = client.modus.chatStream('Summarize ARR in three bullets.', {
-   *   model: 'claude-sonnet-5',
-   * })
-   * for await (const token of stream.textStream()) {
-   *   process.stdout.write(token)
-   * }
-   * console.log(stream.getFinalResult().threadId)
-   * ```
-   */
-  chatStream(message: string, options: { model: ChatModel; threadId?: string }): ChatStream {
-    return modusChatStreamSession(this.http, this.config, message, options)
+  chat(message: string, options: ChatOptions): ChatSession {
+    return startChat(this.http, this.config, { kind: 'modus' }, message, options)
   }
 }

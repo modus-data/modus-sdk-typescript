@@ -27,14 +27,12 @@ describe.each(BAD_IDS)('path id %j is rejected before any request', (bad) => {
   })
 })
 
-describe.each(['.', '..'])('chat threadId %j is rejected before any request', (bad) => {
+// A chat's threadId travels as the body's sessionId; its path id is the scope id.
+describe.each(BAD_IDS)('chat scope id %j is rejected before any request', (bad) => {
   it('POST scopes.chat', async () => {
     const fetch = vi.fn()
     await expect(
-      new Modus({ ...options, fetch }).scopes.chat(7, 'hi', {
-        model: 'claude-sonnet-5',
-        threadId: bad,
-      }),
+      new Modus({ ...options, fetch }).scopes.chat(bad, 'hi', { model: 'claude-sonnet-5' }),
     ).rejects.toThrow(ValidationError)
     expect(fetch).not.toHaveBeenCalled()
   })

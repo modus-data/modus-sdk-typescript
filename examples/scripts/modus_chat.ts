@@ -36,7 +36,7 @@ console.log(`Answer: ${followUp.content}`)
 console.log(`  threadId=${followUp.threadId}`)
 
 console.log(`\nStreaming (${STREAM_MESSAGE}):`)
-const stream = client.modus.chatStream(STREAM_MESSAGE, { model: MODEL })
+const stream = client.modus.chat(STREAM_MESSAGE, { model: MODEL })
 for await (const chunk of stream.textStream()) {
   process.stdout.write(chunk)
 }
