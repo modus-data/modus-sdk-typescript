@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { ModusConfig } from '../../_config.js'
 import { resolveAgentRunSessionId } from '../../_agent_run_request.js'
-import { ModusError } from '../../_exceptions.js'
+import { ModusError, ValidationError } from '../../_exceptions.js'
 import type { OperationId } from '../../_generated/operations.js'
 import {
   formatOperationPath,
@@ -105,7 +105,7 @@ function sessionIdFromBody(body: { sessionId?: string }): string {
 /** Interrupt, queue-edit and resume continue an existing conversation, so a sessionId is never minted. */
 function requireSessionId(sessionId: string | undefined): void {
   if (!sessionId?.trim()) {
-    throw new Error("sessionId must be the run's conversation id (a non-empty string)")
+    throw new ValidationError("sessionId must be the run's conversation id (a non-empty string)")
   }
 }
 
@@ -246,7 +246,7 @@ export class WorkflowRunsResource {
     options: { temporalRunId?: string } = {},
   ): Promise<AgentRun> {
     validateId(workflowId, 'workflow_id')
-    if (!runId.trim()) throw new Error('run_id must be a non-empty string')
+    if (!runId.trim()) throw new ValidationError('run_id must be a non-empty string')
     const query =
       options.temporalRunId !== undefined
         ? { temporalRunId: options.temporalRunId }
@@ -352,7 +352,7 @@ export class WorkflowRunsResource {
    *   (`approve` / `deny` / `connected` / `cancelled`); optional `approvalTarget`.
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events.
-   * @throws {Error} When `sessionId` is blank, before any request is sent.
+   * @throws {ValidationError} When `sessionId` is blank, before any request is sent.
    *
    * @example
    * ```ts
@@ -419,7 +419,7 @@ export class WorkflowRunsResource {
    * @param options.lastSeenEventId - Id of the last event you rendered, so the cancelled
    *   turn's saved output stops there.
    * @returns The new run (`runId`, `status`); follow it with {@link stream}.
-   * @throws {Error} When `nextRun.sessionId` is blank, before any request is sent.
+   * @throws {ValidationError} When `nextRun.sessionId` is blank, before any request is sent.
    *
    * @example
    * ```ts
@@ -455,7 +455,7 @@ export class WorkflowRunsResource {
    * @param runId - Queued run id.
    * @param nextRun - The replacement turn: `message` and `sessionId` (the run's conversation id).
    * @returns The edited run (`runId`, `status`).
-   * @throws {Error} When `nextRun.sessionId` is blank, before any request is sent.
+   * @throws {ValidationError} When `nextRun.sessionId` is blank, before any request is sent.
    * @throws {ConflictError} When the run has already started.
    *
    * @example
@@ -508,12 +508,12 @@ export class WorkflowRunsResource {
    *
    * @param sessionIds - Up to 100 session ids.
    * @returns Active runs matching any of the given sessions.
-   * @throws {Error} When more than 100 session ids are provided.
+   * @throws {ValidationError} When more than 100 session ids are provided.
    */
   async activeBySession(sessionIds: readonly string[]): Promise<ActiveConversationRun[]> {
     const uniqueSessionIds = [...new Set(sessionIds.map((id) => id.trim()).filter(Boolean))]
     if (uniqueSessionIds.length > 100) {
-      throw new Error('sessionIds must contain at most 100 ids')
+      throw new ValidationError('sessionIds must contain at most 100 ids')
     }
     return parseActiveRunsArray(
       await invokeWithRetry(this.config, this.http, 'RunLifecycleController_activeBySession', {

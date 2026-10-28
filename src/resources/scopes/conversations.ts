@@ -1,3 +1,4 @@
+import { ValidationError } from '../../_exceptions.js'
 import { ScopesConversationsResourceBase } from '../../_generated/resources/consumption/scopes/conversations.js'
 import { invokeWithRetry } from '../../_request.js'
 import { validateId } from '../../_validation.js'
@@ -33,7 +34,7 @@ export class ScopeConversationsResource extends ScopesConversationsResourceBase 
     validateId(this.scopeId, 'scope_id')
     validateId(threadId, 'thread_id')
     if (options.beforeMessageIndex !== undefined && options.messageLimit === undefined) {
-      throw new Error('beforeMessageIndex requires messageLimit')
+      throw new ValidationError('beforeMessageIndex requires messageLimit')
     }
     const data = await invokeWithRetry(this.config, this.http, 'ScopeConversationsController_get', {
       pathParams: { id: this.scopeId, threadId },

@@ -6,10 +6,10 @@ export const DEFAULT_MAX_PAGE_SIZE = 200
 
 export function validatePageSize(pageSize: number, maxPageSize?: number): void {
   if (!Number.isInteger(pageSize) || pageSize < 1) {
-    throw new Error(`page_size must be a positive int, got ${pageSize}`)
+    throw new ValidationError(`page_size must be a positive int, got ${pageSize}`)
   }
   if (maxPageSize !== undefined && pageSize > maxPageSize) {
-    throw new Error(`page_size must be <= ${maxPageSize}, got ${pageSize}`)
+    throw new ValidationError(`page_size must be <= ${maxPageSize}, got ${pageSize}`)
   }
 }
 
@@ -60,7 +60,7 @@ const ALLOWED_CHAT_MODELS: ReadonlySet<string> = new Set(CHAT_MODELS)
 export function validateChatModel(model: string): void {
   if (!ALLOWED_CHAT_MODELS.has(model)) {
     const supported = [...ALLOWED_CHAT_MODELS].sort().join(', ')
-    throw new Error(`Unsupported model ${JSON.stringify(model)}. Choose one of: ${supported}.`)
+    throw new ValidationError(`Unsupported model ${JSON.stringify(model)}. Choose one of: ${supported}.`)
   }
 }
 

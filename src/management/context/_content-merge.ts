@@ -1,3 +1,4 @@
+import { ValidationError } from '../../_exceptions.js'
 import type { ContextItem } from '../../types/context.js'
 import type { ManagementContextItemsResource } from './items.js'
 
@@ -5,10 +6,10 @@ export type UserFeedback = 'positive' | 'neutral' | 'negative'
 
 function requireContentDict(item: ContextItem, contextType: string): Record<string, unknown> {
   if (item.contextType !== contextType) {
-    throw new Error(`Expected contextType ${contextType}, got ${item.contextType}.`)
+    throw new ValidationError(`Expected contextType ${contextType}, got ${item.contextType}.`)
   }
   if (!item.content || typeof item.content !== 'object' || Array.isArray(item.content)) {
-    throw new Error(`Context item ${item.uid} has no object content; cannot merge ${contextType} fields.`)
+    throw new ValidationError(`Context item ${item.uid} has no object content; cannot merge ${contextType} fields.`)
   }
   return item.content as Record<string, unknown>
 }
@@ -144,7 +145,7 @@ export async function resolveAndUpdateLink(
     options.userFeedback === undefined &&
     options.topics === undefined
   ) {
-    throw new Error('Provide at least one field to update.')
+    throw new ValidationError('Provide at least one field to update.')
   }
   if (options.title === undefined && options.url === undefined) {
     return items.update(uid, {

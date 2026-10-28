@@ -1,7 +1,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import type { ModusConfig } from '../../_config.js'
-import { ModusError } from '../../_exceptions.js'
+import { ModusError, ValidationError } from '../../_exceptions.js'
 import { ContextFilesResourceBase } from '../../_generated/resources/management/context/files.js'
 import type { HttpClient } from '../../_http.js'
 import { asRecord, invokeWithRetry } from '../../_request.js'
@@ -44,16 +44,27 @@ const WAIT_UNTIL_VALUES = new Set<WaitUntil>(['processing', 'ready'])
  */
 const DEFER_CONTENT_TYPE_TO_SERVER = 'application/octet-stream'
 
+/** A missing path (or one under a regular file, ENOTDIR) is bad caller input, so it throws ValidationError like a wrong file type does. */
+async function statInput(path: string) {
+  try {
+    return await stat(path)
+  } catch (error) {
+    const code = (error as { code?: unknown }).code
+    if (code === 'ENOENT' || code === 'ENOTDIR') throw new ValidationError(`No such file or directory: ${path}`)
+    throw error
+  }
+}
+
 function validateWaitUntil(waitUntil: string): asserts waitUntil is WaitUntil {
   if (!WAIT_UNTIL_VALUES.has(waitUntil as WaitUntil)) {
-    throw new Error(`waitUntil must be one of ${[...WAIT_UNTIL_VALUES].join(', ')}, got ${waitUntil}`)
+    throw new ValidationError(`waitUntil must be one of ${[...WAIT_UNTIL_VALUES].join(', ')}, got ${waitUntil}`)
   }
 }
 
 function validateBulkSize(count: number, name: string): void {
-  if (count === 0) throw new Error(`${name} must not be empty`)
+  if (count === 0) throw new ValidationError(`${name} must not be empty`)
   if (count > MAX_BULK_UPLOAD_FILES) {
-    throw new Error(`${name} must have at most ${MAX_BULK_UPLOAD_FILES} entries, got ${count}`)
+    throw new ValidationError(`${name} must have at most ${MAX_BULK_UPLOAD_FILES} entries, got ${count}`)
   }
 }
 
@@ -391,8 +402,8 @@ export class ManagementContextFilesResource extends ContextFilesResourceBase {
   ): Promise<FileUpload> {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
-    const fileStat = await stat(path)
-    if (!fileStat.isFile()) throw new Error(`Not a file: ${path}`)
+    const fileStat = await statInput(path)
+    if (!fileStat.isFile()) throw new ValidationError(`Not a file: ${path}`)
     const fileName = path.split(/[/\\]/).pop() as string
     const slot = await this.createUploadUrl({
       fileName,
@@ -474,9 +485,9 @@ export class ManagementContextFilesResource extends ContextFilesResourceBase {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
     const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY
-    if (concurrency < 1) throw new Error(`concurrency must be >= 1, got ${concurrency}`)
-    const dirStat = await stat(path)
-    if (!dirStat.isDirectory()) throw new Error(`Not a directory: ${path}`)
+    if (concurrency < 1) throw new ValidationError(`concurrency must be >= 1, got ${concurrency}`)
+    const dirStat = await statInput(path)
+    if (!dirStat.isDirectory()) throw new ValidationError(`Not a directory: ${path}`)
 
     const files = await walkFiles(path, options.recursive ?? true)
     return this.uploadPaths(files.map((file) => {
@@ -494,7 +505,7 @@ export class ManagementContextFilesResource extends ContextFilesResourceBase {
     const waitUntil = options.waitUntil ?? 'processing'
     validateWaitUntil(waitUntil)
     const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY
-    if (concurrency < 1) throw new Error(`concurrency must be >= 1, got ${concurrency}`)
+    if (concurrency < 1) throw new ValidationError(`concurrency must be >= 1, got ${concurrency}`)
 
     const prefixed = files.map((file) => {
       const folderPath = joinDestination(options.folderPath, file.folderPath)

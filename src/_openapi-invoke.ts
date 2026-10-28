@@ -1,3 +1,4 @@
+import { ValidationError } from './_exceptions.js'
 import { resolveServiceBaseUrl } from './_config.js'
 import { OPERATIONS, type OperationId, type OperationSpec } from './_generated/operations.js'
 import type { HttpClient } from './_http.js'
@@ -19,7 +20,7 @@ function formatPath(template: string, pathParams: Record<string, unknown>): stri
       if (!segment.startsWith('{') || !segment.endsWith('}')) return segment
       const key = segment.slice(1, -1)
       if (!(key in pathParams)) {
-        throw new Error(`Missing path parameter ${JSON.stringify(key)} for ${JSON.stringify(template)}`)
+        throw new ValidationError(`Missing path parameter ${JSON.stringify(key)} for ${JSON.stringify(template)}`)
       }
       const value = String(pathParams[key])
       validateId(value, key)

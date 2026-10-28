@@ -71,6 +71,11 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Fixed
 
+- **Every rejected argument now throws `ValidationError`.** An invalid page size, chat model, `kind`, blank
+  `runId` or `sessionId`, empty `updateMask`, a `beforeMessageIndex` without `messageLimit`, too many
+  `sessionIds`, a bad `waitUntil`, `concurrency` or upload path (including one that does not exist or runs through a regular file), and `getNextPage()` on the last page threw a
+  plain `Error` before any request; they now throw `ValidationError`, a `ModusError` subclass, as the Python
+  SDK does. Code that catches `Error` still catches it. The CLI now exits 3 on these, not 1.
 - **A path id of `'..'` could target the parent resource, e.g. delete the scope.** `scopes.memories(7).delete('..')` sent `DELETE /scopes/7`. Every path id that is blank, `'.'` or `'..'` now raises `ValidationError` before any request; a blank id no longer returns the list page as one item.
 - **Paging no longer skips items.** `scopes.list()`, `workflows.list()`, `connections.list()` and their auto-paging iterators return every item: a page boundary no longer drops items created in the same millisecond, and `connections.list()` no longer drops a connection or ends early when other members' connections are hidden from you.
 - **Numeric ids above 2147483647 return 404.** Such a scope or workflow id now throws `NotFoundError` instead of a 500 that was retried three times.
