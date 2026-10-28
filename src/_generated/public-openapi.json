@@ -26873,7 +26873,12 @@
             "example": 10
           },
           "access": {
-            "$ref": "#/components/schemas/AccessPolicyDto"
+            "description": "Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         },
         "required": [
@@ -26894,7 +26899,12 @@
             "example": "## Findings\n\nChurn rate increased 2.3% MoM."
           },
           "access": {
-            "$ref": "#/components/schemas/AccessPolicyDto"
+            "description": "Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         },
         "required": [
@@ -26936,7 +26946,12 @@
             }
           },
           "access": {
-            "$ref": "#/components/schemas/AccessPolicyDto"
+            "description": "Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         },
         "required": [

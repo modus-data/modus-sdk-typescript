@@ -3470,7 +3470,8 @@ export interface components {
              * @example 10
              */
             pageLimit?: number;
-            access?: components["schemas"]["AccessPolicyDto"];
+            /** @description Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         CreateNoteDto: {
             /**
@@ -3485,7 +3486,8 @@ export interface components {
              *     Churn rate increased 2.3% MoM.
              */
             content: string;
-            access?: components["schemas"]["AccessPolicyDto"];
+            /** @description Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         CreateSavedQueryDto: {
             /**
@@ -3515,7 +3517,8 @@ export interface components {
              *     ]
              */
             path?: string[];
-            access?: components["schemas"]["AccessPolicyDto"];
+            /** @description Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         CreateSkillDto: {
             /**
