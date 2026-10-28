@@ -2689,6 +2689,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         BulkFinalizeResponseDto: {
             /** @description Resources for every upload that was finalized. */
@@ -2712,6 +2714,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         BulkUploadFromUrlsDto: {
             /** @description URLs to fetch and upload. Max 100 per request. */
@@ -4329,6 +4333,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         GetAutomationRunResponseDto: {
             /**
@@ -5729,6 +5735,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         UploadUrlDto: {
             /**

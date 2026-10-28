@@ -11,6 +11,7 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`access` on file finalize and URL uploads.** `FinalizeUploadDto`, each `BulkFinalizeItemDto`, `UploadFromUrlDto` and each `BulkUploadFromUrlItemDto` take an optional `access` (visibility, group permissions, shared-with) that applies only when the file is first created; omitted, the file is shared with everyone with you as owner. A service-account token cannot set it.
 - **Access on notes, saved queries, links and uploaded files.** `mgmt.context.items.updateAccess(uid, { visibility, groupPermissions, sharedWith })` replaces who can view and manage one of these items; an item with no owner becomes yours. `ContextItem` reads of these types carry `access` and `canManage`.
 - **Resume a dropped run stream.** Every run event, `approval_required` included, carries `id`, its SSE event id (`RunEventBase`), when the server sends one, so `runs.stream(runId, { lastEventId: event.id })` resumes after that event instead of replaying the run from the start.
 - **`ErrorEvent.requestId`.** A run that fails after it started ends with an `error` event that carries the id to quote to support; a chat stream throws `ModusError` with it as `requestId`.

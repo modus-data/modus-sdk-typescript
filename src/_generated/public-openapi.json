@@ -25537,6 +25537,14 @@
             "type": "string",
             "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
+          },
+          "access": {
+            "description": "Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         },
         "required": [
@@ -25584,6 +25592,14 @@
             "type": "string",
             "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
+          },
+          "access": {
+            "description": "Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         }
       },
@@ -28949,6 +28965,14 @@
             "type": "string",
             "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
+          },
+          "access": {
+            "description": "Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         },
         "required": [
@@ -31736,6 +31760,14 @@
             "type": "string",
             "description": "Root-relative folder path for this upload (for example `reports/2026`). Omit to store at the Files root. To reuse a folder created by an upload, pass its `folderPath`.",
             "example": "reports/2026/Q3"
+          },
+          "access": {
+            "description": "Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              }
+            ]
           }
         },
         "required": [
