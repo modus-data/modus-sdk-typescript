@@ -599,6 +599,17 @@ export const OPERATIONS = {
     responseSchema: "ListMemberGroupsResponseDto",
     idempotent: false,
   },
+  "ModusContextComposeController_compose": {
+    method: "POST",
+    path: "/agent/v1/modus/context",
+    service: "agent-service",
+    serverUrl: "https://agent.getmodus.com",
+    pathParams: [],
+    queryParams: [],
+    requestSchema: "ModusContextRequestDto",
+    responseSchema: "ModusContextResponseDto",
+    idempotent: true,
+  },
   "ModusContextController_compose": {
     method: "POST",
     path: "/api/v1/modus/context",
@@ -608,7 +619,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ModusContextRequestDto",
     responseSchema: "ModusContextResponseDto",
-    idempotent: true,
+    idempotent: false,
   },
   "ModusConversationsController_get": {
     method: "GET",
@@ -742,6 +753,17 @@ export const OPERATIONS = {
     responseSchema: null,
     idempotent: false,
   },
+  "ScopeContextComposeController_compose": {
+    method: "POST",
+    path: "/agent/v1/scopes/{id}/context",
+    service: "agent-service",
+    serverUrl: "https://agent.getmodus.com",
+    pathParams: ["id"],
+    queryParams: [],
+    requestSchema: "ComposeSkillContextRequestDto",
+    responseSchema: "ComposeSkillContextResponseDto",
+    idempotent: true,
+  },
   "ScopeContextController_compose": {
     method: "POST",
     path: "/api/v1/scopes/{id}/context",
@@ -751,7 +773,7 @@ export const OPERATIONS = {
     queryParams: [],
     requestSchema: "ComposeSkillContextRequestDto",
     responseSchema: "ComposeSkillContextResponseDto",
-    idempotent: true,
+    idempotent: false,
   },
   "ScopeConversationsController_get": {
     method: "GET",

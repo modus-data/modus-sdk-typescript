@@ -14,6 +14,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'topics',
   ],
   ContextItemsController_move: ['destinationFolderUid'],
+  ModusContextComposeController_compose: ['message', 'limit'],
   ModusContextController_compose: ['message', 'limit'],
   SuggestionsController_recordEvent: ['eventType', 'source', 'skillId', 'threadId', 'metadata'],
   ContextItemsController_lookup: ['contextType', 'dataPath', 'contentProjection'],
@@ -150,6 +151,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ],
   ScopesController_addEvaluationCase: ['id', 'task', 'expectedOutput'],
   ScopesController_updateEvaluationCase: ['task', 'expectedOutput'],
+  ScopeContextComposeController_compose: ['message', 'limit'],
   ScopeContextController_compose: ['message', 'limit'],
   EvaluationsController_updateConfig: [
     'enabled',

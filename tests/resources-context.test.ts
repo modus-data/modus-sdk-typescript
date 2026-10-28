@@ -231,7 +231,8 @@ describe('getContext', () => {
     const result = await resource.getContext(42, 'What is churn?', { limit: 5 })
     expect(result.context).toBe('# Context')
     const [url, init] = fetch.mock.calls[0] ?? []
-    expect(String(url)).toContain('/api/v1/scopes/42/context')
+    // The agent host has no 30-second gateway limit, so a long compose answers instead of a 503.
+    expect(String(url)).toBe('https://agent.getmodus.com/agent/v1/scopes/42/context')
     expect(init?.method).toBe('POST')
     expect(JSON.parse(String(init?.body))).toEqual({ message: 'What is churn?', limit: 5 })
   })
@@ -275,6 +276,69 @@ describe('getContext', () => {
     const http = new HttpClient({ ...config, fetch })
     const resource = new ModusResource(http, config)
     await resource.getContext('tables for churn')
-    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/modus/context')
+    expect(String(fetch.mock.calls[0]?.[0])).toBe('https://agent.getmodus.com/agent/v1/modus/context')
+  })
+
+  it.each([
+    ['a staging baseUrl derives its agent host', { baseUrl: 'https://api.staging.getmodus.com' }, 'https://agent.staging.getmodus.com'],
+    ['an explicit agentHost wins', { baseUrl: 'http://localhost:3001', agentHost: 'http://localhost:3015' }, 'http://localhost:3015'],
+  ])('composes on the agent host chat uses: %s', async (_name, options, host) => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0, ...options })
+    const fetch = vi.fn(async () =>
+      new Response(JSON.stringify({ context: '', contextItems: [], originalCount: 0, sessionId: 's' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    await new ScopesResource(http, config).getContext(7, 'churn')
+    await new ModusResource(http, config).getContext('churn')
+    expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
+      `${host}/agent/v1/scopes/7/context`,
+      `${host}/agent/v1/modus/context`,
+    ])
+  })
+
+  it.each([
+    ['scopes', (http: HttpClient, config: ReturnType<typeof createModusConfig>) => new ScopesResource(http, config).getContext(7, 'churn')],
+    ['modus', (http: HttpClient, config: ReturnType<typeof createModusConfig>) => new ModusResource(http, config).getContext('churn')],
+  ])('%s.getContext with a custom baseUrl and no agent host is a configuration error, and nothing is sent', async (_name, compose) => {
+    vi.stubEnv('MODUS_AGENT_HOST', undefined)
+    try {
+      const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0, baseUrl: 'http://localhost:3001' })
+      const fetch = vi.fn()
+      await expect(compose(new HttpClient({ ...config, fetch }), config)).rejects.toThrow(/agentHost/)
+      expect(fetch).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
+  it('outwaits the server compose deadline, so the SDK never re-sends a compose still running', () => {
+    // The agent host stops a compose at 90 s with a 504; a client timeout below that would
+    // abandon a running compose and retry it (compose is idempotent).
+    const SERVER_COMPOSE_DEADLINE_MS = 90_000
+    expect(createModusConfig({ apiKey: TEST_KEY }).timeoutMs).toBeGreaterThan(SERVER_COMPOSE_DEADLINE_MS)
+  })
+
+  it('retries a 504 compose timeout as an idempotent read', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 1 })
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ error: { code: 'UPSTREAM_TIMEOUT', status: 'DEADLINE_EXCEEDED', message: 'slow', requestId: 'req_1' } }),
+          { status: 504, headers: { 'Content-Type': 'application/json' } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ context: 'ok', contextItems: [], originalCount: 0, sessionId: 's' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    const result = await new ModusResource(new HttpClient({ ...config, fetch }), config).getContext('churn')
+    expect(result.context).toBe('ok')
+    expect(fetch).toHaveBeenCalledTimes(2)
   })
 })

@@ -45,7 +45,9 @@ export class ScopesResource extends ScopesResourceBase {
    * Compose context this scope would use for an intent, without running chat.
    *
    * Large bodies are bounded inline previews. This REST method does not expose file references
-   * or a full-content fetch operation.
+   * or a full-content fetch operation. Runs on the agent host, like `chat`, so a compose may take
+   * up to 90 seconds; keep `timeoutMs` above that. A compose still running at 90 seconds fails
+   * with `UPSTREAM_TIMEOUT` (504).
    *
    * @param scopeId - Numeric scope id.
    * @param message - Natural-language intent used to select context.
@@ -66,7 +68,7 @@ export class ScopesResource extends ScopesResourceBase {
     options: { limit?: number } = {},
   ): Promise<SkillContextComposition> {
     validateId(scopeId, 'scope_id')
-    const data = await invokeWithRetry(this.config, this.http, 'ScopeContextController_compose', {
+    const data = await invokeWithRetry(this.config, this.http, 'ScopeContextComposeController_compose', {
       pathParams: { id: scopeId },
       jsonBody: omitUndefined({ message, limit: options.limit }),
     })

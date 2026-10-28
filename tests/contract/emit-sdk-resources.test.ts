@@ -666,7 +666,7 @@ describe('emit-sdk-resources response envelopes', () => {
   it('keeps TypeScript signatures and dispatch unchanged by Python-only hints', () => {
     const source = emitUpdate([], [THING_ID], '', {
       pyOperation: 'replace',
-      body: { arg: 'request', pyArg: 'replacement', type: 'Thing', tsPolicy: 'validate-original', pyDump: { byAlias: false, excludeNone: false } },
+      body: { arg: 'request', pyArg: 'replacement', type: 'Thing', tsPolicy: 'validate-original', pyDump: { excludeNone: false } },
     })
     expect(source).toContain('request: Thing')
     expect(source).toContain("'ThingsController_update'")

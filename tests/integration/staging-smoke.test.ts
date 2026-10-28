@@ -116,24 +116,42 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
         expect(composed.context.length, `${label}: found ${composed.originalCount} items but rendered no context`).toBeGreaterThan(0)
       }
 
-      expect(elapsedMs, `${label}: took ${elapsedMs}ms; the edge caps at 30s`).toBeLessThan(25_000)
+      // Compose runs on the agent host, which has no 30 s edge limit; the server
+      // stops a compose at 90 s with a 504, so a 200 is always under it.
+      expect(elapsedMs, `${label}: took ${elapsedMs}ms; the server deadline is 90s`).toBeLessThan(95_000)
     }
+
+    // Every compose must reach the agent host's route, never the API host's
+    // deprecated one behind the 30 s gateway limit.
+    const composeUrls: string[] = []
+    const composer = new Modus({
+      baseUrl: baseUrl(),
+      timeoutMs: 120_000,
+      fetch: (input, init) => {
+        composeUrls.push(String(input instanceof Request ? input.url : input))
+        return globalThis.fetch(input, init)
+      },
+    })
 
     // performance.now() is monotonic; Date.now() can step backwards mid-request
     // and let an over-limit call report under the bound. Python uses
     // time.monotonic() for the same reason.
     const orgStart = performance.now()
-    const composed = await c.modus.getContext('sdk staging smoke — list relevant tables', {
+    const composed = await composer.modus.getContext('sdk staging smoke — list relevant tables', {
       limit: 3,
     })
     assertComposition('org-wide getContext', composed, performance.now() - orgStart)
 
     if (scopeId) {
       const scopeStart = performance.now()
-      const scopeComposed = await c.scopes.getContext(scopeId, 'sdk staging smoke — brief context', {
+      const scopeComposed = await composer.scopes.getContext(scopeId, 'sdk staging smoke — brief context', {
         limit: 3,
       })
       assertComposition('scope getContext', scopeComposed, performance.now() - scopeStart)
+    }
+    expect(composeUrls.length).toBeGreaterThan(0)
+    for (const url of composeUrls) {
+      expect(url.startsWith(`${composer.config.agentHost}/agent/v1/`), url).toBe(true)
     }
 
     const mgmtScopes = await m.scopes.list({ pageSize: 5 })

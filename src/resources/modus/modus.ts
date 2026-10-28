@@ -39,6 +39,9 @@ export class ModusResource {
   /**
    * Compose full-environment context for an intent without running chat.
    *
+   * Runs on the agent host, like `chat`, so a compose may take up to 90 seconds; keep `timeoutMs`
+   * above that. A compose still running at 90 seconds fails with `UPSTREAM_TIMEOUT` (504).
+   *
    * @param message - Natural-language intent used to select context.
    * @param options.limit - Maximum context items to return. Omit to return all selected items.
    * @returns Composition metadata (counts / session id). Use `chat` for a reply.
@@ -53,7 +56,7 @@ export class ModusResource {
     message: string,
     options: { limit?: number } = {},
   ): Promise<ModusContextComposition> {
-    const data = await invokeWithRetry(this.config, this.http, 'ModusContextController_compose', {
+    const data = await invokeWithRetry(this.config, this.http, 'ModusContextComposeController_compose', {
       jsonBody: omitUndefined({ message, limit: options.limit }),
     })
     return data as ModusContextComposition

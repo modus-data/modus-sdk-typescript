@@ -888,8 +888,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Compose Modus context
-         * @description Runs the org-wide context composer for the supplied message without invoking the LLM. Returns composed context text for inspection or downstream use.
+         * Compose Modus context (deprecated)
+         * @deprecated
+         * @description Deprecated: use `POST /agent/v1/modus/context` on `https://agent.getmodus.com` instead, with the same body; it allows 90 s, then 504 `UPSTREAM_TIMEOUT`. This endpoint returns 503 after 30 s. Runs the org-wide context composer for the supplied message without invoking the LLM and returns the composed context text.
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -1016,8 +1017,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Compose scope context
-         * @description Composes the published scope context for a user intent without invoking the LLM. Returns composed text with bounded inline previews; REST has no full-file read operation and requires `scopes:invoke` plus `use` access.
+         * Compose scope context (deprecated)
+         * @deprecated
+         * @description Deprecated: use `POST /agent/v1/scopes/{id}/context` on `https://agent.getmodus.com` instead, with the same body; it allows 90 s, then 504 `UPSTREAM_TIMEOUT`. This endpoint returns 503 after 30 s. Composes the published scope context for a user intent without invoking the LLM, for a caller with `use` access.
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -1954,6 +1956,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agent/v1/modus/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compose Modus context
+         * @description Runs the org-wide context composer for the supplied message without invoking the LLM and returns the composed context text. A compose can take up to 90 seconds, so keep the client timeout above that.
+         *
+         *     **Requires:** `scopes:invoke`
+         */
+        post: operations["ModusContextComposeController_compose"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/agent/v1/modus/runs": {
         parameters: {
             query?: never;
@@ -2148,6 +2172,28 @@ export interface paths {
         get: operations["RunLifecycleController_stream"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/v1/scopes/{id}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compose scope context
+         * @description Composes the published scope context for a user intent without invoking the LLM, as bounded inline previews, for a caller with `use` access. A compose can take up to 90 seconds, so keep the client timeout above that.
+         *
+         *     **Requires:** `scopes:invoke`
+         */
+        post: operations["ScopeContextComposeController_compose"];
         delete?: never;
         options?: never;
         head?: never;
@@ -25618,6 +25664,93 @@ export interface operations {
             };
         };
     };
+    ModusContextComposeController_compose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModusContextRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModusContextResponseDto"];
+                };
+            };
+            /** @description The body is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Missing or invalid credentials. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The token lacks `scopes:invoke`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition did not finish within 90 seconds (`code: UPSTREAM_TIMEOUT`). Retry, or send a narrower message. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+        };
+    };
     ModusRunsController_create: {
         parameters: {
             query?: never;
@@ -26164,6 +26297,105 @@ export interface operations {
                      *       }
                      *     }
                      */
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+        };
+    };
+    ScopeContextComposeController_compose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComposeSkillContextRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComposeSkillContextResponseDto"];
+                };
+            };
+            /** @description The body is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Missing or invalid credentials. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The token lacks `scopes:invoke`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The scope does not exist, is not published, or the caller may not use it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition did not finish within 90 seconds (`code: UPSTREAM_TIMEOUT`). Retry, or send a narrower message. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
