@@ -746,6 +746,28 @@ export interface paths {
         patch: operations["ContextItemsController_update"];
         trace?: never;
     };
+    "/api/v1/context/items/{uid}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update context item access
+         * @description Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.
+         *
+         *     **Requires:** `context:write`
+         */
+        patch: operations["ContextItemAccessController_updateAccess"];
+        trace?: never;
+    };
     "/api/v1/context/items/{uid}/move": {
         parameters: {
             query?: never;
@@ -2978,6 +3000,26 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        ContextItemAccessDto: {
+            visibility: components["schemas"]["ContextItemVisibility"];
+            /** @description Permissions by group id. */
+            groupPermissions: {
+                [key: string]: components["schemas"]["ContextItemGroupPermissionDto"];
+            };
+            sharedWith: components["schemas"]["ContextItemSharedUserDto"][];
+            /** @description Null for an item created before items had owners; the first access change sets it. */
+            ownerUserId: string | null;
+            ownerEmail: string | null;
+            /** @description True when some users have access through direct grants this configuration does not show. Saving it removes their access. */
+            hidesDirectGrants: boolean;
+        };
+        ContextItemAccessResponseDto: {
+            /** @description UUID of the context item. */
+            uid: string;
+            access: components["schemas"]["ContextItemAccessDto"];
+            /** @description Whether the caller can edit, delete and change access to the item. */
+            canManage: boolean;
+        };
         ContextItemAncestorDto: {
             /**
              * @description Stable identifier of the ancestor.
@@ -3076,12 +3118,32 @@ export interface components {
             lastUpdateMetadata?: {
                 [key: string]: unknown;
             } | null;
+            /** @description Present for notes, saved queries, links and uploaded files. */
+            access?: components["schemas"]["ContextItemAccessDto"];
+            /** @description Present for notes, saved queries, links and uploaded files. */
+            canManage?: boolean;
+        };
+        ContextItemGroupPermissionDto: {
+            /** @description Group members can view the item. */
+            use: boolean;
+            /** @description Group members can edit, delete and change access to the item. */
+            manage: boolean;
         };
         /**
          * @description Kind of context item created.
          * @enum {string}
          */
         ContextItemKind: "note" | "saved_query" | "link";
+        /** @enum {string} */
+        ContextItemSharePermission: "use" | "manage";
+        ContextItemSharedUserDto: {
+            /** @description Empty for a user whose email is unknown; such an entry is matched by userId. */
+            email: string;
+            userId?: string;
+            permission?: components["schemas"]["ContextItemSharePermission"];
+        };
+        /** @enum {string} */
+        ContextItemVisibility: "shared" | "private";
         ConversationDto: {
             /**
              * @description Opaque thread/checkpoint id. It is not owned by a single scope; a conversation can span multiple workflows.
@@ -5377,6 +5439,16 @@ export interface components {
             config?: {
                 [key: string]: unknown;
             };
+        };
+        UpdateContextItemAccessDto: {
+            /** @description shared: the owner and the groups granted in groupPermissions; private: the owner and the users in sharedWith. */
+            visibility: components["schemas"]["ContextItemVisibility"];
+            /** @description Group id to permissions. Used only when visibility is shared; ignored when private. */
+            groupPermissions: {
+                [key: string]: components["schemas"]["ContextItemGroupPermissionDto"];
+            };
+            /** @description Users granted access. Used only when visibility is private; ignored when shared. */
+            sharedWith: components["schemas"]["ContextItemSharedUserDto"][];
         };
         UpdateContextItemDto: {
             /**
@@ -13620,6 +13692,208 @@ export interface operations {
                     "application/json": {
                         uid: string;
                     };
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ContextItemAccessController_updateAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID of the context item. */
+                uid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateContextItemAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextItemAccessResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */

@@ -242,6 +242,14 @@ if (destination) {
   })
   console.log(moved.movedItems)
 }
+
+// Who can view and manage a note, saved query, link or uploaded file; all three settings replace the current ones.
+const access = await mgmt.context.items.updateAccess(note.uid, {
+  visibility: 'private',
+  groupPermissions: {},
+  sharedWith: [{ email: 'ana@example.com', permission: 'use' }],
+})
+console.log(access.canManage)
 ```
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.

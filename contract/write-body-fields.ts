@@ -14,6 +14,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'topics',
   ],
   ContextItemsController_move: ['destinationFolderUid'],
+  ContextItemAccessController_updateAccess: ['visibility', 'groupPermissions', 'sharedWith'],
   ModusContextComposeController_compose: ['message', 'limit'],
   ModusContextController_compose: ['message', 'limit'],
   SuggestionsController_recordEvent: ['eventType', 'source', 'skillId', 'threadId', 'metadata'],

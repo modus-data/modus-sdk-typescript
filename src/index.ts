@@ -75,6 +75,8 @@ export type {
   ContextItemDeletion,
   ContextItemLookupRow,
   ContextItemMove,
+  ContextItemAccessUpdate,
+  UpdateContextItemAccessInput,
   ContextType,
 } from './types/context.js'
 export type { ContextValueRow } from './types/context-values.js'

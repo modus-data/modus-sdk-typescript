@@ -11,6 +11,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ContextFilesController_uploadFromUrls: ["urls"],
   ContextFilesController_uploadUrl: ["fileName", "contentType", "fileSize"],
   ContextFilesController_uploadUrls: ["files"],
+  ContextItemAccessController_updateAccess: ["visibility", "groupPermissions", "sharedWith"],
   ContextItemsController_lookup: ["contextType", "dataPath", "contentProjection"],
   ContextItemsController_move: ["destinationFolderUid"],
   ContextItemsController_update: ["contextType", "content", "description", "userFeedback", "topics"],

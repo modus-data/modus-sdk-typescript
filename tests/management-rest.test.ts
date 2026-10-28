@@ -118,6 +118,33 @@ describe('ModusManagement.context', () => {
       destinationFolderUid: null,
     })
   })
+
+  it('items.updateAccess patches the access settings', async () => {
+    const access = {
+      visibility: 'private',
+      groupPermissions: {},
+      sharedWith: [{ email: 'ana@example.com', permission: 'use' }],
+    } as const
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          uid: 'note-uid',
+          access: { ...access, ownerUserId: 'user_1', ownerEmail: null, hidesDirectGrants: false },
+          canManage: true,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const result = await mgmt.context.items.updateAccess('note-uid', {
+      ...access,
+      sharedWith: [...access.sharedWith],
+    })
+    expect(result.canManage).toBe(true)
+    expect(String(fetch.mock.calls[0]?.[0])).toContain('/api/v1/context/items/note-uid/access')
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe('PATCH')
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual(access)
+  })
 })
 
 describe('ModusManagement.usage', () => {

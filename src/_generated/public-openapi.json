@@ -8757,6 +8757,257 @@
         ]
       }
     },
+    "/api/v1/context/items/{uid}/access": {
+      "patch": {
+        "description": "Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.\n\n**Requires:** `context:write`",
+        "operationId": "ContextItemAccessController_updateAccess",
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the context item.",
+            "schema": {
+              "example": "7a3f9d2c-1111-4000-a000-000000000abc",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContextItemAccessDto"
+              },
+              "examples": {
+                "shareWithGroup": {
+                  "value": {
+                    "visibility": "shared",
+                    "groupPermissions": {
+                      "grp_analysts": {
+                        "use": true,
+                        "manage": false
+                      }
+                    },
+                    "sharedWith": []
+                  }
+                },
+                "privateWithInvitee": {
+                  "value": {
+                    "visibility": "private",
+                    "groupPermissions": {},
+                    "sharedWith": [
+                      {
+                        "email": "teammate@example.com",
+                        "permission": "use"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextItemAccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update context item access",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/context/items/{uid}/move": {
       "post": {
         "description": "Moves a live file or Files folder to an existing folder, or to the Files root when destinationFolderUid is null. Same-parent moves succeed as a no-op. Does not rename or merge folders.\n\n**Requires:** `context:write`",
@@ -25780,6 +26031,73 @@
           }
         }
       },
+      "ContextItemAccessDto": {
+        "type": "object",
+        "properties": {
+          "visibility": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContextItemVisibility"
+              }
+            ]
+          },
+          "groupPermissions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ContextItemGroupPermissionDto"
+            },
+            "description": "Permissions by group id."
+          },
+          "sharedWith": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextItemSharedUserDto"
+            }
+          },
+          "ownerUserId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null for an item created before items had owners; the first access change sets it."
+          },
+          "ownerEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "hidesDirectGrants": {
+            "type": "boolean",
+            "description": "True when some users have access through direct grants this configuration does not show. Saving it removes their access."
+          }
+        },
+        "required": [
+          "visibility",
+          "groupPermissions",
+          "sharedWith",
+          "ownerUserId",
+          "ownerEmail",
+          "hidesDirectGrants"
+        ]
+      },
+      "ContextItemAccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "UUID of the context item."
+          },
+          "access": {
+            "$ref": "#/components/schemas/ContextItemAccessDto"
+          },
+          "canManage": {
+            "type": "boolean",
+            "description": "Whether the caller can edit, delete and change access to the item."
+          }
+        },
+        "required": [
+          "uid",
+          "access",
+          "canManage"
+        ]
+      },
       "ContextItemAncestorDto": {
         "type": "object",
         "properties": {
@@ -25909,6 +26227,18 @@
               "action": "auto_analysis",
               "timestamp": "2026-05-11T10:00:00.000Z"
             }
+          },
+          "access": {
+            "description": "Present for notes, saved queries, links and uploaded files.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContextItemAccessDto"
+              }
+            ]
+          },
+          "canManage": {
+            "type": "boolean",
+            "description": "Present for notes, saved queries, links and uploaded files."
           }
         },
         "required": [
@@ -25923,6 +26253,23 @@
           "updatedAt"
         ]
       },
+      "ContextItemGroupPermissionDto": {
+        "type": "object",
+        "properties": {
+          "use": {
+            "type": "boolean",
+            "description": "Group members can view the item."
+          },
+          "manage": {
+            "type": "boolean",
+            "description": "Group members can edit, delete and change access to the item."
+          }
+        },
+        "required": [
+          "use",
+          "manage"
+        ]
+      },
       "ContextItemKind": {
         "type": "string",
         "enum": [
@@ -25931,6 +26278,42 @@
           "link"
         ],
         "description": "Kind of context item created."
+      },
+      "ContextItemSharePermission": {
+        "type": "string",
+        "enum": [
+          "use",
+          "manage"
+        ]
+      },
+      "ContextItemSharedUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Empty for a user whose email is unknown; such an entry is matched by userId."
+          },
+          "userId": {
+            "type": "string"
+          },
+          "permission": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContextItemSharePermission"
+              }
+            ]
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ContextItemVisibility": {
+        "type": "string",
+        "enum": [
+          "shared",
+          "private"
+        ]
       },
       "ConversationDto": {
         "type": "object",
@@ -30828,6 +31211,38 @@
             "example": {}
           }
         }
+      },
+      "UpdateContextItemAccessDto": {
+        "type": "object",
+        "properties": {
+          "visibility": {
+            "description": "shared: the owner and the groups granted in groupPermissions; private: the owner and the users in sharedWith.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContextItemVisibility"
+              }
+            ]
+          },
+          "groupPermissions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ContextItemGroupPermissionDto"
+            },
+            "description": "Group id to permissions. Used only when visibility is shared; ignored when private."
+          },
+          "sharedWith": {
+            "description": "Users granted access. Used only when visibility is private; ignored when shared.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContextItemSharedUserDto"
+            }
+          }
+        },
+        "required": [
+          "visibility",
+          "groupPermissions",
+          "sharedWith"
+        ]
       },
       "UpdateContextItemDto": {
         "type": "object",

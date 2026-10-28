@@ -159,6 +159,17 @@ export const OPERATIONS = {
     responseSchema: "BulkUploadUrlsResponseDto",
     idempotent: false,
   },
+  "ContextItemAccessController_updateAccess": {
+    method: "PATCH",
+    path: "/api/v1/context/items/{uid}/access",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: ["uid"],
+    queryParams: [],
+    requestSchema: "UpdateContextItemAccessDto",
+    responseSchema: "ContextItemAccessResponseDto",
+    idempotent: false,
+  },
   "ContextItemsController_delete": {
     method: "DELETE",
     path: "/api/v1/context/items/{uid}",

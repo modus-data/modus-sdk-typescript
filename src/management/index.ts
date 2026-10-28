@@ -51,8 +51,10 @@ export type {
 } from './workflows/agents.js'
 export type { UserFeedback } from './context/context.js'
 export type {
+  ContextItemAccessUpdate,
   ContextItemDeletion,
   ContextItemMove,
+  UpdateContextItemAccessInput,
 } from '../types/context.js'
 export type {
   BulkUploadFromUrlsResult,
