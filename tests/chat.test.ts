@@ -88,7 +88,7 @@ describe('chat()', () => {
 
     const result = await client.modus.chat('Fix the typo', { model: MODEL })
 
-    expect(result.approval).toEqual(approval)
+    expect(result.approval).toEqual({ ...approval, id: '1-0' })
   })
 
   it('keeps only the declared, well-typed fields of a malformed approval frame', async () => {
@@ -105,7 +105,7 @@ describe('chat()', () => {
 
     const result = await client.modus.chat('Fix the typo', { model: MODEL })
 
-    expect(result.approval).toEqual({ type: 'approval_required', toolName: 'run_sql_write', nodeId: 'n1' })
+    expect(result.approval).toEqual({ type: 'approval_required', toolName: 'run_sql_write', nodeId: 'n1', id: '1-0' })
   })
 
   it('resume posts the decision to /agent/v1/runs/{runId}/resume', async () => {

@@ -42,7 +42,7 @@ function runsPath(target: ChatTarget): string {
 }
 
 function raiseForEvent(event: RunEvent): RunEvent {
-  if (event.type === 'error') throw new ModusError(event.message)
+  if (event.type === 'error') throw new ModusError(event.message, { requestId: event.requestId })
   if (event.type === 'cancelled') throw new RunCancelledError()
   if (event.type === 'stream_timeout') throw new StreamTimeoutError()
   return event
@@ -227,25 +227,22 @@ export class ChatSession implements PromiseLike<ChatResult> {
   private async *open(resetAware: boolean): AsyncGenerator<RunEvent> {
     const request = this.request!
     const body = resetAware ? { ...request.body, streamProtocolVersion: 2 } : request.body
-    for await (const line of this.http.streamPost(request.path, body, {
-      baseUrl: request.baseUrl,
-    })) {
-      for (const event of parseSseStream([line])) {
-        raiseForEvent(event)
-        if (event.type === 'approval_required') this.approval = event
-        if (event.type === 'done') {
-          // Recorded before yielding: a consumer may stop at done and resume().
-          this.final = {
-            content: event.content ?? '',
-            threadId: event.threadId || this.request!.sessionId,
-            runId: event.runId,
-            ...(this.approval !== undefined ? { approval: this.approval } : {}),
-          }
-          yield event
-          return
+    const lines = this.http.streamPost(request.path, body, { baseUrl: request.baseUrl })
+    for await (const event of parseSseStream(lines)) {
+      raiseForEvent(event)
+      if (event.type === 'approval_required') this.approval = event
+      if (event.type === 'done') {
+        // Recorded before yielding: a consumer may stop at done and resume().
+        this.final = {
+          content: event.content ?? '',
+          threadId: event.threadId || this.request!.sessionId,
+          runId: event.runId,
+          ...(this.approval !== undefined ? { approval: this.approval } : {}),
         }
         yield event
+        return
       }
+      yield event
     }
   }
 }

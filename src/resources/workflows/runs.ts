@@ -523,17 +523,19 @@ export class WorkflowRunsResource {
   }
 
   /**
-   * Reconnect to an in-progress run and stream run events.
+   * Reconnect to a run and stream its events.
    *
    * @param runId - Run id to follow.
-   * @param options.lastEventId - Resume after this event id when catching up.
-   * @returns A stream of run events from the current execution point.
+   * @param options.lastEventId - The `id` of the last event you handled; the stream resumes
+   *   after it. Omit to replay the run from its first event.
+   * @returns A stream of run events.
    *
    * @example
    * ```ts
-   * const stream = client.workflows.runs.stream(runId, { lastEventId: checkpoint })
-   * for await (const event of stream) {
+   * let lastEventId: string | undefined
+   * for await (const event of client.workflows.runs.stream(runId, { lastEventId })) {
    *   if (event.type === 'token') process.stdout.write(event.content)
+   *   lastEventId = event.id // after handling it: reconnect with it if the connection drops
    * }
    * ```
    */

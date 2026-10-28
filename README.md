@@ -159,6 +159,37 @@ for await (const run of (await client.workflows.runs.list(workflowId, { pageSize
 const { content } = await client.workflows.chat(workflowId, 'Run this week\'s digest', { model: 'claude-sonnet-5' })
 ```
 
+`client.workflows.runs.stream(runId)` follows a run's events. Each event carries an `id` when the server sends one. If the connection drops, call `stream` again with `lastEventId` set to the last `id` you handled: the stream resumes after it instead of replaying the run from the start. Without an `id` it can only replay from the start. The stream ends after a `done`, `error` or `cancelled` event; only `done` is a completed run.
+
+```ts
+import { APIConnectionError, type RunEvent } from '@getmodus/sdk'
+
+async function followRun(runId: string, handle: (event: RunEvent) => void): Promise<void> {
+  let lastEventId: string | undefined
+  for (;;) {
+    const events = client.workflows.runs.stream(runId, { lastEventId })[Symbol.asyncIterator]()
+    for (;;) {
+      let next: IteratorResult<RunEvent>
+      try {
+        next = await events.next()
+      } catch (error) {
+        if (error instanceof APIConnectionError) break // dropped: resume after lastEventId
+        throw error
+      }
+      if (next.done) break // ended without a final event: resume
+      const event = next.value
+      handle(event) // a handler error propagates; it is not a disconnect
+      lastEventId = event.id ?? lastEventId
+      if (event.type === 'done') return
+      // A `stream_timeout` event is followed by an `error` event.
+      if (event.type === 'error' || event.type === 'cancelled') {
+        throw new Error(`Run ${runId} ended with ${event.type}`)
+      }
+    }
+  }
+}
+```
+
 ### Approvals
 
 A run that needs approval for a write stops with `result.approval` set. Continue it with `resume`:

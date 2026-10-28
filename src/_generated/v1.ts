@@ -25764,7 +25764,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -25812,7 +25812,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
-            /** @description The Idempotency-Key was already used with a different body. */
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -26163,7 +26163,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -26211,7 +26211,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
-            /** @description The Idempotency-Key was already used with a different body. */
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -26417,7 +26417,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -26465,7 +26465,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
-            /** @description The Idempotency-Key was already used with a different body. */
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -26554,7 +26554,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
-            /** @description The Idempotency-Key was already used with a different body. */
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -26642,7 +26642,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -26690,7 +26690,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
-            /** @description The Idempotency-Key was already used with a different body. */
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
             409: {
                 headers: {
                     [name: string]: unknown;

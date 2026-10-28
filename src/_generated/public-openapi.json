@@ -23181,7 +23181,7 @@
         },
         "responses": {
           "200": {
-            "description": "SSE stream of run events.",
+            "description": "SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support).",
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -23243,7 +23243,7 @@
             }
           },
           "409": {
-            "description": "The Idempotency-Key was already used with a different body.",
+            "description": "The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally).",
             "content": {
               "application/json": {
                 "schema": {
@@ -23783,7 +23783,7 @@
         },
         "responses": {
           "200": {
-            "description": "SSE stream of run events.",
+            "description": "SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support).",
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -23845,7 +23845,7 @@
             }
           },
           "409": {
-            "description": "The Idempotency-Key was already used with a different body.",
+            "description": "The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally).",
             "content": {
               "application/json": {
                 "schema": {
@@ -24156,7 +24156,7 @@
         },
         "responses": {
           "200": {
-            "description": "SSE stream of run events.",
+            "description": "SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support).",
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -24218,7 +24218,7 @@
             }
           },
           "409": {
-            "description": "The Idempotency-Key was already used with a different body.",
+            "description": "The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally).",
             "content": {
               "application/json": {
                 "schema": {
@@ -24335,7 +24335,7 @@
             }
           },
           "409": {
-            "description": "The Idempotency-Key was already used with a different body.",
+            "description": "The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally).",
             "content": {
               "application/json": {
                 "schema": {
@@ -24477,7 +24477,7 @@
         },
         "responses": {
           "200": {
-            "description": "SSE stream of run events.",
+            "description": "SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support).",
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -24539,7 +24539,7 @@
             }
           },
           "409": {
-            "description": "The Idempotency-Key was already used with a different body.",
+            "description": "The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally).",
             "content": {
               "application/json": {
                 "schema": {

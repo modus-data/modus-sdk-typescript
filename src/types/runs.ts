@@ -1,11 +1,20 @@
-export interface TokenEvent {
+/** Fields every run event carries. */
+export interface RunEventBase {
+  /**
+   * The SSE event id. Pass it as `lastEventId` to `runs.stream(runId, { lastEventId })`
+   * to resume after this event. Absent when the stream sent none.
+   */
+  readonly id?: string
+}
+
+export interface TokenEvent extends RunEventBase {
   readonly type: 'token'
   content: string
   /** Set when a sub-agent produced the token; absent for the assistant's own reply. */
   subAgent?: string
 }
 
-export interface DoneEvent {
+export interface DoneEvent extends RunEventBase {
   readonly type: 'done'
   runId: string
   threadId: string
@@ -18,7 +27,7 @@ export interface DoneEvent {
  * `toolName`, `title`, `description`, `args`) or a workflow approval node is
  * waiting (`nodeId`, `prompt`, `options`).
  */
-export interface ApprovalRequiredEvent {
+export interface ApprovalRequiredEvent extends RunEventBase {
   readonly type: 'approval_required'
   toolId?: string
   toolName?: string
@@ -30,20 +39,22 @@ export interface ApprovalRequiredEvent {
   options?: ReadonlyArray<{ id: string; label: string }>
 }
 
-export interface ErrorEvent {
+export interface ErrorEvent extends RunEventBase {
   readonly type: 'error'
   message: string
+  /** The id to quote to support for this failure. */
+  requestId?: string
 }
 
-export interface CancelledEvent {
+export interface CancelledEvent extends RunEventBase {
   readonly type: 'cancelled'
 }
 
-export interface StreamTimeoutEvent {
+export interface StreamTimeoutEvent extends RunEventBase {
   readonly type: 'stream_timeout'
 }
 
-export interface AssistantContentResetEvent {
+export interface AssistantContentResetEvent extends RunEventBase {
   readonly type: 'assistant_content_reset'
   content: string
   visibleContent?: string

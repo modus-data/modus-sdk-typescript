@@ -32,6 +32,7 @@ export type {
   ErrorEvent,
   RunEvent,
   ApprovalRequiredEvent,
+  RunEventBase,
   StreamTimeoutEvent,
   TokenEvent,
 } from './types/runs.js'

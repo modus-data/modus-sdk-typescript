@@ -159,6 +159,41 @@ describe('agent-service resources', () => {
     })
   })
 
+  it('resumes a dropped stream from the id of the last event it yielded', async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(sseResponse(['id: 7-0\ndata: {"type":"token","content":"a"}\n\n']))
+      .mockResolvedValueOnce(sseResponse(['id: 7-1\ndata: {"type":"done","runId":"run-123","threadId":"t"}\n\n']))
+    const workflows = resource(fetch)
+
+    let lastEventId: string | undefined
+    for await (const event of workflows.runs.stream('run-123')) lastEventId = event.id
+    const resumed = []
+    for await (const event of workflows.runs.stream('run-123', { lastEventId })) resumed.push(event)
+
+    expect(lastEventId).toBe('7-0')
+    expect(fetch.mock.calls[1]?.[1]).toMatchObject({
+      headers: expect.objectContaining({ 'Last-Event-ID': '7-0' }),
+    })
+    expect(resumed).toEqual([{ type: 'done', runId: 'run-123', threadId: 't', id: '7-1' }])
+  })
+
+  it('refuses a resume with nothing pending as a ConflictError before any event', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(409, {
+      error: {
+        code: 'CONFLICT',
+        status: 'ALREADY_EXISTS',
+        message: 'No write approval is pending for this conversation.',
+        requestId: 'req_1',
+      },
+    }))
+    const workflows = resource(fetch)
+    const run = workflows.runs.resume('run-123', { sessionId: 's1', decision: 'approve' })
+
+    await expect(async () => {
+      for await (const _event of run) { /* drain */ }
+    }).rejects.toMatchObject({ name: 'ConflictError', code: 'CONFLICT', requestId: 'req_1' })
+  })
+
   it('cancels agent runs through generated operation metadata', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
     const workflows = resource(fetch)
