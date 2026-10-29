@@ -4018,14 +4018,14 @@ export interface components {
             code: components["schemas"]["ApiErrorCode"];
             /** @description Canonical status string for the error. */
             status: components["schemas"]["ApiErrorStatus"];
-            /** @example Skill was not found or you lack permission. */
+            /** @example Scope was not found or you lack permission. */
             message: string;
             /** @example req_01HQ7K8ABCDEFGHIJKLMNOPQRS */
             requestId: string;
             /**
              * @description Optional domain-specific context. Shape varies per endpoint — see the operation's error response examples.
              * @example {
-             *       "skillId": "sk_abc123"
+             *       "scopeId": 42
              *     }
              */
             info?: {
