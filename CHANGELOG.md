@@ -79,6 +79,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Fixed
 
+- **`@getmodus/sdk/management` resolves under `moduleResolution: "node"`.** A `typesVersions` entry points the subpath at its types, so a tsconfig on the older `node` (node10) resolution no longer fails with TS2307. `node16`, `nodenext` and `bundler` are unchanged.
+- **README.** It shows how to reach staging or a self-hosted API (`baseUrl` / `MODUS_BASE_URL`, `agentHost` / `MODUS_AGENT_HOST`); the error-handling example handles a client-side `ValidationError`, which has no `statusCode`, `code` or `requestId`; tokens are shown as `modus_pat_…`; and the example scripts are said to live in the GitHub repository, not the npm package. `agentHost` is documented as a public option.
 - **`workflows.runs.create()`, `createScope()` and `createModus()` accept a body without `sessionId`.** The types required it, so the documented examples did not compile; the SDK already starts a new conversation when it is omitted. `resume`, `interrupt` and `editQueued` still require it.
 - **Errors from `@getmodus/sdk/management` are `instanceof` the root error classes under CommonJS.** Each CommonJS entrypoint bundled its own copy of `ModusError` and the other classes, so `err instanceof ModusError` was `false` for a `ModusManagement` error under `require`. ESM was not affected.
 - **The `context.items.lookup()` and `scopes.conversations(id).get()` examples compile.**
