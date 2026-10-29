@@ -123,6 +123,21 @@ describe('chat()', () => {
     expect(resumed.content).toBe('Updated.')
   })
 
+  it('a scope chat resumes on /agent/v1/runs/{runId}/resume with its scope thread', async () => {
+    const { client, fetch } = clientWith(
+      sse([{ type: 'approval_required', toolId: 'tool-9', toolName: 'post_comment', args: { project_id: 0 } }, { type: 'done', runId: 'run-1', threadId: 'agent_1553_t1', content: '' }]),
+      sse([{ type: 'done', runId: 'run-2', threadId: 'agent_1553_t1', content: 'Denied.' }]),
+    )
+
+    const session = client.scopes.chat(1553, 'Post the test comment.', { model: MODEL })
+    expect((await session).approval).toBeDefined()
+    const resumed = await session.resume({ decision: 'deny' })
+
+    expect(String(fetch.mock.calls[1]?.[0])).toBe(`${AGENT}/agent/v1/runs/run-1/resume`)
+    expect(sentBody(fetch, 1)).toEqual({ sessionId: 'agent_1553_t1', decision: 'deny', streamProtocolVersion: 2 })
+    expect(resumed.content).toBe('Denied.')
+  })
+
   it('resume sends no message: the decision is the whole turn', async () => {
     const { client, fetch } = clientWith(
       sse([{ type: 'approval_required', toolId: 'tool-9' }, { type: 'done', runId: 'run-1', threadId: 'thread-1' }]),
