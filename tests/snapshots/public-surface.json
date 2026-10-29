@@ -192,7 +192,7 @@
   "WorkflowRunsResource.createModus": "(body: ModusRunCreateRequest, options?: { idempotencyKey?: string; }): AgentRunStream",
   "WorkflowRunsResource.createScope": "(scopeId: number | string, body: SkillRunCreateRequest, options?: { idempotencyKey?: string; }): AgentRunStream",
   "WorkflowRunsResource.editQueued": "(runId: string, nextRun: FollowUpRunRequest): Promise<RunAdmission>",
-  "WorkflowRunsResource.events": "(runId: string): Promise<unknown>",
+  "WorkflowRunsResource.events": "(runId: string): Promise<RunEventsPollResponse>",
   "WorkflowRunsResource.get": "(workflowId: number | string, runId: string, options?: { temporalRunId?: string; }): Promise<AgentRun>",
   "WorkflowRunsResource.interrupt": "(runId: string, nextRun: FollowUpRunRequest, options?: { lastSeenEventId?: string; }): Promise<RunAdmission>",
   "WorkflowRunsResource.list": "(workflowId: number | string, options?: { pageSize?: number; pageToken?: string; status?: RunStatus; timeframe?: RunTimeframe; approvalScope?: ApprovalScope; search?: string; }): Promise<Page<AgentRunListItem>>",

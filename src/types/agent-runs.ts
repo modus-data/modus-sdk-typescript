@@ -18,6 +18,8 @@ export type FollowUpRunRequest = components['schemas']['FollowUpRunDto']
 /** The run `runs.interrupt` / `runs.editQueued` admitted. */
 export type RunAdmission = components['schemas']['RunAdmissionResponseDto']
 export type WorkflowActionRequest = components['schemas']['WorkflowActionDto']
+/** One `runs.events()` poll: the buffered events after the cursor, the next cursor and the run status. */
+export type RunEventsPollResponse = components['schemas']['RunEventsPollResponseDto']
 
 export type RunStatus =
   | 'running'

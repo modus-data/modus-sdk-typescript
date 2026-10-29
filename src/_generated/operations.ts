@@ -739,7 +739,7 @@ export const OPERATIONS = {
     pathParams: ["runId"],
     queryParams: [],
     requestSchema: null,
-    responseSchema: null,
+    responseSchema: "RunEventsPollResponseDto",
     idempotent: false,
   },
   "RunLifecycleController_interrupt": {

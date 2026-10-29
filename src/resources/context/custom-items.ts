@@ -1,5 +1,6 @@
 import type { ModusConfig } from '../../_config.js'
 import { ValidationError } from '../../_exceptions.js'
+import type { components } from '../../_generated/v1.js'
 import type { HttpClient } from '../../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
@@ -39,11 +40,21 @@ export interface CreateCustomContextItemInput {
   raw?: Record<string, unknown>
   topics?: string[]
   idempotencyKey?: string
+  /** Who can see the item; omitted, everyone in the organization. Fixed at creation: delete and re-create the item to change it. */
+  access?: components['schemas']['AccessPolicyDto']
 }
 
 export type UpdateCustomContextItemInput = Omit<
   Partial<CreateCustomContextItemInput>,
-  'kind' | 'sourceId' | 'sourceName' | 'collectionId' | 'collectionName' | 'externalId' | 'fieldName' | 'idempotencyKey'
+  | 'kind'
+  | 'sourceId'
+  | 'sourceName'
+  | 'collectionId'
+  | 'collectionName'
+  | 'externalId'
+  | 'fieldName'
+  | 'idempotencyKey'
+  | 'access'
 >
 
 export interface CustomContextItemRelationInput {

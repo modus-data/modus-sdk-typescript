@@ -13,9 +13,15 @@ export function validatePageSize(pageSize: number, maxPageSize?: number): void {
   }
 }
 
-/** Reject ids that would not address one resource: blank, or a dot segment the URL would collapse onto the parent. */
+/**
+ * Reject ids that would not address one resource: a number that is not a whole number, a blank
+ * string, or a dot segment the URL would collapse onto the parent.
+ */
 export function validateId(resourceId: number | string, name = 'id'): void {
-  if (typeof resourceId !== 'string') return
+  if (typeof resourceId === 'number') {
+    if (!Number.isInteger(resourceId)) throw new ValidationError(`${name} must be an integer, got ${resourceId}`)
+    return
+  }
   if (!resourceId.trim()) throw new ValidationError(`${name} must be a non-empty string or int`)
   if (resourceId === '.' || resourceId === '..') {
     throw new ValidationError(`${name} must not be ${JSON.stringify(resourceId)}`)

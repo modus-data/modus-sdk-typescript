@@ -94,7 +94,7 @@ function joinDestination(prefix: string | undefined, relative: string | undefine
   return head ?? tail
 }
 
-type BatchUploadOptions = {
+export type BatchUploadOptions = {
   concurrency?: number
   waitUntil?: WaitUntil
   onProgress?: UploadProgressCallback

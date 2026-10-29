@@ -23865,7 +23865,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Events after the cursor, the next cursor and the run status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunEventsPollResponseDto"
+                }
+              }
+            }
           },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
@@ -28431,6 +28438,7 @@
       },
       "EvaluationCadenceFrequency": {
         "type": "string",
+        "nullable": true,
         "enum": [
           "daily",
           "weekly",
@@ -33121,6 +33129,70 @@
             "description": "Set false to keep composer output inline."
           }
         }
+      },
+      "RunEventsPollEventDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stream id of the event. Send the last one as `Last-Event-ID` to resume after it."
+          },
+          "type": {
+            "type": "string",
+            "description": "Event type, such as `token`, `done`, `error` or `cancelled`. The other fields depend on it."
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "type"
+        ]
+      },
+      "RunEventsPollResponseDto": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "description": "Events after the request cursor, oldest first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunEventsPollEventDto"
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Stream id of the last event returned. Send it as `Last-Event-ID` on the next poll."
+          },
+          "status": {
+            "description": "Current run status. A workflow run reports `pending` until it ends, then its terminal status.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunEventsPollStatus"
+              }
+            ]
+          },
+          "done": {
+            "type": "boolean",
+            "description": "True once a terminal event (`done`, `error`, `cancelled` or a `workflow_*` one) is in `events`: stop polling."
+          }
+        },
+        "required": [
+          "events",
+          "cursor",
+          "status",
+          "done"
+        ]
+      },
+      "RunEventsPollStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "pending",
+          "running",
+          "succeeded",
+          "cancelled",
+          "failed"
+        ],
+        "description": "Current run status. A workflow run reports `pending` until it ends, then its terminal status."
       },
       "RunModelSettingsDto": {
         "type": "object",

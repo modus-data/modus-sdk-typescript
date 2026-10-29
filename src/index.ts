@@ -102,6 +102,33 @@ export type {
   UploadIngestedDataOptions,
 } from './types/ingested-data.js'
 
+export type { ModusConfig } from './_config.js'
+export type { ActiveConversationRun, ActiveConversationRunStatus } from './types/runs.js'
+export type { RunEventsPollResponse } from './types/agent-runs.js'
+export type { ContentProjection, JsonObjectInput } from './types/json-blob.js'
+export type {
+  CreateCustomContextItemInput,
+  CreatedCustomContextItem,
+  CustomAttributeInput,
+  CustomContextItemDeletion,
+  CustomContextItemKind,
+  CustomContextItemRelationInput,
+  UpdateCustomContextItemInput,
+} from './resources/context/custom-items.js'
+export type { ScopesResource } from './resources/scopes.js'
+export type { ScopeConversationsResource } from './resources/scopes/conversations.js'
+export type { ModusResource } from './resources/modus/modus.js'
+export type { ModusConversationsResource } from './resources/modus/conversations.js'
+export type { WorkflowsResource } from './resources/workflows.js'
+export type { WorkflowRunsResource } from './resources/workflows/runs.js'
+export type { AgentWorkflowActionsResource } from './resources/workflows/workflow-actions.js'
+export type { ContextResource } from './resources/context/context.js'
+export type { ContextItemsResource } from './resources/context/items.js'
+export type { CustomContextItemsResource } from './resources/context/custom-items.js'
+export type { ConnectionsResource } from './resources/connections.js'
+export type { SuggestionsResource } from './resources/suggestions.js'
+export type { IngestedDataResource } from './resources/ingested-data.js'
+
 import { ModusClientBase } from './_client-base.js'
 import { WorkflowsResource } from './resources/workflows.js'
 import { ConnectionsResource } from './resources/connections.js'

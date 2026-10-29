@@ -15,6 +15,13 @@ describe('validation', () => {
     expect(() => validateId(42)).not.toThrow()
   })
 
+  it('validateId rejects ids that are not whole numbers', () => {
+    for (const id of [1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => validateId(id, 'scope_id')).toThrow(ValidationError)
+    }
+    expect(() => validateId(0)).not.toThrow()
+  })
+
   it('assertWriteBodyKeys rejects unknown fields', () => {
     expect(() =>
       assertWriteBodyKeys('ScopesController_create', { name: 'x', title: 'bad' }),

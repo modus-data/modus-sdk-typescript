@@ -4072,9 +4072,9 @@ export interface components {
         };
         /**
          * @description Schedule frequency
-         * @enum {string}
+         * @enum {string|null}
          */
-        EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom";
+        EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom" | null;
         EvaluationCaseDto: {
             /** @description Stable id of the evaluation case. */
             id: string;
@@ -6350,6 +6350,29 @@ export interface components {
             /** @description Set false to keep composer output inline. */
             composerFileOffload?: boolean;
         };
+        RunEventsPollEventDto: {
+            /** @description Stream id of the event. Send the last one as `Last-Event-ID` to resume after it. */
+            id: string;
+            /** @description Event type, such as `token`, `done`, `error` or `cancelled`. The other fields depend on it. */
+            type: string;
+        } & {
+            [key: string]: unknown;
+        };
+        RunEventsPollResponseDto: {
+            /** @description Events after the request cursor, oldest first. */
+            events: components["schemas"]["RunEventsPollEventDto"][];
+            /** @description Stream id of the last event returned. Send it as `Last-Event-ID` on the next poll. */
+            cursor: string;
+            /** @description Current run status. A workflow run reports `pending` until it ends, then its terminal status. */
+            status: components["schemas"]["RunEventsPollStatus"];
+            /** @description True once a terminal event (`done`, `error`, `cancelled` or a `workflow_*` one) is in `events`: stop polling. */
+            done: boolean;
+        };
+        /**
+         * @description Current run status. A workflow run reports `pending` until it ends, then its terminal status.
+         * @enum {string}
+         */
+        RunEventsPollStatus: "queued" | "pending" | "running" | "succeeded" | "cancelled" | "failed";
         RunModelSettingsDto: {
             reasoningEffort?: components["schemas"]["RunReasoningEffort"];
             /** @description Selected model context window in tokens. */
@@ -26345,11 +26368,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Events after the cursor, the next cursor and the run status. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunEventsPollResponseDto"];
+                };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
