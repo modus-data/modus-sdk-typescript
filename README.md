@@ -300,7 +300,8 @@ try {
 }
 ```
 
-Every error carries `code` (for example `NOT_FOUND`), `requestId` (quote it to support) and,
+Every error carries `code` (for example `NOT_FOUND`), `requestId` and `traceId` (quote both
+to support; `traceId` also names a call that never reached Modus) and,
 when the server sends one, `info` with structured detail. A request that fails schema
 validation is a `BadRequestError` (400); one that is well-formed but breaks a business rule
 is an `UnprocessableError` (422), with the rule in `info`.

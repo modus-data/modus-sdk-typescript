@@ -8,6 +8,11 @@ export class ModusError extends Error {
   readonly statusCode?: number
   /** The `requestId` of the error envelope (or the `x-request-id` header); quote it to support. */
   readonly requestId?: string
+  /**
+   * The W3C trace id of the request that failed (from the `traceparent` the SDK sent). Quote
+   * it with `requestId`: it also names a request that never reached Modus, and every retry of it.
+   */
+  readonly traceId?: string
   readonly responseHeaders?: Record<string, string>
   readonly body?: string
   /** Machine-readable error code from the envelope, e.g. `NOT_FOUND`, `VALIDATION`. */
@@ -28,6 +33,7 @@ export class ModusError extends Error {
     options: {
       statusCode?: number
       requestId?: string
+      traceId?: string
       responseHeaders?: Record<string, string>
       body?: string
       code?: string
@@ -40,6 +46,7 @@ export class ModusError extends Error {
     this.message = message
     this.statusCode = options.statusCode
     this.requestId = options.requestId
+    this.traceId = options.traceId
     this.responseHeaders = options.responseHeaders
     this.body = options.body
     this.code = options.code
@@ -53,7 +60,7 @@ export class ModusError extends Error {
  * automatic retries are exhausted.
  */
 export class APIConnectionError extends ModusError {
-  constructor(message: string, options: { retryable?: boolean } = {}) {
+  constructor(message: string, options: { retryable?: boolean; traceId?: string } = {}) {
     super(message, options)
     this.name = 'APIConnectionError'
   }
