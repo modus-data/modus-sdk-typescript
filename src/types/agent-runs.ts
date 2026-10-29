@@ -3,9 +3,11 @@ import type { components } from '../_generated/v1.js'
 export type AgentRunListItem = components['schemas']['AutomationRunListItemDto']
 export type AgentRun = components['schemas']['GetAutomationRunResponseDto']
 export type AgentRunListPage = components['schemas']['ListAutomationRunsResponseDto']
-export type AgentRunCreateRequest = components['schemas']['AgentRunDto']
-export type SkillRunCreateRequest = components['schemas']['SkillRunDto']
-export type ModusRunCreateRequest = components['schemas']['ModusRunDto']
+/** A new run's body: `sessionId` is optional, because the SDK starts a new conversation when it is omitted. */
+type NewRunBody<T extends { sessionId: string }> = Omit<T, 'sessionId'> & { sessionId?: string }
+export type AgentRunCreateRequest = NewRunBody<components['schemas']['AgentRunDto']>
+export type SkillRunCreateRequest = NewRunBody<components['schemas']['SkillRunDto']>
+export type ModusRunCreateRequest = NewRunBody<components['schemas']['ModusRunDto']>
 export type ResumeRunRequest = components['schemas']['ResumeRunDto']
 export type CreateAgentRunRequest = AgentRunCreateRequest
 export type CancelRunRequest = components['schemas']['CancelRunDto']

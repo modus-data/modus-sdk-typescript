@@ -21,9 +21,13 @@ export class ScopeConversationsResource extends ScopesConversationsResourceBase 
    *
    * @example
    * ```ts
-   * const thread = await client.scopes.conversations(scopeId).get(row.threadId)
-   * for (const msg of thread.messages) {
-   *   console.log(msg.type, String(msg.content).slice(0, 80))
+   * const { items } = await client.scopes.conversations(scopeId).list()
+   * const [first] = items
+   * if (first) {
+   *   const thread = await client.scopes.conversations(scopeId).get(first.threadId)
+   *   for (const msg of thread.messages) {
+   *     console.log(msg.type, String(msg.content).slice(0, 80))
+   *   }
    * }
    * ```
    */

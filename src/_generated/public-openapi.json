@@ -122,7 +122,7 @@
             "description": "Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range.",
             "schema": {
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -294,7 +294,7 @@
             "description": "Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range.",
             "schema": {
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -468,7 +468,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -5960,7 +5960,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -7662,7 +7662,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -9290,7 +9290,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -10582,7 +10582,7 @@
             "schema": {
               "minimum": 0,
               "example": 0,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -10594,7 +10594,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 10,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11008,7 +11008,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11041,8 +11041,9 @@
             "description": "Return only scopes supervised by this manager scope id.",
             "schema": {
               "maximum": 2147483647,
+              "format": "int32",
               "example": 17,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11422,8 +11423,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11594,8 +11596,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11844,8 +11847,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12035,8 +12039,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12273,8 +12278,9 @@
             "in": "path",
             "description": "Numeric scope id. Use 0 for cross-scope recent history.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12295,7 +12301,7 @@
             "schema": {
               "minimum": 0,
               "example": 0,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12307,7 +12313,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 10,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12550,8 +12556,9 @@
             "in": "path",
             "description": "Numeric scope id. Use 0 for cross-scope conversation lookup.",
             "schema": {
+              "format": "int32",
               "example": 0,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12573,7 +12580,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 30,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12584,7 +12591,7 @@
             "schema": {
               "minimum": 0,
               "example": 120,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12744,8 +12751,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12979,8 +12987,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -13204,8 +13213,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -13436,8 +13446,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -13635,8 +13646,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -13794,8 +13806,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14035,8 +14048,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14230,8 +14244,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -14242,7 +14257,7 @@
             "schema": {
               "minimum": 1,
               "maximum": 100,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -14411,8 +14426,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -14582,8 +14598,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14741,8 +14758,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14985,8 +15003,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15245,8 +15264,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15445,8 +15465,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -15706,8 +15727,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15729,7 +15751,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 100,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15752,7 +15774,7 @@
               "minimum": 1,
               "maximum": 1000,
               "example": 100,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -15912,8 +15934,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -16151,8 +16174,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -16401,8 +16425,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -16601,8 +16626,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -16798,8 +16824,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -16970,8 +16997,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17211,8 +17239,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17452,8 +17481,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17682,8 +17712,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17879,8 +17910,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -18076,8 +18108,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -18260,7 +18293,7 @@
               "minimum": 1,
               "maximum": 12,
               "example": 5,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -18270,8 +18303,9 @@
             "description": "Return suggestions scoped to this numeric scope id. Omit for org-general suggestions.",
             "schema": {
               "maximum": 2147483647,
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -18680,7 +18714,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -19528,7 +19562,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -19951,8 +19985,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -20123,8 +20158,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -20375,8 +20411,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -20565,8 +20602,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -20800,8 +20838,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -20959,8 +20998,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -21201,8 +21241,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -21391,8 +21432,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -21650,8 +21692,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -21850,8 +21893,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -22047,8 +22091,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -22095,7 +22140,7 @@
             "schema": {
               "minimum": 1,
               "maximum": 100,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -22264,8 +22309,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -22443,8 +22489,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -22680,8 +22727,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -22910,8 +22958,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -23107,8 +23156,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -25111,7 +25161,8 @@
             "example": "00000000-0000-4000-a000-000000000300"
           },
           "agentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Parent workflow id.",
             "example": 42
           },
@@ -25198,13 +25249,14 @@
         "type": "object",
         "properties": {
           "agent_id": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope (workflow) id to invoke at this step.",
             "example": 17,
             "minimum": 1
           },
           "priority_order": {
-            "type": "number",
+            "type": "integer",
             "description": "Execution order (1-indexed).",
             "example": 1,
             "minimum": 1
@@ -25381,7 +25433,8 @@
             "description": "Run identifier; a workflow may have multiple runs after a retry."
           },
           "agentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Parent workflow id.",
             "example": 42
           },
@@ -25417,7 +25470,7 @@
             "description": "ISO-8601 end timestamp; absent for in-flight runs."
           },
           "durationMs": {
-            "type": "number",
+            "type": "integer",
             "description": "Duration in milliseconds (when end timestamp is known)."
           },
           "summary": {
@@ -25466,7 +25519,7 @@
         "type": "object",
         "properties": {
           "upsertedCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of relations created or updated by the batch.",
             "example": 12
           }
@@ -25655,7 +25708,8 @@
             "example": "application/pdf"
           },
           "fileSize": {
-            "type": "number",
+            "type": "integer",
+            "format": "int64",
             "description": "File size in bytes. Rejected above 50MB.",
             "example": 1048576
           }
@@ -25759,7 +25813,7 @@
             "minLength": 1
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "description": "Maximum context items to return. Omit to return all selected items.",
             "example": 25,
             "minimum": 1,
@@ -25789,12 +25843,12 @@
             "example": []
           },
           "originalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total context items in the scope's configured context selection (before composition strategies).",
             "example": 42
           },
           "selectedCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Context items the composer kept for this intent.",
             "example": 12
           },
@@ -26340,7 +26394,8 @@
             "example": "agent_42_abc-xyz"
           },
           "scopeId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope id returned by the list/detail adapter. This is not conversation ownership.",
             "example": 42
           },
@@ -26387,7 +26442,8 @@
             "example": "agent_42_abc-xyz"
           },
           "scopeId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope id returned by the list adapter. This is not conversation ownership.",
             "example": 42
           },
@@ -26409,7 +26465,7 @@
             "example": "context_chat"
           },
           "messageCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total number of message turns in the (post-collapse) conversation.",
             "example": 12
           },
@@ -26506,17 +26562,17 @@
         "type": "object",
         "properties": {
           "startIndex": {
-            "type": "number",
+            "type": "integer",
             "description": "Zero-based source-message index of the first returned message. Source-message indexes include non-visible tool and system messages.",
             "example": 90
           },
           "endIndex": {
-            "type": "number",
+            "type": "integer",
             "description": "Exclusive zero-based source-message index after the last returned message.",
             "example": 120
           },
           "totalMessages": {
-            "type": "number",
+            "type": "integer",
             "description": "Total source-message count used for paging. The returned visible message array can be shorter than endIndex - startIndex.",
             "example": 120
           },
@@ -26882,7 +26938,7 @@
             "default": false
           },
           "pageLimit": {
-            "type": "number",
+            "type": "integer",
             "description": "Maximum number of search results to store when `isCrawl` is true. Ignored otherwise.",
             "minimum": 1,
             "maximum": 200,
@@ -28361,7 +28417,7 @@
             }
           },
           "dayOfMonth": {
-            "type": "number",
+            "type": "integer",
             "description": "Day of month for monthly frequency",
             "minimum": 1,
             "maximum": 31
@@ -28594,7 +28650,8 @@
             "description": "Run ID"
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Scope ID"
           },
           "trigger": {
@@ -28625,15 +28682,15 @@
             "description": "When the run finished"
           },
           "totalCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Total number of evaluation cases"
           },
           "passedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of passed cases"
           },
           "failedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of failed cases"
           },
           "avgScore": {
@@ -28694,7 +28751,8 @@
             "description": "Run ID"
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Scope ID"
           },
           "trigger": {
@@ -28725,15 +28783,15 @@
             "description": "When the run finished"
           },
           "totalCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Total number of evaluation cases"
           },
           "passedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of passed cases"
           },
           "failedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of failed cases"
           },
           "avgScore": {
@@ -28799,7 +28857,7 @@
         "type": "object",
         "properties": {
           "index": {
-            "type": "number",
+            "type": "integer",
             "description": "Index of the failing entry in the request `uploads` array.",
             "example": 2
           },
@@ -28824,7 +28882,7 @@
         "type": "object",
         "properties": {
           "index": {
-            "type": "number",
+            "type": "integer",
             "description": "Index of the failing entry in the request `urls` array.",
             "example": 1
           },
@@ -28849,7 +28907,7 @@
         "type": "object",
         "properties": {
           "index": {
-            "type": "number",
+            "type": "integer",
             "description": "Index of the failing entry in the request `files` array.",
             "example": 2
           },
@@ -28904,7 +28962,8 @@
             "example": "application/pdf"
           },
           "fileSize": {
-            "type": "number",
+            "type": "integer",
+            "format": "int64",
             "nullable": true,
             "example": 1048576
           },
@@ -28929,7 +28988,7 @@
             "description": "Whether the file was successfully parsed. Null while pending/processing."
           },
           "documentCount": {
-            "type": "number",
+            "type": "integer",
             "nullable": true,
             "example": 1
           },
@@ -28997,7 +29056,8 @@
             "description": "Run identifier; a workflow may have multiple runs after a retry."
           },
           "agentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Parent workflow id.",
             "example": 42
           },
@@ -29033,7 +29093,7 @@
             "description": "ISO-8601 end timestamp; absent for in-flight runs."
           },
           "durationMs": {
-            "type": "number",
+            "type": "integer",
             "description": "Duration in milliseconds (when end timestamp is known)."
           },
           "summary": {
@@ -29243,7 +29303,7 @@
             "type": "object",
             "description": "Per-status counts (all_executions / running / awaiting_human / error / completed).",
             "additionalProperties": {
-              "type": "number"
+              "type": "integer"
             },
             "example": {
               "all_executions": 100,
@@ -29339,7 +29399,7 @@
             "example": "eyJjcmVhdGVkQXQiOiIyMDI2LTA1LTAxIiwidWlkIjoiYWJjIn0"
           },
           "totalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Approximate total count of matching items (when known). Some filter combinations skip this for cost reasons.",
             "nullable": true,
             "example": 142
@@ -29367,17 +29427,17 @@
             "example": "eyJwYWdlIjoxLCJwYWdlU2l6ZSI6MTB9"
           },
           "totalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total threads visible in the scanned window after filters. Not a global count.",
             "example": 47
           },
           "page": {
-            "type": "number",
+            "type": "integer",
             "description": "Legacy echo of the requested 0-indexed page. Retained for SPA backwards-compatibility; new callers should rely on `pageToken` / `nextPageToken`.",
             "example": 0
           },
           "pageSize": {
-            "type": "number",
+            "type": "integer",
             "description": "Legacy echo of the requested `pageSize`. Retained for SPA backwards-compatibility.",
             "example": 10
           }
@@ -29404,7 +29464,7 @@
             "description": "Opaque token for the next page; `null` when this was the last page."
           },
           "totalCount": {
-            "type": "number",
+            "type": "integer",
             "nullable": true,
             "description": "Approximate total count of matching custom context items, when known."
           }
@@ -29870,7 +29930,7 @@
         "description": "subset lists keys. discovery exposes every tool this scope can call."
       },
       "McpToolExposureVersion": {
-        "type": "number",
+        "type": "integer",
         "enum": [
           1
         ],
@@ -29912,7 +29972,7 @@
             ]
           },
           "member_count": {
-            "type": "number",
+            "type": "integer",
             "nullable": true,
             "description": "Member count for directory-sourced groups. Present (and non-null) only when `source` is \"directory\".",
             "example": 42
@@ -29988,7 +30048,7 @@
             ]
           },
           "contextWindow": {
-            "type": "number",
+            "type": "integer",
             "description": "Selected model context window in tokens.",
             "minimum": 1
           }
@@ -30004,7 +30064,7 @@
             "minLength": 1
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "description": "Maximum context items to return. Omit to return all selected items.",
             "example": 25,
             "minimum": 1,
@@ -30033,11 +30093,11 @@
             "example": []
           },
           "originalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total context items in the configured scope (before composition strategies)."
           },
           "selectedCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Context items the composer kept for this intent."
           },
           "contextItemUids": {
@@ -30257,7 +30317,8 @@
             ]
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Selected Home scope id when known."
           },
           "threadId": {
@@ -30287,7 +30348,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope id (stable per-org; not reused after delete).",
             "example": 42
           },
@@ -30425,7 +30487,8 @@
             "example": "00000000-0000-4000-a000-000000000500"
           },
           "scopeId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Scope id.",
             "example": 42
           },
@@ -30560,7 +30623,7 @@
             "example": "user_clerk_X"
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "description": "Override the default page size for search results (legacy default is 10).",
             "example": 10,
             "minimum": 1,
@@ -30587,7 +30650,7 @@
             }
           },
           "depthBelowRoot": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               0,
               1
@@ -30611,7 +30674,7 @@
             "example": "repository"
           },
           "arity": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of path segments in a unit of this kind.",
             "example": 1
           }
@@ -30633,7 +30696,8 @@
             ],
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -30887,7 +30951,8 @@
             "description": "Stable suggestion id."
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "nullable": true,
             "description": "Numeric scope id this suggestion is scoped to."
           },
@@ -30919,7 +30984,8 @@
         "type": "object",
         "properties": {
           "supervisorAgentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric id of the scope that supervises the listed subordinates. Echoes the `:id` from the URL path.",
             "example": 42
           },
@@ -30932,7 +30998,8 @@
             ],
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -31139,7 +31206,7 @@
             }
           },
           "day_of_month": {
-            "type": "number",
+            "type": "integer",
             "description": "Required for monthly schedules. Calendar day 1-31.",
             "example": 15,
             "minimum": 1,
@@ -31736,7 +31803,8 @@
             ]
           },
           "managerId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Re-parent the scope under a new manager (or remove its current manager when null). When this field is present, all other fields are ignored.",
             "example": 17,
             "nullable": true
@@ -31788,7 +31856,8 @@
             "example": "application/pdf"
           },
           "fileSize": {
-            "type": "number",
+            "type": "integer",
+            "format": "int64",
             "description": "File size in bytes. Rejected above 50MB.",
             "example": 1048576
           }
@@ -31869,15 +31938,15 @@
             "description": "The grouped dimension value (scope/workflow id, interface, or model)."
           },
           "call_count": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of LLM_CALL events in this bucket for this model."
           },
           "input_tokens": {
-            "type": "number",
+            "type": "integer",
             "description": "Sum of input (prompt) tokens."
           },
           "output_tokens": {
-            "type": "number",
+            "type": "integer",
             "description": "Sum of output (response) tokens."
           },
           "credits": {
@@ -31898,13 +31967,13 @@
         "type": "object",
         "properties": {
           "call_count": {
-            "type": "number"
+            "type": "integer"
           },
           "input_tokens": {
-            "type": "number"
+            "type": "integer"
           },
           "output_tokens": {
-            "type": "number"
+            "type": "integer"
           },
           "credits": {
             "type": "number",
@@ -31935,7 +32004,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric workflow id (stable per-org; not reused after delete).",
             "example": 42
           },
@@ -32306,7 +32376,7 @@
             }
           },
           "day_of_month": {
-            "type": "number",
+            "type": "integer",
             "description": "Required for monthly schedules. Calendar day 1-31.",
             "example": 15,
             "minimum": 1,
@@ -32495,7 +32565,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32580,7 +32650,8 @@
             "type": "string"
           },
           "originalSize": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "storageFileName": {
             "type": "string"
@@ -32589,7 +32660,8 @@
             "type": "string"
           },
           "sizeBytes": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "summary": {
             "type": "string",
@@ -32727,7 +32799,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32743,7 +32815,8 @@
             "description": "Saved scope ids to subordinate under this Modus run.",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -32849,7 +32922,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32865,7 +32938,8 @@
             "description": "Saved scope ids to scope the Modus run to.",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -32922,7 +32996,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -33059,7 +33133,7 @@
             ]
           },
           "contextWindow": {
-            "type": "number",
+            "type": "integer",
             "description": "Selected model context window in tokens.",
             "minimum": 1
           }
@@ -33149,7 +33223,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -33165,7 +33239,8 @@
             "description": "Subordinate scope ids for an unsaved supervisor-scope draft test.",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },

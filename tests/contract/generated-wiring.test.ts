@@ -373,7 +373,7 @@ describe('generated resource wiring', () => {
 
   it('samples a query argument from the scalar the spec gives the parameter', () => {
     expect(querySample('ConnectionsController_list', 'type')).toBe('q')
-    expect(querySample('ConnectionsController_list', 'pageSize')).toBe(1.5)
+    expect(querySample('ConnectionsController_list', 'pageSize')).toBe(7)
     // A $ref parameter schema resolves before the scalar is read.
     expect(querySample('DashboardsController_list', 'view')).toBe('q')
   })

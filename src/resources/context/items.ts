@@ -187,7 +187,7 @@ export class ContextItemsResource {
    *   contextType: 'note',
    *   dataPath: ['finance', 'arr-definition'],
    * })
-   * if (found) console.log(found.uid, found.description ?? found.uid)
+   * if (found) console.log(found.uid, found.content)
    * ```
    */
   async lookup(options: {

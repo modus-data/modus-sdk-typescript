@@ -79,6 +79,9 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Fixed
 
+- **`workflows.runs.create()`, `createScope()` and `createModus()` accept a body without `sessionId`.** The types required it, so the documented examples did not compile; the SDK already starts a new conversation when it is omitted. `resume`, `interrupt` and `editQueued` still require it.
+- **Errors from `@getmodus/sdk/management` are `instanceof` the root error classes under CommonJS.** Each CommonJS entrypoint bundled its own copy of `ModusError` and the other classes, so `err instanceof ModusError` was `false` for a `ModusManagement` error under `require`. ESM was not affected.
+- **The `context.items.lookup()` and `scopes.conversations(id).get()` examples compile.**
 - **Server: `conversations.list({ kind })` filters.** `kind: 'modus'` returns only Modus threads and `kind: 'scopes'` only scope threads; before, both returned every conversation.
 - **Server: resuming a finished run ends at once.** `runs.stream(runId, { lastEventId })` with the id of the run's final `done`/`error`/`cancelled` event now ends with no events, instead of waiting forever.
 - **Server: errors use Scope and Workflow.** A missing scope is `Scope not found` with `info.scopeId` (was `Skill not found`, `info.skillId`); a missing workflow is `Workflow not found` with `info.workflowId` (was `Agent not found`, `info.agentId`). Code that read `info.skillId` or `info.agentId` must read the new key.

@@ -2473,6 +2473,7 @@ export interface components {
              */
             id: string;
             /**
+             * Format: int32
              * @description Parent workflow id.
              * @example 42
              */
@@ -2522,6 +2523,7 @@ export interface components {
         };
         AgentSelectionEntryDto: {
             /**
+             * Format: int32
              * @description Numeric scope (workflow) id to invoke at this step.
              * @example 17
              */
@@ -2611,6 +2613,7 @@ export interface components {
             /** @description Run identifier; a workflow may have multiple runs after a retry. */
             temporalRunId?: string;
             /**
+             * Format: int32
              * @description Parent workflow id.
              * @example 42
              */
@@ -2739,6 +2742,7 @@ export interface components {
              */
             contentType?: string;
             /**
+             * Format: int64
              * @description File size in bytes. Rejected above 50MB.
              * @example 1048576
              */
@@ -3155,6 +3159,7 @@ export interface components {
              */
             threadId: string;
             /**
+             * Format: int32
              * @description Numeric scope id returned by the list/detail adapter. This is not conversation ownership.
              * @example 42
              */
@@ -3181,6 +3186,7 @@ export interface components {
              */
             threadId: string;
             /**
+             * Format: int32
              * @description Numeric scope id returned by the list adapter. This is not conversation ownership.
              * @example 42
              */
@@ -4143,7 +4149,10 @@ export interface components {
         EvaluationRunDto: {
             /** @description Run ID */
             id: string;
-            /** @description Scope ID */
+            /**
+             * Format: int32
+             * @description Scope ID
+             */
             skillId: number;
             /** @description How the run was triggered */
             trigger: components["schemas"]["EvaluationRunTrigger"];
@@ -4187,7 +4196,10 @@ export interface components {
         EvaluationRunWithResultsDto: {
             /** @description Run ID */
             id: string;
-            /** @description Scope ID */
+            /**
+             * Format: int32
+             * @description Scope ID
+             */
             skillId: number;
             /** @description How the run was triggered */
             trigger: components["schemas"]["EvaluationRunTrigger"];
@@ -4302,7 +4314,10 @@ export interface components {
             folderPath?: string | null;
             /** @example application/pdf */
             contentType?: string | null;
-            /** @example 1048576 */
+            /**
+             * Format: int64
+             * @example 1048576
+             */
             fileSize?: number | null;
             /** @example context_uploads/7a3f9d2c.../Q3-churn-report.pdf */
             s3Key?: string | null;
@@ -4350,6 +4365,7 @@ export interface components {
             /** @description Run identifier; a workflow may have multiple runs after a retry. */
             temporalRunId?: string;
             /**
+             * Format: int32
              * @description Parent workflow id.
              * @example 42
              */
@@ -4715,7 +4731,7 @@ export interface components {
         McpToolExposureMode: "subset" | "discovery";
         /**
          * @description Exposure format. Always 1.
-         * @enum {number}
+         * @enum {integer}
          */
         McpToolExposureVersion: 1;
         MemberGroupDto: {
@@ -4892,7 +4908,10 @@ export interface components {
              * @example home
              */
             source?: components["schemas"]["SuggestionEventSource"];
-            /** @description Selected Home scope id when known. */
+            /**
+             * Format: int32
+             * @description Selected Home scope id when known.
+             */
             skillId?: number;
             /** @description Conversation thread id when the event is tied to a chat. */
             threadId?: string;
@@ -4908,6 +4927,7 @@ export interface components {
         ResourceLifecycleStatus: "draft" | "active" | "deleted";
         ScopeDto: {
             /**
+             * Format: int32
              * @description Numeric scope id (stable per-org; not reused after delete).
              * @example 42
              */
@@ -4997,6 +5017,7 @@ export interface components {
              */
             id: string;
             /**
+             * Format: int32
              * @description Scope id.
              * @example 42
              */
@@ -5091,7 +5112,7 @@ export interface components {
             /**
              * @description How many levels below a unit a scope may still name. 0 means the unit itself only.
              * @example 0
-             * @enum {number}
+             * @enum {integer}
              */
             depthBelowRoot: 0 | 1;
         };
@@ -5257,7 +5278,10 @@ export interface components {
         SuggestionQuestionDto: {
             /** @description Stable suggestion id. */
             id: string;
-            /** @description Numeric scope id this suggestion is scoped to. */
+            /**
+             * Format: int32
+             * @description Numeric scope id this suggestion is scoped to.
+             */
             skillId?: number | null;
             /** @description Short Home button label. */
             label: string;
@@ -5272,6 +5296,7 @@ export interface components {
         };
         SupervisionDto: {
             /**
+             * Format: int32
              * @description Numeric id of the scope that supervises the listed subordinates. Echoes the `:id` from the URL path.
              * @example 42
              */
@@ -5714,6 +5739,7 @@ export interface components {
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AccessConfigDto"];
             /**
+             * Format: int32
              * @description Re-parent the scope under a new manager (or remove its current manager when null). When this field is present, all other fields are ignored.
              * @example 17
              */
@@ -5750,6 +5776,7 @@ export interface components {
              */
             contentType: string;
             /**
+             * Format: int64
              * @description File size in bytes. Rejected above 50MB.
              * @example 1048576
              */
@@ -5828,6 +5855,7 @@ export interface components {
         };
         WorkflowDto: {
             /**
+             * Format: int32
              * @description Numeric workflow id (stable per-org; not reused after delete).
              * @example 42
              */
@@ -6105,7 +6133,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6135,9 +6163,11 @@ export interface components {
             parsedContent?: string;
             uploadId?: string;
             mimeType?: string;
+            /** Format: int64 */
             originalSize?: number;
             storageFileName?: string;
             rawContentS3Key?: string;
+            /** Format: int64 */
             sizeBytes?: number;
             summary?: string | null;
         };
@@ -6193,7 +6223,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6240,7 +6270,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6270,7 +6300,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6356,7 +6386,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
