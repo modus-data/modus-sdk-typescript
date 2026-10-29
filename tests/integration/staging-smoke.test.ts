@@ -6,7 +6,7 @@
  *   MODUS_BASE_URL    default https://api.staging.getmodus.com
  *   MODUS_AGENT_HOST  default https://agent.staging.getmodus.com (chat/stream)
  *   MODUS_SMOKE_MODEL default claude-sonnet-5
- *   MODUS_SCOPE_ID    optional
+ *   MODUS_SCOPE_ID    optional numeric scope id (a slug is a 400 BadRequestError)
  *
  * Run:
  *   export MODUS_API_KEY=modus_...
@@ -14,7 +14,7 @@
  *   pnpm test:staging-smoke
  */
 import { afterAll, describe, expect, it } from 'vitest'
-import { AuthenticationError, Modus, NotFoundError } from '../../src/index.js'
+import { AuthenticationError, BadRequestError, Modus, NotFoundError } from '../../src/index.js'
 import { ModusManagement } from '../../src/management/index.js'
 
 const DEFAULT_STAGING = 'https://api.staging.getmodus.com'
@@ -57,6 +57,10 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     if (!scopeId && scopes.items[0]?.id != null) {
       scopeId = String(scopes.items[0].id)
     }
+    // Scope compose on the agent host (#9894) serves only a published scope the caller may use;
+    // any other id is its 404 "Scope not found", whatever the first listed scope happens to be.
+    const publishedId = scopes.items.find((s) => s.activeVariationId && s.canUse)?.id
+    const composeScopeId = process.env.MODUS_SCOPE_ID || (publishedId == null ? undefined : String(publishedId))
 
     if (scopeId) {
       const got = await c.scopes.get(scopeId)
@@ -142,12 +146,14 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     })
     assertComposition('org-wide getContext', composed, performance.now() - orgStart)
 
-    if (scopeId) {
+    if (composeScopeId) {
       const scopeStart = performance.now()
-      const scopeComposed = await composer.scopes.getContext(scopeId, 'sdk staging smoke — brief context', {
+      const scopeComposed = await composer.scopes.getContext(composeScopeId, 'sdk staging smoke — brief context', {
         limit: 3,
       })
       assertComposition('scope getContext', scopeComposed, performance.now() - scopeStart)
+    } else {
+      console.warn('scope getContext SKIPPED: no published scope in the first 5 (set MODUS_SCOPE_ID)')
     }
     expect(composeUrls.length).toBeGreaterThan(0)
     for (const url of composeUrls) {
@@ -182,15 +188,26 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     await m.context.items.delete(createdUid)
     createdUid = undefined
 
-    // Scope path param is numeric (ParseIntPipe); a missing id → 404.
-    await expect(c.scopes.get(999_999_999)).rejects.toBeInstanceOf(NotFoundError)
+    // An id past int4 is a 404 from the id pipe (#9760), with the parsed envelope (#9757);
+    // a slug is a 400. The full id table is in staging-journeys.test.ts.
+    const missing = await c.scopes.get(2_147_483_648).catch((e: unknown) => e)
+    expect(missing).toBeInstanceOf(NotFoundError)
+    expect(missing).toMatchObject({ code: 'NOT_FOUND', info: { id: 2_147_483_648 } })
+    expect((missing as NotFoundError).requestId).toMatch(/^req_/)
+    const slug = await c.scopes.get('revenue-analysis').catch((e: unknown) => e)
+    expect(slug).toBeInstanceOf(BadRequestError)
+    expect(slug).toMatchObject({ code: 'BAD_REQUEST' })
+    expect((slug as BadRequestError).requestId).toMatch(/^req_/)
 
     const bad = new Modus({
       apiKey: 'modus_00000000_dead_beef_invalid_key_for_smoke',
       baseUrl: baseUrl(),
       timeoutMs: 30_000,
     })
-    await expect(bad.scopes.list({ pageSize: 1 })).rejects.toBeInstanceOf(AuthenticationError)
+    const unauthenticated = await bad.scopes.list({ pageSize: 1 }).catch((e: unknown) => e)
+    expect(unauthenticated).toBeInstanceOf(AuthenticationError)
+    expect(unauthenticated).toMatchObject({ code: 'UNAUTHORIZED' })
+    expect((unauthenticated as AuthenticationError).requestId).toMatch(/^req_/)
   }, 240_000)
 
   it('context files upload (presign → PUT → finalize)', async () => {
@@ -214,7 +231,7 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     // Orphan prefix documented in STAGING-SMOKE.md — no public delete for file uploads.
   }, 240_000)
 
-  it('buffered chat + streaming via agent host', async () => {
+  it('chat + streaming via agent host', async () => {
     const model = (process.env.MODUS_SMOKE_MODEL || 'claude-sonnet-5') as import('../../src/types/chat.js').ChatModel
     const agentHost =
       process.env.MODUS_AGENT_HOST || 'https://agent.staging.getmodus.com'
@@ -243,11 +260,13 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     expect(final.content?.length).toBeGreaterThan(0)
     expect(final.threadId || final.runId).toBeTruthy()
 
-    // createModus must mint sessionId + negotiate SSE (not JSON pending).
+    // createModus must mint sessionId + negotiate SSE (not JSON pending). A token run
+    // synthesizes the org's full environment (#9693), so pin the cheapest admitted model,
+    // and ask for nothing a write tool could do: a write would stop at approval_required.
     let createTokens = 0
     const createRun = c.workflows.runs.createModus({
-      message: 'sdk staging smoke — createModus one short word',
-      config: { model },
+      message: 'sdk staging smoke — reply with one short word, use no tools',
+      config: { model: 'gpt-oss-20b' },
     } as Parameters<typeof c.workflows.runs.createModus>[0])
     for await (const event of createRun) {
       if (event.type === 'token' && event.content.length > 0) {
