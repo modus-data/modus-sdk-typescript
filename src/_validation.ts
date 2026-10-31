@@ -6,21 +6,24 @@ export const DEFAULT_MAX_PAGE_SIZE = 200
 
 export function validatePageSize(pageSize: number, maxPageSize?: number): void {
   if (!Number.isInteger(pageSize) || pageSize < 1) {
-    throw new Error(`page_size must be a positive int, got ${pageSize}`)
+    throw new ValidationError(`page_size must be a positive int, got ${pageSize}`)
   }
   if (maxPageSize !== undefined && pageSize > maxPageSize) {
-    throw new Error(`page_size must be <= ${maxPageSize}, got ${pageSize}`)
+    throw new ValidationError(`page_size must be <= ${maxPageSize}, got ${pageSize}`)
   }
 }
 
+/** Reject ids that would not address one resource: blank, or a dot segment the URL would collapse onto the parent. */
 export function validateId(resourceId: number | string, name = 'id'): void {
-  if (typeof resourceId === 'string' && !resourceId.trim()) {
-    throw new Error(`${name} must be a non-empty string or int`)
+  if (typeof resourceId !== 'string') return
+  if (!resourceId.trim()) throw new ValidationError(`${name} must be a non-empty string or int`)
+  if (resourceId === '.' || resourceId === '..') {
+    throw new ValidationError(`${name} must not be ${JSON.stringify(resourceId)}`)
   }
 }
 
-// Keep in sync with SkillChatRequestDto.model in the public API contract.
-const ALLOWED_CHAT_MODELS = new Set([
+// The canonical model ids the agent host accepts for `config.model`.
+export const CHAT_MODELS = [
   'claude-sonnet-5',
   'claude-sonnet-5.5',
   'claude-sonnet-4.6',
@@ -39,6 +42,7 @@ const ALLOWED_CHAT_MODELS = new Set([
   'deepseek-chat-v3.1',
   'deepseek-v4-pro',
   'deepseek-v4-flash-latest',
+  'deepseek-v4.1-flash-1017',
   'minimax-m2.7',
   'llama-4-maverick',
   'llama-4-scout',
@@ -49,12 +53,14 @@ const ALLOWED_CHAT_MODELS = new Set([
   'grok-4.3',
   'grok-4.7',
   'kimi-k3',
-])
+] as const
+
+const ALLOWED_CHAT_MODELS: ReadonlySet<string> = new Set(CHAT_MODELS)
 
 export function validateChatModel(model: string): void {
   if (!ALLOWED_CHAT_MODELS.has(model)) {
     const supported = [...ALLOWED_CHAT_MODELS].sort().join(', ')
-    throw new Error(`Unsupported model ${JSON.stringify(model)}. Choose one of: ${supported}.`)
+    throw new ValidationError(`Unsupported model ${JSON.stringify(model)}. Choose one of: ${supported}.`)
   }
 }
 

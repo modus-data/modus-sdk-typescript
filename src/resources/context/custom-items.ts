@@ -119,6 +119,11 @@ function parseDeletion(raw: unknown): CustomContextItemDeletion {
  * traversable, create the `source`, then the `collection`, then the `entity`, and
  * finally any `field` or `entity_samples` rows, repeating the same parent IDs at
  * every level.
+ *
+ * Writes (`create`, `batchCreate`, `createRelations`, `update`, `delete`) are off
+ * by default for each organization: until Modus enables them, they reject with a
+ * `PermissionDeniedError` whose message is `Custom context item writes are not
+ * enabled`. Reads (`list`, `get`) always work.
  */
 export class CustomContextItemsResource {
   /** @internal */

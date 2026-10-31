@@ -1,11 +1,17 @@
 import type { OperationId } from '../../_generated/operations.js'
 import type { ModusConfig } from '../../_config.js'
 import type { HttpClient } from '../../_http.js'
-import { updateMaskQuery } from '../../_query.js'
+import { updateBody, updateMaskQuery } from '../../_query.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
-import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
+import { asRecord, invokeWithRetry } from '../../_request.js'
 import { validatePageSize } from '../../_validation.js'
-import type { ContextItem, ContextItemDeletion, ContextItemMove } from '../../types/context.js'
+import type {
+  ContextItem,
+  ContextItemAccessUpdate,
+  ContextItemDeletion,
+  ContextItemMove,
+  UpdateContextItemAccessInput,
+} from '../../types/context.js'
 import type { UserFeedback } from './_content-merge.js'
 
 function contextListParams(
@@ -124,7 +130,7 @@ export class ManagementContextItemsResource {
    * Update a context item.
    *
    * Only the fields you pass are changed. To clear a field, name it in
-   * `updateMask` and leave its argument unset.
+   * `updateMask` and leave its argument unset: it is sent as `null`.
    *
    * @param uid - Context item uid.
    * @param options.content - Replacement type-specific content.
@@ -146,22 +152,13 @@ export class ManagementContextItemsResource {
       updateMask?: string
     } = {},
   ): Promise<ContextItem> {
-    const body =
-      options.updateMask !== undefined
-        ? {
-            content: options.content,
-            contextType: options.contextType,
-            description: options.description,
-            userFeedback: options.userFeedback,
-            topics: options.topics,
-          }
-        : omitUndefined({
-            content: options.content,
-            contextType: options.contextType,
-            description: options.description,
-            userFeedback: options.userFeedback,
-            topics: options.topics,
-          })
+    const body = updateBody({
+      content: options.content,
+      contextType: options.contextType,
+      description: options.description,
+      userFeedback: options.userFeedback,
+      topics: options.topics,
+    }, options.updateMask)
     await invokeWithRetry(this.config, this.http, 'ContextItemsController_update', {
       pathParams: { uid },
       query: updateMaskQuery(options.updateMask),
@@ -223,5 +220,53 @@ export class ManagementContextItemsResource {
       },
     )
     return data as ContextItemMove
+  }
+
+  /**
+   * Replace who can view and manage a note, saved query, link or uploaded file.
+   *
+   * All three settings are required and replace the current ones. You cannot
+   * remove your own manage access. An item created before items had owners
+   * becomes yours on the first change.
+   *
+   * @param uid - UUID of the context item.
+   * @param input.visibility - `shared` (the owner plus the groups in
+   *   `groupPermissions`) or `private` (the owner plus the users in `sharedWith`).
+   * @param input.groupPermissions - Group id to `{ use, manage }`. Used only when shared.
+   * @param input.sharedWith - Users such as `{ email: 'ana@example.com', permission: 'use' }`.
+   *   Used only when private.
+   * @returns The item's new access settings and whether you can still manage it.
+   * @throws {NotFoundError} The item does not exist or you cannot view it.
+   * @throws {PermissionDeniedError} You can view the item but not manage it.
+   * @throws {ModusError} The item is another type, a group or user is invalid,
+   *   or the change would remove your own manage access.
+   *
+   * @example
+   * ```ts
+   * await mgmt.context.items.updateAccess('PLACEHOLDER_UID', {
+   *   visibility: 'private',
+   *   groupPermissions: {},
+   *   sharedWith: [{ email: 'ana@example.com', permission: 'use' }],
+   * })
+   * ```
+   */
+  async updateAccess(
+    uid: string,
+    input: UpdateContextItemAccessInput,
+  ): Promise<ContextItemAccessUpdate> {
+    const data = await invokeWithRetry(
+      this.config,
+      this.http,
+      'ContextItemAccessController_updateAccess' as OperationId,
+      {
+        pathParams: { uid },
+        jsonBody: {
+          visibility: input.visibility,
+          groupPermissions: input.groupPermissions,
+          sharedWith: input.sharedWith,
+        },
+      },
+    )
+    return data as ContextItemAccessUpdate
   }
 }

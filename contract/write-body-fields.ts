@@ -14,7 +14,8 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'topics',
   ],
   ContextItemsController_move: ['destinationFolderUid'],
-  ModusChatController_chat: ['message', 'model'],
+  ContextItemAccessController_updateAccess: ['visibility', 'groupPermissions', 'sharedWith'],
+  ModusContextComposeController_compose: ['message', 'limit'],
   ModusContextController_compose: ['message', 'limit'],
   SuggestionsController_recordEvent: ['eventType', 'source', 'skillId', 'threadId', 'metadata'],
   ContextItemsController_lookup: ['contextType', 'dataPath', 'contentProjection'],
@@ -106,8 +107,8 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ],
   RunLifecycleController_cancel: [],
   RunLifecycleController_activeBySession: ['sessionIds'],
-  RunLifecycleController_interrupt: [],
-  RunLifecycleController_editQueued: [],
+  RunLifecycleController_interrupt: ['nextRun', 'lastSeenEventId'],
+  RunLifecycleController_editQueued: ['nextRun'],
   WorkflowActionsController_execute: [
     'organizationId',
     'sessionId',
@@ -149,7 +150,9 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'evaluations',
     'supervisionSubordinateDescriptions',
   ],
-  ScopeChatController_chat: ['message', 'model'],
+  ScopesController_addEvaluationCase: ['id', 'task', 'expectedOutput'],
+  ScopesController_updateEvaluationCase: ['task', 'expectedOutput'],
+  ScopeContextComposeController_compose: ['message', 'limit'],
   ScopeContextController_compose: ['message', 'limit'],
   EvaluationsController_updateConfig: [
     'enabled',
@@ -221,13 +224,3 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'runId',
   ],
 }
-
-/** Chat/stream variants reuse the same body as their base operation. */
-export const REUSES_BASE_REQUEST_BODY = new Set([
-  'ModusChatController_chatStream',
-  'ModusChatController_chatContinue',
-  'ModusChatController_chatContinueStream',
-  'ScopeChatController_chatStream',
-  'ScopeChatController_chatContinue',
-  'ScopeChatController_chatContinueStream',
-])

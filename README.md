@@ -51,7 +51,9 @@ for await (const scope of (await client.scopes.list()).autoPagingIter()) {
   console.log(scope.name, scope.status)
 }
 
-const scope = await client.scopes.get('revenue-analysis')
+// Ids are numeric: take one from list()
+const [first] = (await client.scopes.list()).items
+const scope = await client.scopes.get(first.id)
 console.log(scope.name, scope.description)
 
 for await (const item of (await client.context.items.list()).autoPagingIter()) {
@@ -105,10 +107,12 @@ const followUp = await client.modus.chat('Break that down by region.', {
 })
 console.log(followUp.content)
 
-const stream = client.modus.chatStream('Summarize this week', { model: MODEL })
-for await (const chunk of stream.textStream()) {
+// Every chat streams live from the agent host; iterate it to print tokens as they arrive.
+const live = client.modus.chat('Summarize this week', { model: MODEL })
+for await (const chunk of live.textStream()) {
   process.stdout.write(chunk)
 }
+const { threadId } = await live
 
 const ctx = await client.modus.getContext('What tables describe customer churn?', { limit: 10 })
 console.log(ctx.originalCount, ctx.sessionId)
@@ -128,8 +132,8 @@ const MODEL = 'claude-sonnet-5'
 const result = await client.scopes.chat(scopeId, 'Hello', { model: MODEL })
 console.log(result.content, result.threadId)
 
-const stream = client.scopes.chatStream(scopeId, 'Hi', { model: MODEL })
-for await (const chunk of stream.textStream()) {
+const live = client.scopes.chat(scopeId, 'Hi', { model: MODEL, threadId: result.threadId })
+for await (const chunk of live.textStream()) {
   process.stdout.write(chunk)
 }
 ```
@@ -151,7 +155,53 @@ for await (const run of (await client.workflows.runs.list(workflowId, { pageSize
 }
 ```
 
-Workflow chat is not on the public PAT surface. Use `client.modus.chat()` for org-wide conversation or `client.scopes.chat()` for a published scope.
+```ts
+const { content } = await client.workflows.chat(workflowId, 'Run this week\'s digest', { model: 'claude-sonnet-5' })
+```
+
+`client.workflows.runs.stream(runId)` follows a run's events. Each event carries an `id` when the server sends one. If the connection drops, call `stream` again with `lastEventId` set to the last `id` you handled: the stream resumes after it instead of replaying the run from the start. Without an `id` it can only replay from the start. The stream ends after a `done`, `error` or `cancelled` event; only `done` is a completed run.
+
+```ts
+import { APIConnectionError, type RunEvent } from '@getmodus/sdk'
+
+async function followRun(runId: string, handle: (event: RunEvent) => void): Promise<void> {
+  let lastEventId: string | undefined
+  for (;;) {
+    const events = client.workflows.runs.stream(runId, { lastEventId })[Symbol.asyncIterator]()
+    for (;;) {
+      let next: IteratorResult<RunEvent>
+      try {
+        next = await events.next()
+      } catch (error) {
+        if (error instanceof APIConnectionError) break // dropped: resume after lastEventId
+        throw error
+      }
+      if (next.done) break // ended without a final event: resume
+      const event = next.value
+      handle(event) // a handler error propagates; it is not a disconnect
+      lastEventId = event.id ?? lastEventId
+      if (event.type === 'done') return
+      // A `stream_timeout` event is followed by an `error` event.
+      if (event.type === 'error' || event.type === 'cancelled') {
+        throw new Error(`Run ${runId} ended with ${event.type}`)
+      }
+    }
+  }
+}
+```
+
+### Approvals
+
+A run that needs approval for a write stops with `result.approval` set. Continue it with `resume`:
+
+```ts
+const chat = client.modus.chat('Fix the typo in the accounts table', { model: 'claude-sonnet-5' })
+const first = await chat
+if (first.approval) {
+  const done = await chat.resume({ decision: 'approve' })
+  console.log(done.content)
+}
+```
 
 ## Managing your org
 
@@ -192,6 +242,14 @@ if (destination) {
   })
   console.log(moved.movedItems)
 }
+
+// Who can view and manage a note, saved query, link or uploaded file; all three settings replace the current ones.
+const access = await mgmt.context.items.updateAccess(note.uid, {
+  visibility: 'private',
+  groupPermissions: {},
+  sharedWith: [{ email: 'ana@example.com', permission: 'use' }],
+})
+console.log(access.canManage)
 ```
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
@@ -213,8 +271,10 @@ for await (const scope of (await client.scopes.list()).autoPagingIter()) {
 ```ts
 import {
   Modus,
+  BadRequestError,
   NotFoundError,
   AuthenticationError,
+  PermissionDeniedError,
   RateLimitError,
   ModusError,
 } from '@getmodus/sdk'
@@ -224,17 +284,44 @@ try {
 } catch (e) {
   if (e instanceof NotFoundError) {
     console.log('Scope not found')
+  } else if (e instanceof BadRequestError) {
+    console.log(`Invalid request: ${e.message}`)
   } else if (e instanceof AuthenticationError) {
     console.log('Check your MODUS_API_KEY')
+  } else if (e instanceof PermissionDeniedError) {
+    console.log('Token is missing scopes:', e.info?.missing)
   } else if (e instanceof RateLimitError) {
     console.log(`Rate limited. Retry after ${e.retryAfter}s`)
   } else if (e instanceof ModusError) {
-    console.log(`API error ${e.statusCode}: ${e.message}`)
+    console.log(`API error ${e.statusCode} ${e.code}: ${e.message} (request ${e.requestId})`)
   } else {
     throw e
   }
 }
 ```
+
+Every error carries `code` (for example `NOT_FOUND`), `requestId` (quote it to support) and,
+when the server sends one, `info` with structured detail. A request that fails schema
+validation is a `BadRequestError` (400); one that is well-formed but breaks a business rule
+is an `UnprocessableError` (422), with the rule in `info`.
+
+## Retries
+
+A failed request is re-sent up to `maxRetries` times (default 2, with exponential backoff),
+but only when sending it twice cannot do the work twice:
+
+- **429**, for every method. A `Retry-After` (or `retry-after-ms`) of up to 60 s is waited
+  out; a longer one throws `RateLimitError` at once with `retryAfter` set.
+- **A connection that never opened** (refused, DNS failure, connect timeout), for every method.
+- **408, 500, 502, 503, 504, a dropped connection or a timeout**, for GET, PUT, PATCH and
+  DELETE, and for the POSTs that only read or set a state (context compose, item lookup,
+  memory search, active-run lookup, run cancel, run interrupt, workflow-action cancel, workflow toggle,
+  ingested-data upload).
+
+Any other POST (a create, an add, an evaluation run) may already have run on the server, so
+it throws instead of being re-sent: check whether the resource exists before creating it
+again. `e.retryable` tells you whether the SDK considered the failure safe to re-send.
+Pass `maxRetries: 0` to turn retries off.
 
 ## Examples
 

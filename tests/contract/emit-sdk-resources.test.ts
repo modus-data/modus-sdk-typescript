@@ -17,6 +17,9 @@ interface SpecParameter {
 
 const THING_ID: SpecParameter = { name: 'thingId', in: 'path', description: 'Thing id.' }
 
+/** A 2xx JSON body, which an exposure with `returns` requires. */
+const JSON_BODY = { 'application/json': { schema: { type: 'object' } } }
+
 /** Component schemas the cases below point `$ref` parameter schemas at. */
 const COMPONENTS = {
   schemas: {
@@ -54,7 +57,7 @@ function updateSpec(parameters: SpecParameter[], responseDescription = '', descr
           description,
           'x-modus-service': 'modus-api',
           parameters,
-          responses: { 200: { description: responseDescription } },
+          responses: { 200: { description: responseDescription, content: JSON_BODY } },
         },
       },
     },
@@ -116,7 +119,7 @@ function listSpec(parameters: SpecParameter[], description = '') {
           description,
           'x-modus-service': 'modus-api',
           parameters,
-          responses: { 200: { description: '' } },
+          responses: { 200: { description: '', content: JSON_BODY } },
         },
       },
     },
@@ -592,7 +595,7 @@ describe('emit-sdk-resources parameter documentation', () => {
   })
 
   it.each([
-    'Items per page. Defaults to 10, clamped to 100.',
+    'Items per page. Defaults to 10. Must be between 1 and 100.',
     'Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25.',
     '',
   ])('documents the SDK page size default instead of API prose: %s', (description) => {
@@ -662,8 +665,8 @@ describe('emit-sdk-resources response envelopes', () => {
 
   it('keeps TypeScript signatures and dispatch unchanged by Python-only hints', () => {
     const source = emitUpdate([], [THING_ID], '', {
-      pyAsync: false, pyOperation: 'replace',
-      body: { arg: 'request', pyArg: 'replacement', type: 'Thing', tsPolicy: 'validate-original', pyDump: { byAlias: false, excludeNone: false } },
+      pyOperation: 'replace',
+      body: { arg: 'request', pyArg: 'replacement', type: 'Thing', tsPolicy: 'validate-original', pyDump: { excludeNone: false } },
     })
     expect(source).toContain('request: Thing')
     expect(source).toContain("'ThingsController_update'")
@@ -693,5 +696,27 @@ describe('emit-sdk-resources validation order', () => {
     )[0].source
     expect(source.indexOf("validateId(this.scopeId, 'scope_id')"))
       .toBeLessThan(source.indexOf("validateId(thingId, 'thing_id')"))
+  })
+})
+
+describe('emit-sdk-resources response body', () => {
+  function noBodySpec() {
+    const spec = updateSpec([THING_ID])
+    const patch: { responses: Record<number, unknown> } = spec.paths['/api/v1/things/{thingId}'].patch
+    patch.responses = { 204: { description: '' } }
+    return spec
+  }
+
+  it.each(['generated', 'custom'])('refuses "returns" on a %s operation without a 2xx body', (mode) => {
+    const hints = updateHints([])
+    hints.operations.ThingsController_update.mode = mode
+    expect(() => emitResourceFiles(hints, noBodySpec()))
+      .toThrow(/ThingsController_update.*"returns".*no 2xx response body/)
+  })
+
+  it('emits Promise<void> for an operation without a body and without "returns"', () => {
+    const [{ source }] = emitResourceFiles(updateHints([], { returns: undefined }), noBodySpec())
+    expect(source).toContain('Promise<void>')
+    expect(source).not.toContain('return data')
   })
 })

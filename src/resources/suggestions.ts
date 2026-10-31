@@ -2,6 +2,7 @@ import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
 import { buildAipPage, type Page } from '../_pagination.js'
 import { asRecord, invokeWithRetry } from '../_request.js'
+import { ValidationError } from '../_exceptions.js'
 import { validateId, validatePageSize } from '../_validation.js'
 import {
   type RecordSuggestionEventRequest,
@@ -45,7 +46,7 @@ export class SuggestionsResource {
    * @param options.pageSize - Maximum items per page (default 5, max 12).
    * @param options.pageToken - Opaque token from a previous page.
    * @param options.scopeId - Filter to a single scope.
-   * @param options.scopeIds - Filter to one or more scopes.
+   * @param options.scopeIds - Filter to one or more scopes. An empty list throws; omit it for every scope.
    * @returns A page of suggested questions.
    */
   list(options: {
@@ -56,6 +57,9 @@ export class SuggestionsResource {
   } = {}): Promise<Page<SuggestionQuestion>> {
     const pageSize = options.pageSize ?? DEFAULT_SUGGESTIONS_PAGE_SIZE
     validatePageSize(pageSize, MAX_SUGGESTIONS_PAGE_SIZE)
+    if (options.scopeIds?.length === 0) {
+      throw new ValidationError('scopeIds requires at least one id; omit it to list suggestions for every scope')
+    }
     return this.listPage(pageSize, options.pageToken, options.scopeId, options.scopeIds)
   }
 

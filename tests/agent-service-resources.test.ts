@@ -2,6 +2,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { createModusConfig } from '../src/_config.js'
 import { HttpClient } from '../src/_http.js'
 import { WorkflowsResource } from '../src/resources/workflows.js'
+import {
+  ConflictError,
+  ModusError,
+  NotFoundError,
+  PermissionDeniedError,
+  RateLimitError,
+} from '../src/_exceptions.js'
 
 const TEST_KEY = 'modus_test_key_agent_service'
 
@@ -16,6 +23,13 @@ function sseResponse(chunks: string[]): Response {
   return new Response(stream, {
     status: 200,
     headers: { 'Content-Type': 'text/event-stream' },
+  })
+}
+
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
   })
 }
 
@@ -145,6 +159,41 @@ describe('agent-service resources', () => {
     })
   })
 
+  it('resumes a dropped stream from the id of the last event it yielded', async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(sseResponse(['id: 7-0\ndata: {"type":"token","content":"a"}\n\n']))
+      .mockResolvedValueOnce(sseResponse(['id: 7-1\ndata: {"type":"done","runId":"run-123","threadId":"t"}\n\n']))
+    const workflows = resource(fetch)
+
+    let lastEventId: string | undefined
+    for await (const event of workflows.runs.stream('run-123')) lastEventId = event.id
+    const resumed = []
+    for await (const event of workflows.runs.stream('run-123', { lastEventId })) resumed.push(event)
+
+    expect(lastEventId).toBe('7-0')
+    expect(fetch.mock.calls[1]?.[1]).toMatchObject({
+      headers: expect.objectContaining({ 'Last-Event-ID': '7-0' }),
+    })
+    expect(resumed).toEqual([{ type: 'done', runId: 'run-123', threadId: 't', id: '7-1' }])
+  })
+
+  it('refuses a resume with nothing pending as a ConflictError before any event', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(409, {
+      error: {
+        code: 'CONFLICT',
+        status: 'ALREADY_EXISTS',
+        message: 'No write approval is pending for this conversation.',
+        requestId: 'req_1',
+      },
+    }))
+    const workflows = resource(fetch)
+    const run = workflows.runs.resume('run-123', { sessionId: 's1', decision: 'approve' })
+
+    await expect(async () => {
+      for await (const _event of run) { /* drain */ }
+    }).rejects.toMatchObject({ name: 'ConflictError', code: 'CONFLICT', requestId: 'req_1' })
+  })
+
   it('cancels agent runs through generated operation metadata', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
     const workflows = resource(fetch)
@@ -158,6 +207,94 @@ describe('agent-service resources', () => {
       method: 'POST',
       body: JSON.stringify({}),
     })
+  })
+
+  it('interrupts with the follow-up turn and returns the new run', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(202, { runId: 'run-steer', status: 'pending' }))
+    const workflows = resource(fetch)
+
+    const admitted = await workflows.runs.interrupt(
+      'run-123',
+      { message: 'Use EMEA only.', sessionId: 'session-1' },
+      { lastSeenEventId: '1717000000000-0' },
+    )
+
+    expect(admitted).toEqual({ runId: 'run-steer', status: 'pending' })
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      'http://localhost:3130/agent/v1/runs/run-123/interrupt',
+    )
+    const sent = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    expect(sent).toEqual({
+      nextRun: { message: 'Use EMEA only.', sessionId: 'session-1', runId: expect.any(String) },
+      lastSeenEventId: '1717000000000-0',
+    })
+    expect(sent.nextRun.runId).not.toBe('')
+  })
+
+  it('retries an interrupt with the same pinned run id, so a 5xx retry cannot start a second turn', async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(500, { error: { code: 'INTERNAL_ERROR', message: 'boom' } }))
+      .mockResolvedValueOnce(jsonResponse(202, { runId: 'run-steer', status: 'pending' }))
+    const config = createModusConfig({
+      apiKey: TEST_KEY,
+      maxRetries: 1,
+      baseUrls: { 'agent-service': 'http://localhost:3130' },
+      fetch,
+    })
+    const workflows = new WorkflowsResource(new HttpClient(config), config)
+
+    await workflows.runs.interrupt('run-123', { message: 'm', sessionId: 'session-1' })
+
+    expect(fetch).toHaveBeenCalledTimes(2)
+    const first = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    const second = JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))
+    expect(second.nextRun.runId).toBe(first.nextRun.runId)
+  })
+
+  it('keeps a caller-supplied nextRun.runId on interrupt', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(202, { runId: 'mine', status: 'pending' }))
+    await resource(fetch).runs.interrupt('run-123', { message: 'm', sessionId: 's', runId: 'mine' })
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)).nextRun.runId).toBe('mine')
+  })
+
+  it('edits a queued run with the replacement turn and returns the run', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse(200, { runId: 'run-q', status: 'queued' }))
+
+    const edited = await resource(fetch).runs.editQueued('run-q', { message: 'edited', sessionId: 'session-1' })
+
+    expect(edited).toEqual({ runId: 'run-q', status: 'queued' })
+    expect(String(fetch.mock.calls[0]?.[0])).toBe('http://localhost:3130/agent/v1/runs/run-q/queue-edit')
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      nextRun: { message: 'edited', sessionId: 'session-1' },
+    })
+  })
+
+  it.each([
+    ['interrupt', (w: WorkflowsResource) => w.runs.interrupt('run-1', { message: 'm', sessionId: ' ' })],
+    ['editQueued', (w: WorkflowsResource) => w.runs.editQueued('run-1', { message: 'm', sessionId: '' })],
+  ])('%s refuses a blank sessionId before sending anything', async (_name, call) => {
+    const fetch = vi.fn()
+    await expect(call(resource(fetch))).rejects.toThrow(/sessionId/)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('resumes with the decision and no message', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      sseResponse(['data: {"type":"done","runId":"run-c","threadId":"thread-1"}\n\n']),
+    )
+    const run = resource(fetch).runs.resume('run-1', { decision: 'approve', sessionId: 'session-1' })
+    for await (const _event of run.events) {
+      // consume stream
+    }
+    const sent = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    expect(sent).toMatchObject({ decision: 'approve', sessionId: 'session-1' })
+    expect(sent).not.toHaveProperty('message')
+  })
+
+  it('refuses a resume without a sessionId instead of minting one', () => {
+    const fetch = vi.fn()
+    expect(() => resource(fetch).runs.resume('run-1', { decision: 'approve', sessionId: ' ' })).toThrow(/sessionId/)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('lists active conversation runs through generated operation metadata', async () => {
@@ -264,5 +401,29 @@ describe('agent-service resources', () => {
       method: 'POST',
       headers: expect.objectContaining({ 'Idempotency-Key': 'wf-123' }),
     })
+  })
+
+  // agent-service admits a run before the first response byte, so a rejected
+  // stream POST is a plain HTTP error with the standard envelope (these are its bytes).
+  it.each([
+    [400, 'BAD_REQUEST', 'INVALID_ARGUMENT', 'Message, images, or documents required', ModusError],
+    [403, 'FORBIDDEN', 'PERMISSION_DENIED', 'Not a member of this organization', PermissionDeniedError],
+    [404, 'NOT_FOUND', 'NOT_FOUND', 'Scope 17 not found', NotFoundError],
+    [409, 'CONFLICT', 'ALREADY_EXISTS', 'Idempotency key run-1 conflicts with an existing run', ConflictError],
+    [429, 'RATE_LIMITED', 'RESOURCE_EXHAUSTED', 'Conversation has 20 non-terminal runs', RateLimitError],
+  ])('a run stream refused with %i raises the typed error before any event', async (status, code, canonical, message, errorClass) => {
+    const fetch = vi.fn().mockResolvedValue(
+      jsonResponse(status, { error: { code, status: canonical, message, requestId: 'req_admission' } }),
+    )
+    const run = resource(fetch).runs.createModus({ message: 'hi', sessionId: 'session-1' })
+
+    const events: unknown[] = []
+    const failure = await (async () => {
+      for await (const event of run.events) events.push(event)
+    })().catch((error: unknown) => error)
+
+    expect(failure).toBeInstanceOf(errorClass)
+    expect(failure).toMatchObject({ message, code })
+    expect(events).toEqual([])
   })
 })

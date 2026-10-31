@@ -1,8 +1,7 @@
 import { ScopesResourceBase } from '../_generated/resources/consumption/scopes.js'
-import { chatBuffered, chatStreamSession, type ChatStream } from '../_chat.js'
+import { startChat, type ChatOptions, type ChatSession } from '../_chat.js'
 import { invokeWithRetry, omitUndefined } from '../_request.js'
 import { validateId } from '../_validation.js'
-import type { ChatModel, ChatResult } from '../types/chat.js'
 import type { SkillContextComposition } from '../types/context-compose.js'
 import { ScopeConversationsResource } from './scopes/conversations.js'
 
@@ -14,7 +13,7 @@ import { ScopeConversationsResource } from './scopes/conversations.js'
  *
  * @example
  * ```ts
- * const scope = await client.scopes.get('revenue-analysis')
+ * const [scope] = (await client.scopes.list()).items
  * const result = await client.scopes.chat(scope.id, 'What is our ARR trend?', {
  *   model: 'claude-sonnet-5',
  * })
@@ -26,7 +25,7 @@ export class ScopesResource extends ScopesResourceBase {
   /**
    * Return the conversations sub-resource scoped to `scopeId`.
    *
-   * @param scopeId - Scope numeric id or slug.
+   * @param scopeId - Numeric scope id.
    * @returns Conversations resource for the scope.
    *
    * @example
@@ -46,9 +45,11 @@ export class ScopesResource extends ScopesResourceBase {
    * Compose context this scope would use for an intent, without running chat.
    *
    * Large bodies are bounded inline previews. This REST method does not expose file references
-   * or a full-content fetch operation.
+   * or a full-content fetch operation. Runs on the agent host, like `chat`, so a compose may take
+   * up to 90 seconds; keep `timeoutMs` above that. A compose still running at 90 seconds fails
+   * with `UPSTREAM_TIMEOUT` (504).
    *
-   * @param scopeId - Scope numeric id or slug.
+   * @param scopeId - Numeric scope id.
    * @param message - Natural-language intent used to select context.
    * @param options.limit - Maximum context items to return. Omit to return all selected items.
    * @returns Composed context text plus selection counts, item UIDs, and correlation session id.
@@ -67,7 +68,7 @@ export class ScopesResource extends ScopesResourceBase {
     options: { limit?: number } = {},
   ): Promise<SkillContextComposition> {
     validateId(scopeId, 'scope_id')
-    const data = await invokeWithRetry(this.config, this.http, 'ScopeContextController_compose', {
+    const data = await invokeWithRetry(this.config, this.http, 'ScopeContextComposeController_compose', {
       pathParams: { id: scopeId },
       jsonBody: omitUndefined({ message, limit: options.limit }),
     })
@@ -75,64 +76,32 @@ export class ScopesResource extends ScopesResourceBase {
   }
 
   /**
-   * Send a message to a published scope and wait for the complete reply.
+   * Chat with a published scope. The reply streams live from the agent host:
+   * iterate `textStream()` for tokens, or `await` the result for the final
+   * answer. Pass the returned `threadId` back to continue the conversation.
    *
    * For the org-wide assistant use `client.modus.chat` instead.
    *
-   * @param scopeId - Scope numeric id or slug (must be active for chat).
+   * @param scopeId - Numeric scope id (must be active for chat).
    * @param message - User message text.
-   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5.5"`).
    * @param options.threadId - Continue an existing conversation; omit to start new.
-   * @returns Chat result: `content`, `threadId`, `runId`.
+   * @returns A chat session — iterate it or `await` it for `content`, `threadId`, `runId`.
+   * @throws {ModusError} When no agent host is known for a custom `baseUrl`.
    *
    * @example
    * ```ts
-   * const result = await client.scopes.chat(scopeId, 'What is our ARR trend?', {
-   *   model: 'claude-sonnet-5',
-   * })
-   * console.log(result.content, result.threadId)
+   * const chat = client.scopes.chat(scopeId, 'What is our ARR trend?', { model: 'claude-sonnet-5.5' })
+   * for await (const token of chat.textStream()) process.stdout.write(token)
+   * const { threadId } = await chat
    * const follow = await client.scopes.chat(scopeId, 'Break that down by segment.', {
-   *   model: 'claude-sonnet-5',
-   *   threadId: result.threadId,
+   *   model: 'claude-sonnet-5.5',
+   *   threadId,
    * })
+   * console.log(follow.content)
    * ```
    */
-  chat(
-    scopeId: number | string,
-    message: string,
-    options: { model: ChatModel; threadId?: string },
-  ): Promise<ChatResult> {
-    return chatBuffered(this.http, 'scopes', scopeId, message, options)
-  }
-
-  /**
-   * Stream a scope reply token by token (SSE).
-   *
-   * The request starts when you consume `textStream()` or `eventStream()`.
-   *
-   * @param scopeId - Scope numeric id or slug.
-   * @param message - User message text.
-   * @param options.model - Required model id (e.g. `"claude-sonnet-5"`).
-   * @param options.threadId - Continue an existing conversation; omit to start new.
-   * @param options.version - `"published"` or `"draft"`.
-   * @returns Chat stream — iterate `textStream()` for tokens.
-   *
-   * @example
-   * ```ts
-   * const stream = client.scopes.chatStream(scopeId, 'Summarize in three bullets.', {
-   *   model: 'claude-sonnet-5',
-   * })
-   * for await (const token of stream.textStream()) {
-   *   process.stdout.write(token)
-   * }
-   * console.log(stream.getFinalResult().threadId)
-   * ```
-   */
-  chatStream(
-    scopeId: number | string,
-    message: string,
-    options: { model: ChatModel; threadId?: string; version?: string },
-  ): ChatStream {
-    return chatStreamSession(this.http, this.config, 'scopes', scopeId, message, options)
+  chat(scopeId: number | string, message: string, options: ChatOptions): ChatSession {
+    return startChat(this.http, this.config, { kind: 'scopes', id: scopeId }, message, options)
   }
 }

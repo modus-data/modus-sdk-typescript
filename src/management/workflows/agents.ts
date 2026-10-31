@@ -1,14 +1,10 @@
 import { WorkflowsResourceBase } from '../../_generated/resources/management/workflows.js'
 import type { OperationId } from '../../_generated/operations.js'
-import { updateMaskQuery } from '../../_query.js'
+import { updateBody, updateMaskQuery } from '../../_query.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId } from '../../_validation.js'
 import type { Workflow, WorkflowType } from '../../types/workflows.js'
 import type { VariationView } from '../../types/views.js'
-import {
-  accessConfigBodyForCreate,
-  accessConfigBodyForUpdate,
-} from '../_access-config.js'
 import { WorkflowInterfacesResource } from './interfaces.js'
 
 export type TriggerInput = Record<string, unknown>
@@ -55,7 +51,6 @@ export interface CreateWorkflowOptions {
   trigger?: TriggerInput
   agentSelection?: AgentSelectionInput
   workflowStructure?: WorkflowGraphInput
-  guardrails?: string[]
 }
 
 /** @deprecated Use `CreateWorkflowOptions` instead. */
@@ -68,7 +63,6 @@ export interface UpdateWorkflowOptions {
   trigger?: TriggerInput
   agentSelection?: AgentSelectionInput
   workflowStructure?: WorkflowGraphInput
-  guardrails?: string[]
   updateMask?: string
 }
 
@@ -81,13 +75,14 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
   /**
    * Retrieve a workflow with full configuration.
    *
-   * @param workflowId - Workflow id.
+   * @param workflowId - Numeric workflow id.
    * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
    * @returns The workflow.
    * @example
    * ```ts
    * const mgmt = new ModusManagement()
-   * const wf = await mgmt.workflows.get('weekly-digest')
+   * const [first] = (await mgmt.workflows.list()).items
+   * const wf = await mgmt.workflows.get(first.id)
    * console.log(wf.name, wf.status)
    * ```
    */
@@ -115,14 +110,13 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
    * Create a new workflow in the organization.
    *
    * @param options.name - Display name for the workflow.
-   * @param options.type - `"task"` for single-step orchestration, or `"workflow"` for a multi-step graph.
+   * @param options.type - `"workflow"`. `"task"` is a deprecated alias the server stores as `"workflow"`.
    * @param options.trigger - Optional trigger configuration.
-   * @param options.guardrails - Runtime guardrail labels (for example `"no-pii"`). Omit to create with no guardrails.
    * @returns The created workflow (draft).
    * @example
    * ```ts
    * const mgmt = new ModusManagement()
-   * const wf = await mgmt.workflows.create({ name: 'Daily report', type: 'task' })
+   * const wf = await mgmt.workflows.create({ name: 'Daily report', type: 'workflow' })
    * ```
    */
   async create(options: CreateWorkflowOptions): Promise<Workflow> {
@@ -133,7 +127,6 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
       trigger: options.trigger,
       agentSelection: options.agentSelection,
       workflowStructure: options.workflowStructure,
-      accessConfig: accessConfigBodyForCreate(options.guardrails),
     })
     const data = await invokeWithRetry(this.config, this.http, this.ops.create, {
       jsonBody: body,
@@ -145,10 +138,10 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
    * Update a workflow's configuration.
    *
    * Only the fields you pass are changed. To clear a field, name it in
-   * `updateMask` and leave its argument unset.
+   * `updateMask` and leave its argument unset: it is sent as `null`.
    *
-   * @param workflowId - Workflow id.
-   * @param options.guardrails - Guardrail labels to set. Fetches the current workflow first to merge. Pass `[]` to clear all.
+   * @param workflowId - Numeric workflow id.
+   * @param options.type - Only `"workflow"` is accepted; `"task"` is rejected with a 422.
    * @param options.updateMask - Comma-separated field names to update or clear.
    * @returns The updated workflow.
    * @example
@@ -159,13 +152,6 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
    */
   async update(workflowId: number | string, options: UpdateWorkflowOptions = {}): Promise<Workflow> {
     validateId(workflowId, 'workflow_id')
-    const accessConfig = await accessConfigBodyForUpdate(options.guardrails, async () =>
-      asRecord(
-        await invokeWithRetry(this.config, this.http, this.ops.get, {
-          pathParams: { id: workflowId },
-        }),
-      ),
-    )
     const fields = {
       name: options.name,
       type: options.type,
@@ -173,9 +159,8 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
       trigger: options.trigger,
       agentSelection: options.agentSelection,
       workflowStructure: options.workflowStructure,
-      accessConfig,
     }
-    const body = options.updateMask !== undefined ? fields : omitUndefined(fields)
+    const body = updateBody(fields, options.updateMask)
     const data = await invokeWithRetry(this.config, this.http, this.ops.update, {
       pathParams: { id: workflowId },
       query: updateMaskQuery(options.updateMask),

@@ -103,4 +103,47 @@ describe('parseSseStream', () => {
     expect(events[1]?.type).toBe('token')
     expect(events[2]?.type).toBe('done')
   })
+
+  it('stamps each event with the SSE id that precedes it', () => {
+    const events = [...parseSseStream(lines(
+      'id: 1761500000000-0',
+      'data: {"type":"token","content":"a"}',
+      'id: 1761500000000-1',
+      'data: {"type":"done","runId":"r1","threadId":"t1"}',
+    ))]
+    expect(events.map((e) => e.id)).toEqual(['1761500000000-0', '1761500000000-1'])
+  })
+
+  it('leaves id unset when the stream sends none', () => {
+    const [event] = [...parseSseStream(lines('data: {"type":"token","content":"a"}'))]
+    expect(event).toEqual({ type: 'token', content: 'a' })
+    expect(event && 'id' in event).toBe(false)
+  })
+
+  it('keeps the SSE id across lines of an async stream', async () => {
+    async function* source() {
+      yield 'id: 5-0'
+      yield 'data: {"type":"token","content":"x"}'
+    }
+    const events = []
+    for await (const event of parseSseStream(source())) events.push(event)
+    expect(events).toEqual([{ type: 'token', content: 'x', id: '5-0' }])
+  })
+
+  it('stamps an approval_required event with its SSE id', () => {
+    const events = [...parseSseStream(lines(
+      'id: 7-0',
+      'data: {"type":"approval_required","toolName":"send_email"}',
+    ))]
+    expect(events).toEqual([{ type: 'approval_required', toolName: 'send_email', id: '7-0' }])
+  })
+
+  it('carries the requestId of an error frame', () => {
+    const events = [...parseSseStream(lines(
+      'id: 9-0',
+      'data: {"type":"error","error":"boom","requestId":"req_abc"}',
+    ))]
+    expect(events).toEqual([{ type: 'error', message: 'boom', requestId: 'req_abc', id: '9-0' }])
+  })
 })
+

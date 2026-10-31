@@ -214,14 +214,19 @@ export class ContextItemsResource {
   }
 
   /**
-   * List values stored under a content key on a context item.
+   * Page through the elements of an array field inside one context item's content.
+   *
+   * Each row is `{ index, value }`: the element's position in the array and the
+   * element itself. A field that is not an array reads as one element; a missing
+   * field as none. Rejects with a not-found error when the item does not exist,
+   * you cannot read it, or its context type is not `contextType`.
    *
    * @param uid - Item uid.
    * @param contextType - Context type of the item.
-   * @param contentKeyPath - Dot path to the value field inside item content (e.g. `"enumValues"`).
-   * @param options.pageSize - Maximum items per page (default 25).
-   * @param options.pageToken - Opaque token from a previous page.
-   * @returns A page of value rows.
+   * @param contentKeyPath - Dot path to the array inside item content (e.g. `"enumValues"`).
+   * @param options.pageSize - Maximum elements per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page of the same item.
+   * @returns A page of `{ index, value }` rows.
    *
    * @example
    * ```ts
@@ -232,7 +237,7 @@ export class ContextItemsResource {
    *   'enumValues',
    *   { pageSize: 25 },
    * )
-   * for (const row of page.items) console.log(row)
+   * for (const row of page.items) console.log(row.index, row.value)
    * ```
    */
   listValues(
@@ -247,13 +252,13 @@ export class ContextItemsResource {
   }
 
   /**
-   * List values for a context item already loaded via {@link ContextItemsResource.list} or {@link ContextItemsResource.get}.
+   * Page through an array field of a context item already loaded via {@link ContextItemsResource.list} or {@link ContextItemsResource.get}.
    *
    * @param item - Context item (uses `item.uid` and `item.contextType`).
-   * @param contentKeyPath - Dot path to the value field inside item content.
-   * @param options.pageSize - Maximum items per page (default 25).
-   * @param options.pageToken - Opaque token from a previous page.
-   * @returns A page of value rows.
+   * @param contentKeyPath - Dot path to the array inside item content.
+   * @param options.pageSize - Maximum elements per page (default 25).
+   * @param options.pageToken - Opaque token from a previous page of the same item.
+   * @returns A page of `{ index, value }` rows.
    *
    * @example
    * ```ts

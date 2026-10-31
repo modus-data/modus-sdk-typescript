@@ -1,6 +1,6 @@
 import { ScopesResourceBase } from '../../_generated/resources/management/scopes.js'
 import type { OperationId } from '../../_generated/operations.js'
-import { updateMaskQuery } from '../../_query.js'
+import { updateBody, updateMaskQuery } from '../../_query.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId } from '../../_validation.js'
 import { ScopeConversationsResource } from '../../resources/scopes/conversations.js'
@@ -9,6 +9,7 @@ import {
   accessConfigBodyForCreate,
   accessConfigBodyForUpdate,
 } from '../_access-config.js'
+import type { components } from '../../_generated/v1.js'
 import type { JsonObjectListInput } from '../types/json-blob.js'
 import type { ToolsetInput } from '../types/toolset.js'
 import { ScopeMemoriesResource } from './memories.js'
@@ -31,6 +32,9 @@ interface ManagementScopesOperations {
   readonly patchMcpConfig: OperationId
   readonly getVariation: OperationId
 }
+
+/** A connectionSet row from `scopes.get`, or a plain `{ connection_id, preferences }` object. */
+type ConnectionSetRowInput = components['schemas']['ConnectionSetItemDto']
 
 const MANAGEMENT_SCOPE_OPERATIONS: ManagementScopesOperations = {
   list: 'ScopesController_list',
@@ -58,7 +62,7 @@ export interface CreateScopeOptions {
   instructions?: string[]
   toolset?: ToolsetInput
   model?: string
-  connectionSet?: JsonObjectListInput
+  connectionSet?: ReadonlyArray<ConnectionSetRowInput>
   contextSelections?: JsonObjectListInput
   includeOwnLearnings?: boolean
   interfaces?: JsonObjectListInput
@@ -75,11 +79,12 @@ export interface UpdateScopeOptions {
   instructions?: string[]
   toolset?: ToolsetInput
   model?: string
-  connectionSet?: JsonObjectListInput
+  connectionSet?: ReadonlyArray<ConnectionSetRowInput>
   contextSelections?: JsonObjectListInput
   interfaces?: JsonObjectListInput
   guardrails?: string[]
-  managerId?: string
+  /** Numeric id of the manager scope, or `null` to detach from the current manager. */
+  managerId?: number | null
   evaluations?: JsonObjectListInput
   supervisionSubordinateDescriptions?: Record<string, string>
   updateMask?: string
@@ -188,10 +193,13 @@ export class ManagementScopesResource extends ScopesResourceBase {
    * Update a scope's configuration.
    *
    * Only the fields you pass are changed. To clear a field, name it in
-   * `updateMask` (comma-separated field names) and leave its argument unset.
+   * `updateMask` (comma-separated field names) and leave its argument unset:
+   * it is sent as `null`.
    *
-   * @param scopeId - Scope id.
+   * @param scopeId - Numeric scope id.
    * @param options.guardrails - Guardrail labels to set. Fetches the current scope first to merge. Pass `[]` to clear all.
+   * @param options.managerId - Numeric id of the manager scope to move this scope under, or `null`
+   *   to detach it. Send it alone: the server rejects it combined with other fields.
    * @param options.updateMask - Comma-separated field names to update or clear.
    * @returns The updated scope.
    * @example
@@ -226,8 +234,7 @@ export class ManagementScopesResource extends ScopesResourceBase {
       evaluations: options.evaluations,
       supervisionSubordinateDescriptions: options.supervisionSubordinateDescriptions,
     }
-    const body =
-      options.updateMask !== undefined ? fields : omitUndefined(fields)
+    const body = updateBody(fields, options.updateMask)
     const data = await invokeWithRetry(this.config, this.http, this.ops.update, {
       pathParams: { id: scopeId },
       query: updateMaskQuery(options.updateMask),
@@ -262,6 +269,10 @@ export class ManagementScopesResource extends ScopesResourceBase {
 
   /**
    * Start transferring ownership of a scope to another organization member.
+   *
+   * The current owner calls this, and the recipient accepts. A scope with no owner (one
+   * created with a service-account token) can be given one by an organization owner;
+   * assigning yourself takes effect at once.
    *
    * @param scopeId - Scope id.
    * @param options.newOwnerUserId - User id of the proposed new owner.

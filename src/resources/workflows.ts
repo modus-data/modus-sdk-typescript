@@ -1,6 +1,7 @@
 import { WorkflowsResourceBase } from '../_generated/resources/consumption/workflows.js'
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
+import { startChat, type ChatOptions, type ChatSession } from '../_chat.js'
 import { invokeWithRetry } from '../_request.js'
 import { validateId } from '../_validation.js'
 import type { Workflow } from '../types/workflows.js'
@@ -16,6 +17,7 @@ function parseWorkflow(raw: unknown): Workflow {
  * Read and run access to Modus workflows.
  *
  * - `list` / `get` — browse workflows (`view: 'active'` or `'draft'`)
+ * - `chat` — send a workflow a message and stream its reply
  * - {@link WorkflowRunsResource runs} — start, monitor, and control workflow runs
  * - {@link AgentWorkflowActionsResource workflowActions} — execute workflow actions
  *
@@ -43,17 +45,18 @@ export class WorkflowsResource extends WorkflowsResourceBase {
   }
 
   /**
-   * Retrieve a workflow by ID or slug.
+   * Retrieve a workflow by its numeric id.
    *
-   * @param workflowId - Numeric id or slug.
+   * @param workflowId - Numeric workflow id.
    * @param options.view - Which saved version to return (`active` or `draft`).
    * @param options.includeVariation - Include variation metadata when supported.
    * @returns The workflow (`id`, `name`, `status`, …).
-   * @throws {NotFoundError} When no workflow matches the id or slug.
+   * @throws {NotFoundError} When no workflow has this id.
    *
    * @example
    * ```ts
-   * const wf = await client.workflows.get('weekly-digest')
+   * const [first] = (await client.workflows.list()).items
+   * const wf = await client.workflows.get(first.id)
    * console.log(wf.name, wf.status)
    * ```
    */
@@ -72,5 +75,29 @@ export class WorkflowsResource extends WorkflowsResourceBase {
       query: Object.keys(query).length > 0 ? query : undefined,
     })
     return parseWorkflow(data)
+  }
+
+  /**
+   * Chat with a published workflow. Node output streams live from the agent
+   * host: iterate `textStream()` for tokens, or `await` the result for the
+   * workflow's final output.
+   *
+   * @param workflowId - Numeric workflow id.
+   * @param message - User message text.
+   * @param options.model - Required model id (e.g. `"claude-sonnet-5.5"`).
+   * @param options.threadId - Continue an existing conversation; omit to start new.
+   * @returns A chat session — iterate it or `await` it for `content`, `threadId`, `runId`.
+   * @throws {ModusError} When no agent host is known for a custom `baseUrl`.
+   *
+   * @example
+   * ```ts
+   * const { content } = await client.workflows.chat(workflowId, 'Run this week\'s digest', {
+   *   model: 'claude-sonnet-5.5',
+   * })
+   * console.log(content)
+   * ```
+   */
+  chat(workflowId: number | string, message: string, options: ChatOptions): ChatSession {
+    return startChat(this.http, this.config, { kind: 'workflows', id: workflowId }, message, options)
   }
 }

@@ -1,6 +1,8 @@
+import { ValidationError } from './_exceptions.js'
 import { resolveServiceBaseUrl } from './_config.js'
 import { OPERATIONS, type OperationId, type OperationSpec } from './_generated/operations.js'
 import type { HttpClient } from './_http.js'
+import { validateId } from './_validation.js'
 
 export function getOperation(operationId: string): OperationSpec {
   if (!(operationId in OPERATIONS)) {
@@ -18,9 +20,11 @@ function formatPath(template: string, pathParams: Record<string, unknown>): stri
       if (!segment.startsWith('{') || !segment.endsWith('}')) return segment
       const key = segment.slice(1, -1)
       if (!(key in pathParams)) {
-        throw new Error(`Missing path parameter ${JSON.stringify(key)} for ${JSON.stringify(template)}`)
+        throw new ValidationError(`Missing path parameter ${JSON.stringify(key)} for ${JSON.stringify(template)}`)
       }
-      return encodeURIComponent(String(pathParams[key]))
+      const value = String(pathParams[key])
+      validateId(value, key)
+      return encodeURIComponent(value)
     })
     .join('/')
 }
@@ -66,7 +70,7 @@ export async function invokeOperation(
     case 'GET':
       return http.get(path, params, requestOptions)
     case 'POST':
-      return http.post(path, options.jsonBody, requestOptions)
+      return http.post(path, options.jsonBody, { ...requestOptions, idempotent: op.idempotent })
     case 'PUT':
       return http.put(path, options.jsonBody, requestOptions)
     case 'PATCH':

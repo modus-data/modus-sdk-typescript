@@ -1,4 +1,4 @@
-import { ModusError } from './_exceptions.js'
+import { ModusError, ValidationError } from './_exceptions.js'
 
 /**
  * A single page of results from a paginated list call.
@@ -38,11 +38,11 @@ export class Page<T> {
    * Fetch the next page using {@link Page.nextPageToken}.
    *
    * @returns The following page of results.
-   * @throws {Error} When there is no next page. Check {@link Page.hasNextPage} first.
+   * @throws {ValidationError} When there is no next page. Check {@link Page.hasNextPage} first.
    */
   async getNextPage(): Promise<Page<T>> {
     if (this.nextPageToken === undefined) {
-      throw new Error(
+      throw new ValidationError(
         'No next page available. Check hasNextPage() before calling getNextPage().',
       )
     }

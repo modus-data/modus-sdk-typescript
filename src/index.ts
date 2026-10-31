@@ -9,6 +9,7 @@ export { OPERATIONS } from './_generated/operations.js'
 export {
   APIConnectionError,
   AuthenticationError,
+  BadRequestError,
   ConflictError,
   InternalServerError,
   ModusError,
@@ -21,7 +22,8 @@ export {
   ValidationError,
 } from './_exceptions.js'
 
-export { ChatStream } from './_chat.js'
+export { ChatSession } from './_chat.js'
+export type { ChatOptions } from './_chat.js'
 export { Page } from './_pagination.js'
 export type {
   AssistantContentResetEvent,
@@ -29,10 +31,12 @@ export type {
   DoneEvent,
   ErrorEvent,
   RunEvent,
+  ApprovalRequiredEvent,
+  RunEventBase,
   StreamTimeoutEvent,
   TokenEvent,
 } from './types/runs.js'
-export type { ChatModel, ChatRequest, ChatResult } from './types/chat.js'
+export type { ChatModel, ChatResult } from './types/chat.js'
 export type { ModusOptions } from './_config.js'
 export type { Scope, ScopeStatus, ScopeVariation, Skill, SkillStatus, SkillVariation } from './types/scopes.js'
 export type { Workflow, Agent } from './types/workflows.js'
@@ -45,9 +49,11 @@ export type {
   CancelRunRequest,
   CreateAgentRunRequest,
   EditQueuedRunRequest,
+  FollowUpRunRequest,
   InterruptRunRequest,
   ModusRunCreateRequest,
   ResumeRunRequest,
+  RunAdmission,
   RunStatus,
   RunTimeframe,
   SkillRunCreateRequest,
@@ -69,6 +75,8 @@ export type {
   ContextItemDeletion,
   ContextItemLookupRow,
   ContextItemMove,
+  ContextItemAccessUpdate,
+  UpdateContextItemAccessInput,
   ContextType,
 } from './types/context.js'
 export type { ContextValueRow } from './types/context-values.js'

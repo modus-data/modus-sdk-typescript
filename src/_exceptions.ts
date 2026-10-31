@@ -6,10 +6,22 @@
  */
 export class ModusError extends Error {
   readonly statusCode?: number
+  /** The `requestId` of the error envelope (or the `x-request-id` header); quote it to support. */
   readonly requestId?: string
   readonly responseHeaders?: Record<string, string>
   readonly body?: string
+  /** Machine-readable error code from the envelope, e.g. `NOT_FOUND`, `VALIDATION`. */
   readonly code?: string
+  /** Structured detail from the envelope, e.g. `{ missing: ['scopes:write'] }` on a 403. */
+  readonly info?: Record<string, unknown>
+  /**
+   * Whether the SDK's retry rule allows re-sending this call. True for a 429 whose
+   * `Retry-After` is absent or at most 60 s, and for a connection that never opened. For
+   * 408, 500, 502, 503, 504, a dropped connection or a timeout: true on GET, PUT, PATCH and
+   * DELETE and on POSTs that only read or set a state, false on any other POST, which may
+   * already have run. The SDK already retried a retryable error up to `maxRetries` times.
+   */
+  readonly retryable: boolean
 
   constructor(
     message: string,
@@ -19,6 +31,8 @@ export class ModusError extends Error {
       responseHeaders?: Record<string, string>
       body?: string
       code?: string
+      info?: Record<string, unknown>
+      retryable?: boolean
     } = {},
   ) {
     super(message)
@@ -29,6 +43,8 @@ export class ModusError extends Error {
     this.responseHeaders = options.responseHeaders
     this.body = options.body
     this.code = options.code
+    this.info = options.info
+    this.retryable = options.retryable ?? false
   }
 }
 
@@ -37,9 +53,21 @@ export class ModusError extends Error {
  * automatic retries are exhausted.
  */
 export class APIConnectionError extends ModusError {
-  constructor(message: string) {
-    super(message)
+  constructor(message: string, options: { retryable?: boolean } = {}) {
+    super(message, options)
     this.name = 'APIConnectionError'
+  }
+}
+
+/**
+ * The request was malformed (HTTP 400): a parameter or body field failed schema
+ * validation, an unknown property was sent, or an id was not a number. `message`
+ * names the field.
+ */
+export class BadRequestError extends ModusError {
+  constructor(message: string, options: ConstructorParameters<typeof ModusError>[1] = {}) {
+    super(message, { ...options, statusCode: 400 })
+    this.name = 'BadRequestError'
   }
 }
 
@@ -89,9 +117,12 @@ export class ConflictError extends ModusError {
 }
 
 /**
- * Request validation failed (HTTP 422).
+ * The request was well-formed but failed a business rule (HTTP 422, `code: VALIDATION`),
+ * for example a toolset rule or a disallowed file type. Schema failures are
+ * {@link BadRequestError} (400) instead.
  *
- * Inspect `errors` when present for field-level details.
+ * `info` carries the rule detail when the server sends one (e.g. `info.violations`);
+ * `errors` is the whole parsed error envelope.
  */
 export class UnprocessableError extends ModusError {
   readonly errors?: unknown
@@ -109,7 +140,9 @@ export class UnprocessableError extends ModusError {
 /**
  * Too many requests (HTTP 429).
  *
- * When present, `retryAfter` is the suggested wait in seconds.
+ * When present, `retryAfter` is the server's requested wait in whole seconds (from
+ * `retry-after-ms`, or `Retry-After` as seconds or an HTTP date). The SDK waits it out
+ * and retries when it is 60 s or less; a longer wait is thrown at once.
  */
 export class RateLimitError extends ModusError {
   readonly retryAfter?: number

@@ -1,5 +1,5 @@
 import { ScopesInterfacesResourceBase } from '../../_generated/resources/management/scopes/interfaces.js'
-import { updateMaskQuery } from '../../_query.js'
+import { updateBody, updateMaskQuery } from '../../_query.js'
 import { invokeWithRetry, omitUndefined } from '../../_request.js'
 import { validateId } from '../../_validation.js'
 import type { components } from '../../_generated/v1.js'
@@ -38,7 +38,7 @@ export class ScopeInterfacesResource extends ScopesInterfacesResourceBase {
     return await invokeWithRetry(this.config, this.http, 'ScopeInterfacesController_update', {
       pathParams: { id: this.scopeId, interfaceId },
       query: updateMaskQuery(updateMask),
-      jsonBody: updateMask === undefined ? omitUndefined(options) : options,
+      jsonBody: updateBody(options, updateMask),
     }) as ScopeInterface
   }
 }

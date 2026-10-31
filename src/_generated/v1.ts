@@ -65,7 +65,7 @@ export interface paths {
         put?: never;
         /**
          * Create a custom context item
-         * @description Creates a customer-owned context item for internal systems or custom databases. Supply `idempotencyKey` to make repeated creates update the same item.
+         * @description Creates a customer-owned context item for internal or custom systems; delete and re-create an item to change its `access`. With an `idempotencyKey`, a repeat updates the item only when you can read it and the requested `access` matches, otherwise it returns `409 CONFLICT` and writes nothing.
          *
          *     **Requires:** `context:write`
          */
@@ -87,7 +87,7 @@ export interface paths {
         put?: never;
         /**
          * Create custom context items
-         * @description Creates or updates a batch of customer-owned custom context items. Batch imports are idempotent by source, collection, entity, and field identifiers.
+         * @description Creates or updates custom context items, idempotent by source, collection, entity and field identifiers. A match you cannot read, or whose requested `access` differs, returns `409 CONFLICT`; items are written in order and not in one transaction, so earlier items stay written.
          *
          *     **Requires:** `context:write`
          */
@@ -171,7 +171,7 @@ export interface paths {
         put?: never;
         /**
          * Create a dashboard
-         * @description Creates a dashboard draft with the given title, definition and access settings. Returns the draft view.
+         * @description Creates a dashboard draft with the given title, definition and access settings and returns the draft view. A service-account token cannot create one (403), because a dashboard needs an owner; use a personal access token.
          *
          *     **Requires:** `context:write`
          */
@@ -746,6 +746,28 @@ export interface paths {
         patch: operations["ContextItemsController_update"];
         trace?: never;
     };
+    "/api/v1/context/items/{uid}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update context item access
+         * @description Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.
+         *
+         *     **Requires:** `context:write`
+         */
+        patch: operations["ContextItemAccessController_updateAccess"];
+        trace?: never;
+    };
     "/api/v1/context/items/{uid}/move": {
         parameters: {
             query?: never;
@@ -777,7 +799,7 @@ export interface paths {
         };
         /**
          * List a context item’s values
-         * @description Returns a page of values from the item’s `content` at the given `contentKeyPath` — useful for paging through array-valued fields. Pass `nextPageToken` as `pageToken` to fetch the next page.
+         * @description Pages the elements of the array at `contentKeyPath` in one item’s `content`, as `{ index, value }` rows. A non-array field reads as one element. Returns 404 if the item does not exist, you cannot access it, or its type is not `contextType`. Pass `nextPageToken` as `pageToken` for the next page.
          *
          *     **Requires:** `context:read`
          */
@@ -801,7 +823,7 @@ export interface paths {
         put?: never;
         /**
          * Create a link context item
-         * @description Invokes the Tavily access Lambda to extract content from the supplied URL (single-page) or crawl up to `pageLimit` pages when `isCrawl` is true. The extracted markdown is stored in tenant S3; only metadata is kept on the context_items row.
+         * @description Extracts the content of the page at `url` and stores it as a link context item. When `isCrawl` is true it instead runs a web search for the URL and stores up to `pageLimit` results, which may come from other sites; this is not a crawl of the site.
          *
          *     **Requires:** `context:write`
          */
@@ -878,28 +900,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/modus/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Chat with Modus
-         * @description Starts a new conversation with Modus — your org-wide assistant with access to all context and tools. Returns `threadId` for follow-up via POST …/conversations/{threadId}/chat. Requires `model`.
-         *
-         *     **Requires:** `scopes:invoke`
-         */
-        post: operations["ModusChatController_chat"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/modus/context": {
         parameters: {
             query?: never;
@@ -910,8 +910,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Compose Modus context
-         * @description Runs the org-wide context composer for the supplied message without invoking the LLM. Returns composed context text for inspection or downstream use.
+         * Compose Modus context (deprecated)
+         * @deprecated
+         * @description Deprecated: use `POST /agent/v1/modus/context` on `https://agent.getmodus.com` instead, with the same body; it allows 90 s, then 504 `UPSTREAM_TIMEOUT`. This endpoint returns 503 after 30 s. Runs the org-wide context composer for the supplied message without invoking the LLM and returns the composed context text.
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -966,28 +967,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/modus/conversations/{threadId}/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Continue a Modus conversation
-         * @description Sends a message in an existing Modus conversation. `threadId` is the path parameter from a prior chat response.
-         *
-         *     **Requires:** `scopes:invoke`
-         */
-        post: operations["ModusChatController_chatContinue"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/scopes": {
         parameters: {
             query?: never;
@@ -1005,7 +984,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a scope (owned by you) and returns it in draft state. Defaults to org-shared `use` + `manage` access. The scope reads its own learnings unless `includeOwnLearnings` is false. Call POST /scopes/{id}/deploy to publish it. List the units with `GET /connections/{id}/selections`.
+         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1034,7 +1013,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a scope
-         * @description Deletes a scope. The scope can be restored later with POST /scopes/{id}/restore. Deleting an already-deleted scope is a no-op.
+         * @description Deletes a scope. The scope can be restored later with POST /scopes/{id}/restore. Returns 404 if the scope does not exist or is already deleted.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1043,33 +1022,11 @@ export interface paths {
         head?: never;
         /**
          * Update a scope
-         * @description Updates the scope’s draft. Use `updateMask` to limit which fields change. Send `managerId` on its own to move the scope under a new manager (or `null` to detach); it cannot be combined with other fields. Updates that would revoke your own access are rejected. List the units with `GET /connections/{id}/selections`.
+         * @description Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated. Lists replace the stored list. Cannot remove your own access.
          *
          *     **Requires:** `scopes:write`
          */
         patch: operations["ScopesController_update"];
-        trace?: never;
-    };
-    "/api/v1/scopes/{id}/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Chat with a scope
-         * @description Starts a new conversation with a published scope supervisor. Returns `threadId` for follow-up via POST …/conversations/{threadId}/chat. Requires `model`.
-         *
-         *     **Requires:** `scopes:invoke`
-         */
-        post: operations["ScopeChatController_chat"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/scopes/{id}/context": {
@@ -1082,8 +1039,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Compose scope context
-         * @description Composes the published scope context for a user intent without invoking the LLM. Returns composed text with bounded inline previews; REST has no full-file read operation and requires `scopes:invoke` plus `use` access.
+         * Compose scope context (deprecated)
+         * @deprecated
+         * @description Deprecated: use `POST /agent/v1/scopes/{id}/context` on `https://agent.getmodus.com` instead, with the same body; it allows 90 s, then 504 `UPSTREAM_TIMEOUT`. This endpoint returns 503 after 30 s. Composes the published scope context for a user intent without invoking the LLM, for a caller with `use` access.
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -1138,28 +1096,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scopes/{id}/conversations/{threadId}/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Continue a scope conversation
-         * @description Sends a message in an existing scope conversation. `threadId` is the path parameter from a prior chat response.
-         *
-         *     **Requires:** `scopes:invoke`
-         */
-        post: operations["ScopeChatController_chatContinue"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/scopes/{id}/deploy": {
         parameters: {
             query?: never;
@@ -1180,6 +1116,56 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/evaluations/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add an evaluation case
+         * @description Adds one evaluation case to the scope draft and returns the stored case. Omit id and one is assigned. An id that is already on the list is rejected.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["ScopesController_addEvaluationCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/evaluations/cases/{caseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an evaluation case
+         * @description Removes one evaluation case from the scope draft. The other cases on the list stay as they are.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        delete: operations["ScopesController_deleteEvaluationCase"];
+        options?: never;
+        head?: never;
+        /**
+         * Update an evaluation case
+         * @description Changes the task, the expected output, or both, for one evaluation case on the scope draft and returns the case. Fields you omit stay as they are; a body with neither field is rejected.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        patch: operations["ScopesController_updateEvaluationCase"];
         trace?: never;
     };
     "/api/v1/scopes/{id}/evaluations/config": {
@@ -1394,7 +1380,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a memory
-         * @description Deletes one memory. Deleting an already-deleted memory is a no-op.
+         * @description Deletes one memory. Returns 404 if the memory does not exist or is already deleted.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1493,14 +1479,14 @@ export interface paths {
         put?: never;
         /**
          * Request ownership transfer
-         * @description Requests ownership transfer to another organization member. Only the current owner may invoke this action. The recipient must accept before ownership changes.
+         * @description Asks another organization member to take ownership; nothing changes until they accept. The current owner may call this, or, for a scope with no owner, an organization owner, whose assignment of themselves takes effect at once.
          *
          *     **Requires:** `scopes:write`
          */
         post: operations["ScopesController_requestOwnershipTransfer"];
         /**
          * Cancel ownership transfer
-         * @description Cancels a pending ownership transfer. The current owner may cancel; the pending recipient may decline.
+         * @description Cancels a pending ownership transfer. The current owner may cancel, the pending recipient may decline, and for a scope with no owner an organization owner may cancel.
          *
          *     **Requires:** `scopes:write`
          */
@@ -1745,7 +1731,7 @@ export interface paths {
         };
         /**
          * Get a workflow
-         * @description Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Returns 404 if you cannot access the workflow.
+         * @description Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.
          *
          *     **Requires:** `workflows:read`
          */
@@ -1754,7 +1740,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a workflow
-         * @description Deletes a workflow and stops its schedule. The workflow can be restored later with POST /workflows/{id}/restore. Deleting an already-deleted workflow is a no-op.
+         * @description Deletes a workflow and stops its schedule. The workflow can be restored later with POST /workflows/{id}/restore. Returns 404 if the workflow does not exist or is already deleted.
          *
          *     **Requires:** `workflows:write`
          */
@@ -1781,7 +1767,7 @@ export interface paths {
         put?: never;
         /**
          * Deploy a workflow
-         * @description Publishes the workflow’s latest draft as the active version. The first deploy enables the workflow’s schedule; later deploys keep its enabled state. Returns the published workflow and a `deployedAt` timestamp. Returns `422` when an action node is unconfigured; `info.invalidNodes` names each node and field.
+         * @description Publishes the latest draft as the active version and returns it with `deployedAt`; the first deploy enables the schedule. Returns `422` for an unconfigured action node (see `info.invalidNodes`) and `409` when it would enable a schedule on a workflow with no owner.
          *
          *     **Requires:** `workflows:write`
          */
@@ -1801,7 +1787,7 @@ export interface paths {
         };
         /**
          * List interfaces attached to a workflow
-         * @description Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission on the workflow.
+         * @description Returns every Slack, MCP, or Teams interface bound to the workflow. Requires manage permission on the workflow: returns 403 if you can only use it, and 404 if you cannot access it.
          *
          *     **Requires:** `workflows:read`
          */
@@ -1931,7 +1917,7 @@ export interface paths {
         put?: never;
         /**
          * Enable or disable the workflow schedule
-         * @description Flips the `isEnabled` flag for a deployed workflow. Enabling an unpublished workflow is rejected (422) — call POST /api/v1/workflows/{id}/deploy first. Schedule create/delete side effects run best-effort after the flag changes.
+         * @description Turns a workflow on or off; enabling a never-deployed workflow deploys its draft first. Enabling a schedule needs an owner (409 otherwise) and leaves the workflow off if the schedule cannot be created.
          *
          *     **Requires:** `workflows:write`
          */
@@ -1992,6 +1978,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agent/v1/modus/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compose Modus context
+         * @description Runs the org-wide context composer for the supplied message without invoking the LLM and returns the composed context text. A compose can take up to 90 seconds, so keep the client timeout above that.
+         *
+         *     **Requires:** `scopes:invoke`
+         */
+        post: operations["ModusContextComposeController_compose"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/agent/v1/modus/runs": {
         parameters: {
             query?: never;
@@ -2002,10 +2010,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run the Modus agent
-         * @description Starts a streaming run of the Modus home agent (all scopes available) and returns Server-Sent Events. Send Accept: application/json for the polling transport.
+         * Chat with Modus
+         * @description Sends a message to Modus, the org-wide assistant, and streams the reply as Server-Sent Events. Reuse `sessionId` to continue. The final `done` event carries the answer in `content`; after `approval_required` it holds the turn so far, and POST /agent/v1/runs/{runId}/resume approves or denies. Send Accept: application/json to poll instead. With an API token, `sessionId` must be new or a conversation your user took part in.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["ModusRunsController_create"];
         delete?: never;
@@ -2069,9 +2077,9 @@ export interface paths {
         put?: never;
         /**
          * Cancel a run
-         * @description Idempotently cancel an in-flight or queued run. The owning replica aborts the run and a terminal `cancelled` event lands on any watching SSE stream.
+         * @description Idempotently cancel an in-flight or queued run. The owning replica aborts the run and a terminal `cancelled` event lands on any watching SSE stream. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["RunLifecycleController_cancel"];
         delete?: never;
@@ -2091,7 +2099,7 @@ export interface paths {
          * Poll run events
          * @description Long-poll buffered run events for a run as JSON — the non-SSE transport. Replays from the `Last-Event-ID` header cursor (or offset 0 if absent), then waits briefly for new events before returning.
          *
-         *     **Requires:** `workflows:read`
+         *     **Requires:** one of `scopes:invoke`, `workflows:read`
          */
         get: operations["RunLifecycleController_events"];
         put?: never;
@@ -2113,9 +2121,9 @@ export interface paths {
         put?: never;
         /**
          * Interrupt an active run
-         * @description Interrupts an in-flight run with a follow-up message. The current turn is superseded and a new run turn starts from the supplied payload.
+         * @description Supersedes the current turn with a follow-up message: a new run starts from `nextRun`. On a finished run it just starts the follow-up turn. Returns the new run; stream it with GET /runs/{runId}/stream. Set `nextRun.runId` so a retry returns the same run. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["RunLifecycleController_interrupt"];
         delete?: never;
@@ -2135,9 +2143,9 @@ export interface paths {
         put?: never;
         /**
          * Edit a queued run
-         * @description Replace the payload of a run that is still queued (not yet started). Returns the run id and its current status.
+         * @description Replace the payload of a run that is still queued (not yet started). Returns the run id and its current status. A token with only `scopes:invoke` controls only its own scope and Modus chat runs.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["RunLifecycleController_editQueued"];
         delete?: never;
@@ -2159,7 +2167,7 @@ export interface paths {
          * Resume a run
          * @description Resumes an interrupted run (approval or connect interrupt) as a new turn on the same conversation. Returns Server-Sent Events. Send Accept: application/json for the polling transport.
          *
-         *     **Requires:** `workflows:invoke`
+         *     **Requires:** one of `scopes:invoke`, `workflows:invoke`
          */
         post: operations["ResumeRunsController_create"];
         delete?: never;
@@ -2181,11 +2189,33 @@ export interface paths {
          *
          *     Supports multi-device watching: multiple simultaneous connections to the same `runId` all receive the same event sequence from the shared Redis Stream.
          *
-         *     **Requires:** `workflows:read`
+         *     **Requires:** one of `scopes:invoke`, `workflows:read`
          */
         get: operations["RunLifecycleController_stream"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/v1/scopes/{id}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compose scope context
+         * @description Composes the published scope context for a user intent without invoking the LLM, as bounded inline previews, for a caller with `use` access. A compose can take up to 90 seconds, so keep the client timeout above that.
+         *
+         *     **Requires:** `scopes:invoke`
+         */
+        post: operations["ScopeContextComposeController_compose"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2202,8 +2232,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run a scope
-         * @description Starts a streaming run of a scope and returns Server-Sent Events. Send Accept: application/json for the polling transport.
+         * Chat with a scope
+         * @description Sends a message to a published scope and streams the reply as Server-Sent Events. Reuse `sessionId` to continue the conversation. The final `done` event carries the answer in `content`. Send Accept: application/json to poll instead of streaming. API tokens cannot run a draft (`version: draft`).
          *
          *     **Requires:** `scopes:invoke`
          */
@@ -2268,8 +2298,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Run a workflow
-         * @description Starts a streaming run of a workflow and returns Server-Sent Events. Send Accept: application/json for the polling transport.
+         * Chat with a workflow
+         * @description Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.
          *
          *     **Requires:** `workflows:invoke`
          */
@@ -2403,7 +2433,7 @@ export interface components {
              */
             ownerEmail?: string | null;
         };
-        AgentDashboardAlertDto: {
+        AgentDashboardAlertResponseDto: {
             /**
              * @description Id of the dashboard whose KPI alert generated this workflow.
              * @example dash_01j9z3k2
@@ -2414,7 +2444,7 @@ export interface components {
              * @example tile_revenue
              */
             tileId: string;
-        };
+        } | null;
         AgentDeployResponseDto: {
             /** @description The workflow after the deploy. `hasUnpublishedChanges` is false and `activeVariationId` matches the newly-published variation. */
             workflow: components["schemas"]["WorkflowDto"];
@@ -2458,8 +2488,10 @@ export interface components {
              */
             name: string;
             /**
-             * @description Interface-type-specific configuration (e.g. webhook url, MCP token references). Free-form JSONB.
-             * @example {}
+             * @description Shape depends on `type`. Chat interfaces use optional `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. `mcp` uses an empty object.
+             * @example {
+             *       "accessMode": "allow-org"
+             *     }
              */
             config: {
                 [key: string]: unknown;
@@ -2485,7 +2517,7 @@ export interface components {
             model?: string;
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
-            /** @description Ordered list of scopes to invoke. Must contain at least one entry. */
+            /** @description Ordered list of scopes to invoke. Writes must contain at least one entry; a GET response may contain an empty list when the selection is cleared. */
             agents: components["schemas"]["AgentSelectionEntryDto"][];
         };
         AgentSelectionEntryDto: {
@@ -2512,6 +2544,14 @@ export interface components {
             /** @description Optional allowlist of tools the step may call. */
             tool_restrictions?: string[];
         };
+        AgentSelectionResponseDto: {
+            /** @description Override model name for the orchestration step. */
+            model?: string;
+            /** @description Model-specific runtime controls such as reasoning effort and context window. */
+            modelSettings?: components["schemas"]["ModelSettingsDto"];
+            /** @description Ordered list of scopes to invoke. Writes must contain at least one entry; a GET response may contain an empty list when the selection is cleared. */
+            agents: components["schemas"]["AgentSelectionEntryDto"][];
+        } | null;
         AgentSharedUserDto: {
             /**
              * @description Lowercased email of a user explicitly granted access to a private workflow.
@@ -2540,29 +2580,23 @@ export interface components {
          */
         AgentType: "task" | "workflow";
         AgentVariationDto: {
-            /** @description `{trigger_type, schedule?}` blob. `trigger_type` is one of `schedule | webhook | api | slack | manual`. */
-            trigger?: {
-                [key: string]: unknown;
-            } | null;
-            /** @description Workflow graph (`{nodes, edges}`) when `type` is `workflow`. Null when `type` is `task`. */
-            workflowStructure?: {
-                [key: string]: unknown;
-            } | null;
-            /** @description Selected scopes + per-step config (`{agents, model?}`) when `type` is `task`. Null when `type` is `workflow`. */
-            agentSelection?: {
-                [key: string]: unknown;
-            } | null;
+            /** @description `trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved. */
+            trigger?: components["schemas"]["WorkflowTriggerResponseDto"] | null;
+            /** @description Workflow graph (`nodes` and `edges`) when `type` is `workflow`. Null when `type` is `task`. */
+            workflowStructure?: components["schemas"]["WorkflowStructureResponseDto"] | null;
+            /** @description Selected scopes and per-step config (`agents`, optional `model`) when `type` is `task`. Null when `type` is `workflow`. */
+            agentSelection?: components["schemas"]["AgentSelectionResponseDto"] | null;
         };
         /**
          * @description Modus-specific machine code.
          * @enum {string}
          */
-        ApiErrorCode: "VALIDATION" | "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "RATE_LIMITED" | "INTERNAL_ERROR" | "UPSTREAM_ERROR";
+        ApiErrorCode: "VALIDATION" | "BAD_REQUEST" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "PAYLOAD_TOO_LARGE" | "RATE_LIMITED" | "INTERNAL_ERROR" | "UPSTREAM_ERROR" | "UPSTREAM_TIMEOUT";
         /**
          * @description Canonical status string for the error.
          * @enum {string}
          */
-        ApiErrorStatus: "INVALID_ARGUMENT" | "UNAUTHENTICATED" | "PERMISSION_DENIED" | "NOT_FOUND" | "ALREADY_EXISTS" | "RESOURCE_EXHAUSTED" | "INTERNAL" | "UNAVAILABLE";
+        ApiErrorStatus: "INVALID_ARGUMENT" | "UNAUTHENTICATED" | "PERMISSION_DENIED" | "NOT_FOUND" | "ALREADY_EXISTS" | "RESOURCE_EXHAUSTED" | "INTERNAL" | "UNAVAILABLE" | "DEADLINE_EXCEEDED";
         AutomationRunListItemDto: {
             /**
              * @description Composite run identifier (`workflowId:temporalRunId`).
@@ -2655,6 +2689,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         BulkFinalizeResponseDto: {
             /** @description Resources for every upload that was finalized. */
@@ -2678,6 +2714,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         BulkUploadFromUrlsDto: {
             /** @description URLs to fetch and upload. Max 100 per request. */
@@ -2836,6 +2874,114 @@ export interface components {
              */
             displayName: string | null;
         };
+        ConnectionSetItemDto: {
+            /**
+             * @description Id of the connection.
+             * @example 11111111-1111-4111-8111-111111111111
+             */
+            connection_id: string;
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences`. Path of one selected unit; an empty array selects the whole connection. Ignored when `preferences` is sent, required otherwise.
+             * @example []
+             */
+            path?: string[];
+            /**
+             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down.
+             * @example {
+             *       "mode": "manual",
+             *       "include": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             }
+             *           ]
+             *         }
+             *       ],
+             *       "exclude": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             },
+             *             {
+             *               "type": "schema",
+             *               "by": "id",
+             *               "id": "staging"
+             *             }
+             *           ]
+             *         }
+             *       ]
+             *     }
+             */
+            preferences?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.
+             */
+            context_enabled?: boolean;
+        };
+        ConnectionSetItemReadDto: {
+            /**
+             * @description Id of the connection.
+             * @example 11111111-1111-4111-8111-111111111111
+             */
+            connection_id: string;
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.
+             * @example []
+             */
+            path: string[];
+            /**
+             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.
+             * @example {
+             *       "mode": "manual",
+             *       "include": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             }
+             *           ]
+             *         }
+             *       ],
+             *       "exclude": [
+             *         {
+             *           "path": [
+             *             {
+             *               "type": "database",
+             *               "by": "id",
+             *               "id": "analytics"
+             *             },
+             *             {
+             *               "type": "schema",
+             *               "by": "id",
+             *               "id": "staging"
+             *             }
+             *           ]
+             *         }
+             *       ]
+             *     }
+             */
+            preferences?: {
+                [key: string]: unknown;
+            };
+            /**
+             * @deprecated
+             * @description Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.
+             */
+            context_enabled?: boolean;
+        };
         ContentProjectionDto: {
             /**
              * @description Top-level scalar field names to project.
@@ -2857,6 +3003,26 @@ export interface components {
             arrays?: {
                 [key: string]: string[];
             };
+        };
+        ContextItemAccessDto: {
+            visibility: components["schemas"]["ContextItemVisibility"];
+            /** @description Permissions by group id. */
+            groupPermissions: {
+                [key: string]: components["schemas"]["ContextItemGroupPermissionDto"];
+            };
+            sharedWith: components["schemas"]["ContextItemSharedUserDto"][];
+            /** @description Null for an item created before items had owners; the first access change sets it. */
+            ownerUserId: string | null;
+            ownerEmail: string | null;
+            /** @description True when some users have access through direct grants this configuration does not show. Saving it removes their access. */
+            hidesDirectGrants: boolean;
+        };
+        ContextItemAccessResponseDto: {
+            /** @description UUID of the context item. */
+            uid: string;
+            access: components["schemas"]["ContextItemAccessDto"];
+            /** @description Whether the caller can edit, delete and change access to the item. */
+            canManage: boolean;
         };
         ContextItemAncestorDto: {
             /**
@@ -2956,12 +3122,32 @@ export interface components {
             lastUpdateMetadata?: {
                 [key: string]: unknown;
             } | null;
+            /** @description Present for notes, saved queries, links and uploaded files. */
+            access?: components["schemas"]["ContextItemAccessDto"];
+            /** @description Present for notes, saved queries, links and uploaded files. */
+            canManage?: boolean;
+        };
+        ContextItemGroupPermissionDto: {
+            /** @description Group members can view the item. */
+            use: boolean;
+            /** @description Group members can edit, delete and change access to the item. */
+            manage: boolean;
         };
         /**
          * @description Kind of context item created.
          * @enum {string}
          */
         ContextItemKind: "note" | "saved_query" | "link";
+        /** @enum {string} */
+        ContextItemSharePermission: "use" | "manage";
+        ContextItemSharedUserDto: {
+            /** @description Empty for a user whose email is unknown; such an entry is matched by userId. */
+            email: string;
+            userId?: string;
+            permission?: components["schemas"]["ContextItemSharePermission"];
+        };
+        /** @enum {string} */
+        ContextItemVisibility: "shared" | "private";
         ConversationDto: {
             /**
              * @description Opaque thread/checkpoint id. It is not owned by a single scope; a conversation can span multiple workflows.
@@ -3051,7 +3237,7 @@ export interface components {
              */
             type: components["schemas"]["ConversationMessageType"];
             /**
-             * @description Message content. Usually a string for human turns; AI turns from newer LangChain versions may carry an array of content blocks (e.g. `[{type:"text",text:"…"}]`) instead. Consumers should handle both shapes.
+             * @description Text of the message. Tool calls an AI turn made are listed separately in `toolCalls`.
              * @example Run the churn analysis for last 30 days.
              */
             content: string;
@@ -3194,7 +3380,9 @@ export interface components {
                 [key: string]: unknown;
             };
             /** @description Representative samples for entity sample context. */
-            samples?: Record<string, never>[];
+            samples?: {
+                [key: string]: unknown;
+            }[];
             /** @description Customer-specific fields that should be retained but are not part of the normalized contract. */
             raw?: {
                 [key: string]: unknown;
@@ -3236,7 +3424,7 @@ export interface components {
             };
         };
         CreateDashboardDto: {
-            /** @description Dashboard title. */
+            /** @description Dashboard title. Must contain a non-whitespace character. */
             title: string;
             /** @description Dashboard description. */
             description?: string;
@@ -3250,7 +3438,7 @@ export interface components {
             expectedRevision: number;
             /** @description Element to create: a chart, KPI, table or markdown tile, or a filter. */
             kind: components["schemas"]["DashboardElementKind"];
-            /** @description Title shown on the element. */
+            /** @description Title shown on the element. Must contain a non-whitespace character. */
             title: string;
             /** @description Grid position of the new element. */
             layout: components["schemas"]["DashboardElementLayoutDto"];
@@ -3276,17 +3464,18 @@ export interface components {
              */
             title?: string;
             /**
-             * @description When true, crawls multiple pages starting from the supplied URL.
+             * @description When true, runs a web search for the supplied URL and stores up to `pageLimit` results, which may come from other sites. It does not crawl the site’s pages.
              * @default false
              * @example false
              */
             isCrawl: boolean;
             /**
-             * @description Maximum number of pages to crawl when `isCrawl` is true. Ignored otherwise.
+             * @description Maximum number of search results to store when `isCrawl` is true. Ignored otherwise.
              * @example 10
              */
             pageLimit?: number;
-            access?: components["schemas"]["AccessPolicyDto"];
+            /** @description Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         CreateNoteDto: {
             /**
@@ -3301,7 +3490,8 @@ export interface components {
              *     Churn rate increased 2.3% MoM.
              */
             content: string;
-            access?: components["schemas"]["AccessPolicyDto"];
+            /** @description Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         CreateSavedQueryDto: {
             /**
@@ -3331,7 +3521,8 @@ export interface components {
              *     ]
              */
             path?: string[];
-            access?: components["schemas"]["AccessPolicyDto"];
+            /** @description Who can view and manage the item. Omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the item has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         CreateSkillDto: {
             /**
@@ -3357,8 +3548,24 @@ export interface components {
              *     ]
              */
             instructions?: string[];
-            /** @description Toolset configuration (tools this scope may invoke). Service sanitizes the shape on write. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`. */
-            toolset?: components["schemas"]["ToolsetDto"];
+            /**
+             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @example {
+             *       "slack": {
+             *         "actions": [
+             *           "SendMessage"
+             *         ],
+             *         "rules": {
+             *           "allowedChannelIds": [
+             *             "C1"
+             *           ]
+             *         }
+             *       }
+             *     }
+             */
+            toolset?: {
+                [key: string]: unknown;
+            };
             /**
              * @description Model identifier to use at run time (e.g. `claude-sonnet-4-5`). Falls back to org default when absent.
              * @example claude-sonnet-4-5
@@ -3367,12 +3574,29 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description List of integration connection refs available to this scope. Shape is integration-specific.
-             * @example []
+             * @description Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.
+             * @example [
+             *       {
+             *         "connection_id": "11111111-1111-4111-8111-111111111111",
+             *         "preferences": {
+             *           "mode": "manual",
+             *           "include": [
+             *             {
+             *               "path": [
+             *                 {
+             *                   "type": "database",
+             *                   "by": "id",
+             *                   "id": "analytics"
+             *                 }
+             *               ]
+             *             }
+             *           ],
+             *           "exclude": []
+             *         }
+             *       }
+             *     ]
              */
-            connectionSet?: {
-                [key: string]: unknown;
-            }[];
+            connectionSet?: components["schemas"]["ConnectionSetItemDto"][];
             /**
              * @description Selected context items (sources / docs) the scope may read. The scope's own learnings are added unless `includeOwnLearnings` is false or these selections already mention learnings.
              * @example []
@@ -3593,7 +3817,7 @@ export interface components {
             h: number;
         };
         DashboardElementPatchDto: {
-            /** @description Element title. */
+            /** @description Element title. Must contain a non-whitespace character. */
             title?: string;
             /** @description Connection the tile query runs on. */
             connectionId?: string;
@@ -3845,6 +4069,22 @@ export interface components {
          * @enum {string}
          */
         EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom";
+        EvaluationCaseDto: {
+            /** @description Stable id of the evaluation case. */
+            id: string;
+            /** @description What the scope should do for this case. */
+            task: string;
+            /** @description What a correct result looks like. */
+            expectedOutput: string;
+        };
+        EvaluationCaseInputDto: {
+            /** @description Stable id of the case. Omit it on a new case and one is assigned. */
+            id?: string;
+            /** @description What the scope should do for this case. An empty string is allowed. */
+            task: string;
+            /** @description What a correct result looks like. An empty string is allowed. */
+            expectedOutput: string;
+        };
         EvaluationChannelsDto: {
             /** @description Enable email notifications */
             email: boolean;
@@ -3878,7 +4118,7 @@ export interface components {
             /** @description Email address */
             email: string;
             /** @description Display name */
-            name?: Record<string, never>;
+            name?: string | null;
         };
         EvaluationResultDto: {
             /** @description Result ID */
@@ -3890,15 +4130,15 @@ export interface components {
             /** @description Expected output */
             expectedOutput: string;
             /** @description Actual output from the scope */
-            actualOutput?: Record<string, never>;
+            actualOutput?: string | null;
             /** @description Whether the case passed */
-            passed?: Record<string, never>;
+            passed?: boolean | null;
             /** @description Score (0-100) */
-            score?: Record<string, never>;
+            score?: number | null;
             /** @description Judge reasoning */
-            reasoning?: Record<string, never>;
+            reasoning?: string | null;
             /** @description Whether this case was passing in the previous run */
-            wasPassingBefore?: Record<string, never>;
+            wasPassingBefore?: boolean | null;
         };
         EvaluationRunDto: {
             /** @description Run ID */
@@ -3909,10 +4149,16 @@ export interface components {
             trigger: components["schemas"]["EvaluationRunTrigger"];
             /** @description Run status */
             status: components["schemas"]["EvaluationRunStatus"];
-            /** @description When the run started */
+            /**
+             * Format: date-time
+             * @description When the run started
+             */
             startedAt: string;
-            /** @description When the run finished */
-            finishedAt?: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When the run finished
+             */
+            finishedAt?: string | null;
             /** @description Total number of evaluation cases */
             totalCases: number;
             /** @description Number of passed cases */
@@ -3920,7 +4166,7 @@ export interface components {
             /** @description Number of failed cases */
             failedCases: number;
             /** @description Average score (0-100) */
-            avgScore?: Record<string, never>;
+            avgScore?: number | null;
             /** @description Whether this run detected a regression */
             isRegression: boolean;
             /** @description Judge model used */
@@ -3947,10 +4193,16 @@ export interface components {
             trigger: components["schemas"]["EvaluationRunTrigger"];
             /** @description Run status */
             status: components["schemas"]["EvaluationRunStatus"];
-            /** @description When the run started */
+            /**
+             * Format: date-time
+             * @description When the run started
+             */
             startedAt: string;
-            /** @description When the run finished */
-            finishedAt?: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When the run finished
+             */
+            finishedAt?: string | null;
             /** @description Total number of evaluation cases */
             totalCases: number;
             /** @description Number of passed cases */
@@ -3958,7 +4210,7 @@ export interface components {
             /** @description Number of failed cases */
             failedCases: number;
             /** @description Average score (0-100) */
-            avgScore?: Record<string, never>;
+            avgScore?: number | null;
             /** @description Whether this run detected a regression */
             isRegression: boolean;
             /** @description Judge model used */
@@ -3975,7 +4227,9 @@ export interface components {
              */
             connectionId: string;
             /** @description Mapping of Clerk user ID to Slack user ID */
-            slackUserIdByRecipient: Record<string, never>;
+            slackUserIdByRecipient: {
+                [key: string]: unknown;
+            };
         };
         FailedFinalizeDto: {
             /**
@@ -4079,6 +4333,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         GetAutomationRunResponseDto: {
             /**
@@ -4241,7 +4497,7 @@ export interface components {
             nextPageToken: string | null;
         };
         ListContextItemValuesResponseDto: {
-            /** @description Page of values extracted from the context item at the supplied `contentKeyPath`. Each entry is opaque JSON whose shape depends on the source item. */
+            /** @description Page of elements from the array field at `contentKeyPath`, in array order. Each entry is `{ "index": <0-based position in the array>, "value": <the element, as JSON of any type> }`. */
             values: unknown[];
             /** @description Opaque token for the next page, or `null` if no more pages. Pass back as `pageToken`. */
             nextPageToken: string | null;
@@ -4418,6 +4674,50 @@ export interface components {
             /** @description Selection (per-connection subset) id when the row scopes to a selection, otherwise null. */
             selectionId: string | null;
         };
+        McpCoreToolsConfigDto: {
+            /**
+             * @description Whether Get Answer is on.
+             * @example false
+             */
+            chat: boolean;
+            /**
+             * @description Whether Get Context is on.
+             * @example true
+             */
+            getContext: boolean;
+            /**
+             * @description Whether Teach Modus is on.
+             * @example false
+             */
+            teachModus: boolean;
+        };
+        McpToolExposureConfigDto: {
+            /**
+             * @description Exposure format. Always 1.
+             * @example 1
+             */
+            version: components["schemas"]["McpToolExposureVersion"];
+            /**
+             * @description subset lists keys. discovery exposes every tool this scope can call.
+             * @example discovery
+             */
+            mode: components["schemas"]["McpToolExposureMode"];
+            /**
+             * @description Exposure keys when mode is subset. Empty for discovery.
+             * @example []
+             */
+            allowedIntegrationKeys: string[];
+        };
+        /**
+         * @description subset lists keys. discovery exposes every tool this scope can call.
+         * @enum {string}
+         */
+        McpToolExposureMode: "subset" | "discovery";
+        /**
+         * @description Exposure format. Always 1.
+         * @enum {number}
+         */
+        McpToolExposureVersion: 1;
         MemberGroupDto: {
             uid: string;
             name: string;
@@ -4482,43 +4782,6 @@ export interface components {
             /** @description Selected model context window in tokens. */
             contextWindow?: number;
         };
-        ModusChatRequestDto: {
-            /**
-             * @description User message sent to Modus. Omit when `approvalContinuation` is true.
-             * @example What were our top revenue drivers last quarter?
-             */
-            message?: string;
-            /**
-             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.
-             * @example claude-sonnet-4.6
-             * @enum {string}
-             */
-            model: "claude-sonnet-5" | "claude-sonnet-5.5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "claude-opus-5.5" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-5.6-luna" | "gpt-6-luna" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "deepseek-v4-pro" | "deepseek-v4-flash-latest" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3" | "grok-4.7" | "kimi-k3";
-            /** @description Continue a pending write-approval interrupt from a prior turn. When true, `message` is ignored. */
-            approvalContinuation?: boolean;
-            /**
-             * @description Required when `approvalContinuation` is true.
-             * @enum {string}
-             */
-            approvalDecision?: "approve" | "deny";
-        };
-        ModusChatResponseDto: {
-            /**
-             * @description Final assistant text for the run.
-             * @example Revenue grew 12% quarter over quarter…
-             */
-            content: string;
-            /**
-             * @description Conversation thread id. For follow-up use POST …/conversations/{threadId}/chat.
-             * @example agent_0_550e8400-e29b-41d4-a716-446655440000
-             */
-            threadId: string;
-            /**
-             * @description Opaque run id for this chat invocation.
-             * @example 550e8400-e29b-41d4-a716-446655440001
-             */
-            runId: string;
-        };
         ModusContextRequestDto: {
             /**
              * @description User message or intent used to compose relevant context.
@@ -4574,12 +4837,12 @@ export interface components {
             role: string;
         };
         PatchSkillMcpConfigDto: {
-            /** @description Full MCP interface config written to the scope draft; takes effect on the next deploy. */
+            /** @description MCP interface config written to the scope draft. Takes effect on the next deploy. */
             config: components["schemas"]["SkillMcpInterfaceConfigDto"];
         };
         PatchSkillMcpConfigResponseDto: {
-            /** @description Sanitized MCP config now stored on the scope draft. */
-            config: components["schemas"]["SkillMcpInterfaceConfigDto"];
+            /** @description MCP config in effect on the scope draft. */
+            config: components["schemas"]["SkillMcpInterfaceConfigResponseDto"];
         };
         PendingOwnershipTransferDto: {
             /**
@@ -4773,8 +5036,8 @@ export interface components {
              * @example MCP Server
              */
             name: string;
-            /** @description Core tools and the integrations this interface exposes. */
-            config: components["schemas"]["SkillMcpInterfaceConfigDto"];
+            /** @description Core tools and tool exposure as they take effect. */
+            config: components["schemas"]["SkillMcpInterfaceConfigResponseDto"];
         };
         ScopeMcpInterfaceInputDto: {
             /**
@@ -4887,45 +5150,21 @@ export interface components {
          * @enum {string}
          */
         SharedUserPermission: "use" | "manage";
-        SkillChatRequestDto: {
-            /**
-             * @description User message sent to the published scope supervisor.
-             * @example Summarize open support tickets from last week.
-             */
-            message: string;
-            /**
-             * @description Canonical model id for this run (required). Allowed values: claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3.
-             * @example claude-sonnet-4.6
-             * @enum {string}
-             */
-            model: "claude-sonnet-5" | "claude-sonnet-5.5" | "claude-sonnet-4.6" | "claude-opus-4.8" | "claude-opus-5.5" | "gpt-5.2" | "gpt-5.5" | "gpt-5-mini" | "gpt-5.6-luna" | "gpt-6-luna" | "gpt-oss-120b" | "gpt-oss-20b" | "qwen3-235b-a22b-2507" | "qwen3-coder" | "qwen3-32b" | "deepseek-chat-v3.1" | "deepseek-v4-pro" | "deepseek-v4-flash-latest" | "minimax-m2.7" | "llama-4-maverick" | "llama-4-scout" | "llama-3.3-70b-instruct" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4.3-fast" | "grok-4.3" | "grok-4.7" | "kimi-k3";
-        };
-        SkillChatResponseDto: {
-            /**
-             * @description Final assistant text for the run.
-             * @example There were 12 open tickets last week…
-             */
-            content: string;
-            /**
-             * @description Conversation thread id. For follow-up messages use POST …/conversations/{threadId}/chat (same id as GET …/conversations/{threadId}).
-             * @example api-skill-42-550e8400-e29b-41d4-a716-446655440000
-             */
-            threadId: string;
-            /**
-             * @description Opaque run id for this chat invocation (for logging and correlation).
-             * @example 550e8400-e29b-41d4-a716-446655440001
-             */
-            runId: string;
-        };
         SkillMcpInterfaceConfigDto: {
-            /** @description Core MCP tools: chat (get_answer), getContext, teachModus. Omitted keys default to chat false, getContext true, teachModus false. chat cannot be true together with another tool. */
+            /** @description Get Answer, Get Context, and Teach Modus. A changed value uses true or false for each key. Omitted keys default to Get Answer off, Get Context on, and Teach Modus off. */
             coreTools?: {
                 [key: string]: unknown;
-            };
-            /** @description Integration tools exposed to MCP clients: mode discovery (all) or subset with allowedIntegrationKeys. Must be an empty subset when chat is true. */
+            } | null;
+            /** @description Tools MCP clients can call. A changed value is version 1, mode subset or discovery, and a list of keys. A new key must be one this scope can expose. */
             mcpToolExposure?: {
                 [key: string]: unknown;
-            };
+            } | null;
+        };
+        SkillMcpInterfaceConfigResponseDto: {
+            /** @description Get Answer, Get Context, and Teach Modus as they take effect. */
+            coreTools?: components["schemas"]["McpCoreToolsConfigDto"];
+            /** @description Tools MCP clients can call, as they take effect. */
+            mcpToolExposure?: components["schemas"]["McpToolExposureConfigDto"];
         };
         SkillVariationDto: {
             /**
@@ -4962,18 +5201,14 @@ export interface components {
             toolset: {
                 [key: string]: unknown;
             };
-            /** @description Connection selections (DBs, integrations) attached to the variation. Each entry is a builder-managed object; opaque here. */
-            connectionSet: {
-                [key: string]: unknown;
-            }[];
+            /** @description Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths. */
+            connectionSet: components["schemas"]["ConnectionSetItemReadDto"][];
             /** @description Context selections attached to the variation. Free-form builder objects. */
             contextSelections: {
                 [key: string]: unknown;
             }[];
-            /** @description Evaluation entries (task + expected-output pairs) saved for this variation. */
-            evaluations: {
-                [key: string]: unknown;
-            }[];
+            /** @description Evaluation cases saved for this variation. */
+            evaluations: components["schemas"]["EvaluationCaseDto"][];
             /** @description MCP interface for this scope. Each row has an id, type mcp, a name, and a config. */
             interfaces: components["schemas"]["ScopeMcpInterfaceDto"][];
             /**
@@ -5099,39 +5334,6 @@ export interface components {
             /** @description Fixed set of actions this tool exposes. Present only when the action list does not depend on a live connection (built-in tools). Connected integrations expose connection-specific actions not listed here. */
             actions?: components["schemas"]["ToolCatalogActionDto"][];
         };
-        ToolsetDto: {
-            /**
-             * @description List of tools the scope may invoke.
-             * @example [
-             *       {
-             *         "id": "web_search",
-             *         "enabled": true
-             *       }
-             *     ]
-             */
-            tools?: components["schemas"]["ToolsetToolDto"][];
-        };
-        ToolsetToolDto: {
-            /**
-             * @description Stable id of the tool (matches the registry key on the workflow runtime).
-             * @example web_search
-             */
-            id: string;
-            /**
-             * @description Whether this tool is enabled for the scope. Defaults to true when absent.
-             * @example true
-             */
-            enabled?: boolean;
-            /**
-             * @description Free-form tool-specific configuration (e.g. allowlists). Schema varies per tool.
-             * @example {
-             *       "max_results": 5
-             *     }
-             */
-            config?: {
-                [key: string]: unknown;
-            };
-        };
         TransferDashboardOwnershipDto: {
             /** @description User id of the new owner; must be a member of the organization. */
             newOwnerUserId: string;
@@ -5150,8 +5352,8 @@ export interface components {
              * @enum {string}
              */
             trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
-            /** @description Schedule details. Required when trigger_type=schedule. */
-            schedule?: components["schemas"]["TriggerScheduleDto"];
+            /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
+            schedule?: components["schemas"]["TriggerScheduleDto"] | null;
         };
         TriggerEvaluationRunResponseDto: {
             /** @description The created run ID */
@@ -5170,7 +5372,7 @@ export interface components {
              * @description Time of day in 24-hour HH:MM format. Required for hourly/daily/weekly/monthly; ignored for custom.
              * @example 09:00
              */
-            time_of_day?: string;
+            time_of_day?: string | null;
             /**
              * @description IANA timezone identifier.
              * @example UTC
@@ -5184,24 +5386,24 @@ export interface components {
              *       "friday"
              *     ]
              */
-            weekdays?: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+            weekdays?: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[] | null;
             /**
              * @description Required for monthly schedules. Calendar day 1-31.
              * @example 15
              */
-            day_of_month?: number;
+            day_of_month?: number | null;
             /**
              * @description Required for custom schedules. Each entry is a 5-field POSIX cron expression.
              * @example [
              *       "0 9 * * 1-5"
              *     ]
              */
-            cron_expressions?: string[];
+            cron_expressions?: string[] | null;
             /**
              * @description Human-readable description of the custom schedule. Required when frequency=custom.
              * @example Weekdays at 9am
              */
-            cron_description?: string;
+            cron_description?: string | null;
         };
         UpdateAgentDto: {
             /**
@@ -5210,15 +5412,15 @@ export interface components {
              */
             name?: string;
             /**
-             * @description Updated workflow type. Rarely changed after creation.
-             * @example task
+             * @description Workflow type. Only `workflow` is accepted; `task` is a legacy value that create upgrades to `workflow` and update rejects (422).
+             * @example workflow
              */
             type?: components["schemas"]["AgentType"];
             /**
-             * @description Updated description.
+             * @description Updated description. `null` clears it to an empty string.
              * @example Generates a daily sales report broken down by region.
              */
-            description?: string;
+            description?: string | null;
             /** @description Updated trigger configuration. Schedule shape is fully validated; other trigger types are opaque. */
             trigger?: components["schemas"]["TriggerDto"];
             /** @description Updated workflow selection. */
@@ -5247,6 +5449,16 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        UpdateContextItemAccessDto: {
+            /** @description shared: the owner and the groups granted in groupPermissions; private: the owner and the users in sharedWith. */
+            visibility: components["schemas"]["ContextItemVisibility"];
+            /** @description Group id to permissions. Used only when visibility is shared; ignored when private. */
+            groupPermissions: {
+                [key: string]: components["schemas"]["ContextItemGroupPermissionDto"];
+            };
+            /** @description Users granted access. Used only when visibility is private; ignored when shared. */
+            sharedWith: components["schemas"]["ContextItemSharedUserDto"][];
+        };
         UpdateContextItemDto: {
             /**
              * @description Required when `content` is supplied — selects which partition to update against. Free-form string (e.g. `note`, `saved_query`).
@@ -5258,24 +5470,24 @@ export interface components {
                 [key: string]: unknown;
             };
             /**
-             * @description Replacement description text.
+             * @description Replacement description text. `null` clears it.
              * @example Updated description after review
              */
-            description?: string;
+            description?: string | null;
             /**
-             * @description User-supplied verification verdict.
+             * @description User-supplied verification verdict. `null` resets it to `neutral`.
              * @example positive
-             * @enum {string}
+             * @enum {string|null}
              */
-            userFeedback?: "negative" | "neutral" | "positive";
+            userFeedback?: "negative" | "neutral" | "positive" | null;
             /**
-             * @description Replacement topic tags. Pass `[]` to clear all tags.
+             * @description Replacement topic tags. Pass `[]` or `null` to clear all tags.
              * @example [
              *       "analytics",
              *       "verified"
              *     ]
              */
-            topics?: string[];
+            topics?: string[] | null;
         };
         UpdateCustomContextItemDto: {
             /**
@@ -5314,7 +5526,9 @@ export interface components {
                 [key: string]: unknown;
             };
             /** @description Replacement representative samples. */
-            samples?: Record<string, never>[];
+            samples?: {
+                [key: string]: unknown;
+            }[];
             /** @description Replacement customer-specific raw fields. */
             raw?: {
                 [key: string]: unknown;
@@ -5341,7 +5555,7 @@ export interface components {
         UpdateDashboardDraftDto: {
             /** @description Draft revision the change is based on; a stale value is rejected with 409. */
             expectedRevision: number;
-            /** @description New dashboard title. */
+            /** @description New dashboard title. Must contain a non-whitespace character. */
             title?: string;
             /** @description New dashboard description. */
             description?: string;
@@ -5359,6 +5573,12 @@ export interface components {
             expectedRevision: number;
             /** @description Every affected item with its final x, y, width, and height. */
             elements: components["schemas"]["DashboardLayoutElementDto"][];
+        };
+        UpdateEvaluationCaseDto: {
+            /** @description Replacement for what the scope should do. An empty string is allowed. */
+            task?: string;
+            /** @description Replacement for what a correct result looks like. An empty string is allowed. */
+            expectedOutput?: string;
         };
         UpdateEvaluationConfigDto: {
             /** @description Whether scheduled evaluations are enabled */
@@ -5379,7 +5599,7 @@ export interface components {
              */
             memory?: string;
             /**
-             * @description Replacement metadata bag. Optional.
+             * @description Replacement metadata bag. Optional; `null` clears it to `{}`.
              * @example {
              *       "topic": "preferences",
              *       "confidence": "high"
@@ -5387,7 +5607,7 @@ export interface components {
              */
             metadata?: {
                 [key: string]: unknown;
-            };
+            } | null;
         };
         UpdateScopeInterfaceDto: {
             /**
@@ -5405,24 +5625,40 @@ export interface components {
              */
             name?: string;
             /**
-             * @description Updated description.
+             * @description Updated description. `null` clears it to an empty string.
              * @example Predicts churn risk over a 180-day window.
              */
-            description?: string;
+            description?: string | null;
             /**
-             * @description Updated expected-output summary, used when this scope is supervised.
+             * @description Updated expected-output summary, used when this scope is supervised. `null` clears it to an empty string.
              * @example JSON: { churn_probability: number }
              */
-            expectedOutput?: string;
+            expectedOutput?: string | null;
             /**
-             * @description Updated instruction fragments. Replaces the prior list when present.
+             * @description Updated instruction fragments. Replaces the prior list when present; `null` clears it.
              * @example [
              *       "You are a senior data analyst."
              *     ]
              */
-            instructions?: string[];
-            /** @description Updated toolset configuration. A connected integration given as `{actions, rules?}` is bound to the organization's newest workspace connection of that integration and returned as `{byConnection: {<connectionId>: {actions, rules?}}}`. */
-            toolset?: components["schemas"]["ToolsetDto"];
+            instructions?: string[] | null;
+            /**
+             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @example {
+             *       "slack": {
+             *         "actions": [
+             *           "SendMessage"
+             *         ],
+             *         "rules": {
+             *           "allowedChannelIds": [
+             *             "C1"
+             *           ]
+             *         }
+             *       }
+             *     }
+             */
+            toolset?: {
+                [key: string]: unknown;
+            };
             /**
              * @description Updated model id. Pass `null` (explicit) to clear and use the org default.
              * @example claude-sonnet-4-5
@@ -5431,30 +5667,42 @@ export interface components {
             /** @description Updated model-specific runtime controls. Pass `null` to clear. */
             modelSettings?: components["schemas"]["ModelSettingsDto"] | null;
             /**
-             * @description Updated connection set. Shape is integration-specific.
-             * @example []
+             * @description Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated. `null` clears it.
+             * @example [
+             *       {
+             *         "connection_id": "11111111-1111-4111-8111-111111111111",
+             *         "preferences": {
+             *           "mode": "manual",
+             *           "include": [
+             *             {
+             *               "path": [
+             *                 {
+             *                   "type": "database",
+             *                   "by": "id",
+             *                   "id": "analytics"
+             *                 }
+             *               ]
+             *             }
+             *           ],
+             *           "exclude": []
+             *         }
+             *       }
+             *     ]
              */
-            connectionSet?: {
-                [key: string]: unknown;
-            }[];
+            connectionSet?: components["schemas"]["ConnectionSetItemDto"][] | null;
             /**
-             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings.
+             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.
              * @example []
              */
             contextSelections?: {
                 [key: string]: unknown;
-            }[];
-            /** @description Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list. */
-            interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
+            }[] | null;
+            /** @description Updated MCP interface rows. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. Replaces the whole list; `null` clears it. */
+            interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][] | null;
+            /** @description Replaces the whole evaluation list; send every case to keep. Omit `id` on a new case and one is assigned. To change one case, use POST, PATCH or DELETE /api/v1/scopes/{id}/evaluations/cases. `null` clears it. */
+            evaluations?: components["schemas"]["EvaluationCaseInputDto"][] | null;
             /**
-             * @description Updated evaluation entries (task + expected-output pairs) saved for the draft variation. Replaces the prior list when present.
-             * @example []
-             */
-            evaluations?: {
-                [key: string]: unknown;
-            }[];
-            /**
-             * @description Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present.
+             * @description Map of subordinate scope id (stringified) to the manager-provided description blurb. Replaces the prior map when present; `null` clears it.
              * @example {
              *       "12": "Reads warehouse facts",
              *       "17": "Drafts the report"
@@ -5462,7 +5710,7 @@ export interface components {
              */
             supervisionSubordinateDescriptions?: {
                 [key: string]: string;
-            };
+            } | null;
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AccessConfigDto"];
             /**
@@ -5487,6 +5735,8 @@ export interface components {
              * @example reports/2026/Q3
              */
             folderPath?: string;
+            /** @description Who can view and manage this file. Applies only when the file is first created; omit to share it with everyone in the organization, with you as owner. A service-account token cannot set it (403); without it, the file has no owner. */
+            access?: components["schemas"]["UpdateContextItemAccessDto"];
         };
         UploadUrlDto: {
             /**
@@ -5670,7 +5920,7 @@ export interface components {
              */
             manageDenial: "not_owner" | "needs_group_manage" | null;
             /** @description Set when a dashboard KPI alert generated this workflow. Changing its definition requires disconnectDashboardAlert. */
-            dashboardAlert?: components["schemas"]["AgentDashboardAlertDto"] | null;
+            dashboardAlert?: components["schemas"]["AgentDashboardAlertResponseDto"] | null;
         };
         WorkflowEdgeDto: {
             /**
@@ -5732,6 +5982,66 @@ export interface components {
             /** @description Directed edges connecting the nodes. Defaults to `[]`. */
             edges?: components["schemas"]["WorkflowEdgeDto"][];
         };
+        WorkflowStructureResponseDto: {
+            /** @description Workflow nodes. Defaults to `[]`. */
+            nodes?: components["schemas"]["WorkflowNodeDto"][];
+            /** @description Directed edges connecting the nodes. Defaults to `[]`. */
+            edges?: components["schemas"]["WorkflowEdgeDto"][];
+        } | null;
+        WorkflowTriggerResponseDto: {
+            /**
+             * @description Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.
+             * @example schedule
+             * @enum {string}
+             */
+            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
+            /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
+            schedule?: components["schemas"]["WorkflowTriggerScheduleResponseDto"] | null;
+        } | null;
+        WorkflowTriggerScheduleResponseDto: {
+            /**
+             * @description Cadence of the schedule.
+             * @example daily
+             * @enum {string}
+             */
+            frequency: "hourly" | "daily" | "weekly" | "monthly" | "custom";
+            /**
+             * @description Time of day in 24-hour HH:MM format. Required for hourly/daily/weekly/monthly; ignored for custom.
+             * @example 09:00
+             */
+            time_of_day?: string | null;
+            /**
+             * @description IANA timezone identifier.
+             * @example UTC
+             */
+            timezone: string;
+            /**
+             * @description Required for weekly schedules. Lowercase day names.
+             * @example [
+             *       "monday",
+             *       "wednesday",
+             *       "friday"
+             *     ]
+             */
+            weekdays?: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[] | null;
+            /**
+             * @description Required for monthly schedules. Calendar day 1-31.
+             * @example 15
+             */
+            day_of_month?: number | null;
+            /**
+             * @description Required for custom schedules. Each entry is a 5-field POSIX cron expression.
+             * @example [
+             *       "0 9 * * 1-5"
+             *     ]
+             */
+            cron_expressions?: string[] | null;
+            /**
+             * @description Human-readable description of the custom schedule. Required when frequency=custom.
+             * @example Weekdays at 9am
+             */
+            cron_description?: string | null;
+        } | null;
         ActiveConversationRunDto: {
             /** @description Run identifier. */
             runId: string;
@@ -5772,14 +6082,14 @@ export interface components {
             nextPageToken: string | null;
         };
         AgentRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -5789,7 +6099,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -5860,14 +6170,14 @@ export interface components {
             error: components["schemas"]["ErrorEnvelopeDto1"];
         };
         FollowUpRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -5877,7 +6187,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -5903,18 +6213,18 @@ export interface components {
             organizationId?: string;
             /** @description Redis Stream id of the last SSE frame the client rendered (see CancelRunDto). */
             lastSeenEventId?: string;
-            /** @description Follow-up message that supersedes the current turn. */
+            /** @description Follow-up turn that supersedes the current one. Its `sessionId` must be the run's conversation. Set `runId` so a retry returns the same run. */
             nextRun: components["schemas"]["FollowUpRunDto"];
         };
         ModusRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -5924,7 +6234,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -5939,14 +6249,12 @@ export interface components {
             subordinateSkillIds?: number[];
         };
         ResumeRunDto: {
-            /** @description The user message to send. */
-            message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -5956,7 +6264,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -5967,6 +6275,8 @@ export interface components {
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
             debug?: boolean;
+            /** @description Omit it. A resume carries no new message; a non-empty message is rejected. */
+            message?: string;
             /**
              * @description Decision that resumes the interrupted run.
              * @enum {string}
@@ -5975,22 +6285,36 @@ export interface components {
             /** @description The paused call an approval decision answers. Only that call is resolved and any other paused write is rejected; without it the first pending approval is resolved. */
             approvalTarget?: components["schemas"]["ApprovalTargetDto"];
         };
+        RunAdmissionResponseDto: {
+            /** @description Id of the admitted run. Stream it with GET /runs/{runId}/stream. */
+            runId: string;
+            /** @description Status of the admitted run, e.g. `pending` or `queued`. */
+            status: string;
+        };
         RunConfigDto: {
-            /** @description Model id, e.g. anthropic/claude-sonnet-4.6. */
+            /** @description Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3. */
             model?: string;
             /** @description Model-specific runtime controls. */
             modelSettings?: components["schemas"]["RunModelSettingsDto"];
             /** @description Context selections (runtime-owned shape). */
-            contextSelections?: Record<string, never>[];
+            contextSelections?: {
+                [key: string]: unknown;
+            }[];
             /** @description Database connection selections (runtime-owned shape). */
-            connectionSelections?: Record<string, never>[];
+            connectionSelections?: {
+                [key: string]: unknown;
+            }[];
             /** @description Schema scopes (runtime-owned shape). */
-            connectionSet?: Record<string, never>[];
+            connectionSet?: {
+                [key: string]: unknown;
+            }[];
             connectionAllModeIds?: string[];
             /** @description Guardrail ids applied to the run. */
             guardrails?: string[];
             /** @description Map of tool name to tool config. */
-            toolset?: Record<string, never>;
+            toolset?: {
+                [key: string]: unknown;
+            };
             experimentalFeatures?: boolean;
             debug?: boolean;
             /** @description Set false to keep composer output inline. */
@@ -6004,19 +6328,19 @@ export interface components {
         /** @enum {string} */
         RunReasoningEffort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
         /**
-         * @description Origin of the run.
+         * @description Origin of the run. Set by the server for API tokens.
          * @enum {string}
          */
         RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
         SkillRunDto: {
-            /** @description The user message to send. */
+            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
             /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
             sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
-             * @description Saved version to run (scope/workflow; ignored for Modus).
+             * @description Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft.
              * @enum {string}
              */
             version?: "published" | "draft";
@@ -6026,7 +6350,7 @@ export interface components {
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
-            /** @description Origin of the run. */
+            /** @description Origin of the run. Set by the server for API tokens. */
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
@@ -6106,7 +6430,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range. */
                 pageSize?: number;
                 /** @description Filter by effective integration category (case-sensitive exact match). */
                 type?: string;
@@ -6232,7 +6556,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range. */
                 pageSize?: number;
             };
             header?: never;
@@ -6378,7 +6702,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25 (the legacy `list-context-items-olap` action defaulted to 100; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
                 /** @description Filter by one or more context types (repeat the query param). Example: `?contextTypes=note&contextTypes=saved_query`. */
                 contextTypes?: string[];
@@ -6564,7 +6888,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6575,13 +6903,8 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -6619,6 +6942,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6744,7 +7086,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6755,13 +7101,8 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -6799,6 +7140,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -6924,7 +7284,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -6935,13 +7299,8 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -6979,6 +7338,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7244,7 +7622,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7255,13 +7637,8 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7430,7 +7807,11 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -7441,13 +7822,8 @@ export interface operations {
                      *       "error": {
                      *         "code": "FORBIDDEN",
                      *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7485,6 +7861,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -7844,6 +8239,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -8393,6 +8807,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -8569,6 +9002,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9117,6 +9569,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -9483,6 +9954,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -9659,6 +10149,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -9849,6 +10358,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -10025,6 +10553,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -10995,7 +11542,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 200. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
             };
             header?: never;
@@ -11235,6 +11782,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -11408,6 +11974,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -11614,6 +12199,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -11794,6 +12398,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -11967,6 +12590,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -12298,6 +12940,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -12362,7 +13023,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25 (the legacy `list-context-items-olap` action defaulted to 100; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
                 /** @description Filter by one or more context types (repeat the query param). Example: `?contextTypes=note&contextTypes=saved_query`. */
                 contextTypes?: string[];
@@ -12609,6 +13270,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -13125,6 +13805,227 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ContextItemAccessController_updateAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description UUID of the context item. */
+                uid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateContextItemAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextItemAccessResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -13308,6 +14209,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -13370,24 +14290,20 @@ export interface operations {
     ContextItemsController_listValues: {
         parameters: {
             query: {
-                /** @description Context type of the item (required for partition-aware reads). */
+                /** @description Context type of the item. A mismatch with the item returns 404. */
                 contextType: string;
-                /** @description Dot-separated JSON path to the array of values inside `content`. Example: `enumValues` or `sample.values`. */
+                /** @description Dot-separated JSON path to the array inside `content`. Example: `enumValues` or `sample.values`. */
                 contentKeyPath: string;
-                /** @description Max values per page. Defaults to 25 (the legacy `get-context-values` action defaulted to 50; the new `clampPageSize` helper standardises every modus-api list surface on 25). Clamped to 200. */
+                /** @description Max values per page. Defaults to 25. Must be between 1 and 200. */
                 pageSize?: number;
-                /** @description Cursor offset (numeric). Legacy semantics — prefer `pageToken` for deep pages. */
-                offset?: number;
-                /** @description Opaque page token from a previous response's `nextPageToken`. */
+                /** @description Opaque page token from a previous response's `nextPageToken` for the same item. */
                 pageToken?: string;
-                /** @description Case-insensitive substring search over each value. */
+                /** @description Case-insensitive substring search over each element (non-string elements are matched as JSON text). */
                 searchQuery?: string;
-                /** @description Optional prefix path applied to the data-path filter before slicing values (advanced). */
-                dataPathPrefix?: string[];
             };
             header?: never;
             path: {
-                /** @description UUID of the context item (unused on the underlying reader but kept for URL consistency). */
+                /** @description UUID of the context item. */
                 uid: string;
             };
             cookie?: never;
@@ -13644,6 +14560,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -13824,6 +14759,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -13997,6 +14951,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -14252,186 +15225,6 @@ export interface operations {
             };
         };
     };
-    ModusChatController_chat: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ModusChatRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ModusChatResponseDto"];
-                };
-            };
-            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "BAD_REQUEST",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Invalid value for query parameter `pageSize`.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "UNAUTHORIZED",
-                     *         "status": "UNAUTHENTICATED",
-                     *         "message": "Missing or invalid access token.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "FORBIDDEN",
-                     *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Too many requests. Please retry after a short delay.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "INTERNAL_ERROR",
-                     *         "status": "INTERNAL",
-                     *         "message": "An unexpected error occurred.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
     ModusContextController_compose: {
         parameters: {
             query?: never;
@@ -14553,6 +15346,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -14619,7 +15431,7 @@ export interface operations {
                 pageToken?: string;
                 /** @description Legacy zero-indexed page number. Defaults to 0. Prefer `pageToken`; if both are supplied, `pageToken` wins. */
                 page?: number;
-                /** @description Items per page. Defaults to 10, clamped to 100. */
+                /** @description Items per page. Defaults to 10. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
@@ -14893,195 +15705,12 @@ export interface operations {
             };
         };
     };
-    ModusChatController_chatContinue: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Thread id from a prior chat response or conversation list. */
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ModusChatRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ModusChatResponseDto"];
-                };
-            };
-            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "BAD_REQUEST",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Invalid value for query parameter `pageSize`.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "UNAUTHORIZED",
-                     *         "status": "UNAUTHENTICATED",
-                     *         "message": "Missing or invalid access token.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "FORBIDDEN",
-                     *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "VALIDATION",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Too many requests. Please retry after a short delay.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "INTERNAL_ERROR",
-                     *         "status": "INTERNAL",
-                     *         "message": "An unexpected error occurred.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
     ScopesController_list: {
         parameters: {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
                 view?: "active" | "draft";
@@ -15322,6 +15951,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -15836,8 +16484,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
-            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
-            422: {
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15845,173 +16493,9 @@ export interface operations {
                     /**
                      * @example {
                      *       "error": {
-                     *         "code": "VALIDATION",
+                     *         "code": "PAYLOAD_TOO_LARGE",
                      *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Updates that would revoke your own access are not allowed.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "RATE_LIMITED",
-                     *         "status": "RESOURCE_EXHAUSTED",
-                     *         "message": "Too many requests. Please retry after a short delay.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "INTERNAL_ERROR",
-                     *         "status": "INTERNAL",
-                     *         "message": "An unexpected error occurred.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-        };
-    };
-    ScopeChatController_chat: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Numeric scope id. */
-                id: unknown;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SkillChatRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SkillChatResponseDto"];
-                };
-            };
-            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "BAD_REQUEST",
-                     *         "status": "INVALID_ARGUMENT",
-                     *         "message": "Invalid value for query parameter `pageSize`.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "UNAUTHORIZED",
-                     *         "status": "UNAUTHENTICATED",
-                     *         "message": "Missing or invalid access token.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "FORBIDDEN",
-                     *         "status": "PERMISSION_DENIED",
-                     *         "message": "Missing required scope(s) for this operation.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
-                     *         "info": {
-                     *           "missing": [
-                     *             "<required-scope>"
-                     *           ]
-                     *         }
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "NOT_FOUND",
-                     *         "status": "NOT_FOUND",
-                     *         "message": "Resource not found.",
-                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
-                     *       }
-                     *     }
-                     */
-                    "application/json": components["schemas"]["ErrorResponseDto"];
-                };
-            };
-            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    /**
-                     * @example {
-                     *       "error": {
-                     *         "code": "CONFLICT",
-                     *         "status": "ALREADY_EXISTS",
-                     *         "message": "A resource with that identifier already exists.",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -16202,6 +16686,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -16268,7 +16771,7 @@ export interface operations {
                 pageToken?: string;
                 /** @description Legacy zero-indexed page number. Defaults to 0. Prefer `pageToken`; if both are supplied, `pageToken` wins. */
                 page?: number;
-                /** @description Items per page. Defaults to 10, clamped to 100. */
+                /** @description Items per page. Defaults to 10. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
@@ -16569,21 +17072,19 @@ export interface operations {
             };
         };
     };
-    ScopeChatController_chatContinue: {
+    ScopesController_deploy: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /** @description Numeric scope id. */
-                id: unknown;
-                /** @description Thread id from a prior chat response. */
-                threadId: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["SkillChatRequestDto"];
+                "application/json": components["schemas"]["DeploySkillDto"];
             };
         };
         responses: {
@@ -16592,8 +17093,408 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SkillChatResponseDto"];
+                    "application/json": components["schemas"]["DeployResponseDto"];
                 };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_addEvaluationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluationCaseInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationCaseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_deleteEvaluationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+                /** @description Id of the evaluation case. */
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
             400: {
@@ -16754,19 +17655,21 @@ export interface operations {
             };
         };
     };
-    ScopesController_deploy: {
+    ScopesController_updateEvaluationCase: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /** @description Numeric scope id. */
                 id: number;
+                /** @description Id of the evaluation case. */
+                caseId: string;
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["DeploySkillDto"];
+                "application/json": components["schemas"]["UpdateEvaluationCaseDto"];
             };
         };
         responses: {
@@ -16775,7 +17678,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeployResponseDto"];
+                    "application/json": components["schemas"]["EvaluationCaseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -16871,6 +17774,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -17202,6 +18124,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -17264,7 +18205,9 @@ export interface operations {
     EvaluationsController_listRuns: {
         parameters: {
             query?: {
+                /** @description Max items per page. Defaults to 20. Must be between 1 and 100. */
                 pageSize?: number;
+                /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
             };
             header?: never;
@@ -17993,6 +18936,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -18360,6 +19322,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -18543,6 +19524,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -18607,7 +19607,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25, clamped to 100. */
+                /** @description Items per page. Defaults to 100 when no pagination params are sent (legacy); otherwise 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Narrow results to memories tagged with this end-user id. */
                 userId?: string;
@@ -18872,6 +19872,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -19237,6 +20256,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -19750,6 +20788,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -19933,6 +20990,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -20109,6 +21185,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -20685,7 +21780,7 @@ export interface operations {
                 pageSize?: number;
                 /** @description Return suggestions scoped to this numeric scope id. Omit for org-general suggestions. */
                 scopeId?: number;
-                /** @description Comma-separated numeric scope ids. Returns approved suggestions for these scopes plus org-general suggestions. */
+                /** @description Comma-separated numeric scope ids, at most 100. Returns approved suggestions for these scopes plus org-general suggestions. */
                 scopeIds?: string;
             };
             header?: never;
@@ -20945,6 +22040,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -21009,7 +22123,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
             };
             header?: never;
@@ -21133,7 +22247,7 @@ export interface operations {
             query: {
                 /** @description ISO8601 start of the query window (inclusive). */
                 since: string;
-                /** @description ISO8601 end of the query window (exclusive). */
+                /** @description ISO8601 end of the query window (exclusive). At most 400 days after `since`. */
                 until: string;
                 /** @description Time bucket size for the response rows. */
                 rollup: "hour" | "day";
@@ -21635,7 +22749,7 @@ export interface operations {
             query?: {
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
                 view?: "active" | "draft";
@@ -21876,6 +22990,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -22390,6 +23523,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -22566,6 +23718,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -22890,6 +24061,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -23441,6 +24631,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -23690,7 +24899,7 @@ export interface operations {
                 approvalScope?: string;
                 /** @description Case-insensitive substring filter on the parent workflow name. */
                 search?: string;
-                /** @description Max items per page. Defaults to 25, clamped to 100. */
+                /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
                 /** @description Opaque page token from a previous response's `nextPageToken`. Omit for the first page. */
                 pageToken?: string;
@@ -24102,6 +25311,25 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponseDto"];
                 };
             };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
             /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
             422: {
                 headers: {
@@ -24278,6 +25506,25 @@ export interface operations {
                      *         "code": "CONFLICT",
                      *         "status": "ALREADY_EXISTS",
                      *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
                      *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
@@ -24702,6 +25949,93 @@ export interface operations {
             };
         };
     };
+    ModusContextComposeController_compose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModusContextRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModusContextResponseDto"];
+                };
+            };
+            /** @description The body is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Missing or invalid credentials. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The token lacks `scopes:invoke`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition did not finish within 90 seconds (`code: UPSTREAM_TIMEOUT`). Retry, or send a narrower message. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+        };
+    };
     ModusRunsController_create: {
         parameters: {
             query?: never;
@@ -24715,7 +26049,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -24734,6 +26068,42 @@ export interface operations {
                         runId: string;
                         status: string;
                     };
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
@@ -24987,11 +26357,14 @@ export interface operations {
             };
         };
         responses: {
+            /** @description The new run that carries the follow-up turn. */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunAdmissionResponseDto"];
+                };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
@@ -25029,11 +26402,14 @@ export interface operations {
             };
         };
         responses: {
+            /** @description The edited run. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunAdmissionResponseDto"];
+                };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {
@@ -25072,7 +26448,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -25091,6 +26467,42 @@ export interface operations {
                         runId: string;
                         status: string;
                     };
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
@@ -25175,6 +26587,105 @@ export interface operations {
             };
         };
     };
+    ScopeContextComposeController_compose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComposeSkillContextRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComposeSkillContextResponseDto"];
+                };
+            };
+            /** @description The body is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Missing or invalid credentials. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The token lacks `scopes:invoke`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The scope does not exist, is not published, or the caller may not use it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description Context composition did not finish within 90 seconds (`code: UPSTREAM_TIMEOUT`). Retry, or send a narrower message. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+        };
+    };
     ScopeRunsController_create: {
         parameters: {
             query?: never;
@@ -25191,7 +26702,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -25210,6 +26721,42 @@ export interface operations {
                         runId: string;
                         status: string;
                     };
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
@@ -25237,7 +26784,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                /** @description Client-generated idempotency key (UUID recommended). Retry with same key + same body resumes the existing SSE stream. Same key + different body returns a 409 error event. */
+                /** @description Client-generated idempotency key (UUID recommended). Retry with same key + same body resumes the existing SSE stream. Same key + different body returns 409. */
                 "Idempotency-Key"?: string;
             };
             path?: never;
@@ -25263,6 +26810,42 @@ export interface operations {
                      *     data: {"type":"done","runId":"xyz-456"}
                      */
                     "text/event-stream": string;
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
@@ -25344,7 +26927,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description SSE stream of run events. */
+            /** @description SSE stream of run events. Each frame has an `id:` to send back as `Last-Event-ID` on GET /agent/v1/runs/{runId}/stream to resume after it. An `error` event carries `error` (the message) and `requestId` (quote it to support). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -25363,6 +26946,42 @@ export interface operations {
                         runId: string;
                         status: string;
                     };
+                };
+            };
+            /** @description The run was rejected: an invalid body, an empty turn, or a sessionId outside the run target. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The caller may not run as this identity or in this organization. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The run target was not found, or the caller cannot see it. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
+                };
+            };
+            /** @description The Idempotency-Key was already used with a different body, or a resume found no write approval or connection request pending on the conversation (nothing changes; the next turn runs normally). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto1"];
                 };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */

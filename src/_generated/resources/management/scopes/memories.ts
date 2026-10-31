@@ -108,21 +108,20 @@ export class ScopesMemoriesResourceBase {
     memoryId: string,
     update: MemoryUpdate,
     options: { updateMask?: string } = {},
-  ): Promise<Memory> {
+  ): Promise<void> {
     validateId(memoryId, 'memory_id')
     validateId(this.scopeId, 'scope_id')
-    const data = await invokeWithRetry(this.config, this.http, 'ScopeMemoriesController_update', {
+    await invokeWithRetry(this.config, this.http, 'ScopeMemoriesController_update', {
       pathParams: { id: this.scopeId, memoryId },
       query: updateMaskQuery(options.updateMask),
       jsonBody: omitUndefined(update as Record<string, unknown>),
     })
-    return data as Memory
   }
 
   /**
    * Delete a memory.
    *
-   * Deletes one memory. Deleting an already-deleted memory is a no-op.
+   * Deletes one memory. Returns 404 if the memory does not exist or is already deleted.
    *
    * **Requires:** `scopes:write`
    *

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { ModusConfig } from '../../_config.js'
 import { resolveAgentRunSessionId } from '../../_agent_run_request.js'
-import { ModusError } from '../../_exceptions.js'
+import { ModusError, ValidationError } from '../../_exceptions.js'
 import type { OperationId } from '../../_generated/operations.js'
 import {
   formatOperationPath,
@@ -19,8 +19,10 @@ import type {
   AgentRunCreateRequest,
   ApprovalScope,
   CreateAgentRunRequest,
+  FollowUpRunRequest,
   ModusRunCreateRequest,
   ResumeRunRequest,
+  RunAdmission,
   RunStatus,
   RunTimeframe,
   SkillRunCreateRequest,
@@ -100,6 +102,13 @@ function sessionIdFromBody(body: { sessionId?: string }): string {
   return resolveAgentRunSessionId(body.sessionId)
 }
 
+/** Interrupt, queue-edit and resume continue an existing conversation, so a sessionId is never minted. */
+function requireSessionId(sessionId: string | undefined): void {
+  if (!sessionId?.trim()) {
+    throw new ValidationError("sessionId must be the run's conversation id (a non-empty string)")
+  }
+}
+
 export interface AgentRunStream extends AsyncIterable<RunEvent> {
   readonly runId: string
   readonly events: AsyncIterable<RunEvent>
@@ -142,7 +151,7 @@ export class WorkflowRunsResource {
   /**
    * List runs for a workflow.
    *
-   * @param workflowId - Workflow id or slug.
+   * @param workflowId - Numeric workflow id.
    * @param options.pageSize - Maximum items per page (default 25, max 100).
    * @param options.pageToken - Opaque token from a previous page.
    * @param options.status - Filter by run status.
@@ -219,7 +228,7 @@ export class WorkflowRunsResource {
   /**
    * Retrieve a workflow run by id.
    *
-   * @param workflowId - Workflow id or slug the run belongs to.
+   * @param workflowId - Numeric workflow id the run belongs to.
    * @param runId - Run id (the list row's `workflowId` field, not the composite `id`).
    * @param options.temporalRunId - Optional internal execution id when disambiguating retries.
    * @returns Run details including status and output.
@@ -237,7 +246,7 @@ export class WorkflowRunsResource {
     options: { temporalRunId?: string } = {},
   ): Promise<AgentRun> {
     validateId(workflowId, 'workflow_id')
-    if (!runId.trim()) throw new Error('run_id must be a non-empty string')
+    if (!runId.trim()) throw new ValidationError('run_id must be a non-empty string')
     const query =
       options.temporalRunId !== undefined
         ? { temporalRunId: options.temporalRunId }
@@ -252,7 +261,7 @@ export class WorkflowRunsResource {
   /**
    * Start a workflow run and stream run events.
    *
-   * @param workflowId - Workflow id or slug to run.
+   * @param workflowId - Numeric workflow id to run.
    * @param body - Run body (`message`, optional `sessionId`, optional `version` as `published` or `draft`).
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events (tokens, completion, errors, and related signals).
@@ -334,18 +343,21 @@ export class WorkflowRunsResource {
   }
 
   /**
-   * Resume an interrupted run and stream run events.
+   * Resume a run paused at an approval or connect interrupt, and stream the continuation's events.
    *
-   * @param runId - Run id to resume.
-   * @param body - Resume body (`message`, `sessionId`, and `decision`: `approve` / `deny` / `connected` / `cancelled`).
+   * The decision is the whole turn: send no `message` (a non-empty one is rejected).
+   *
+   * @param runId - Id of the interrupted run.
+   * @param body - `sessionId` (the run's conversation id, required) and `decision`
+   *   (`approve` / `deny` / `connected` / `cancelled`); optional `approvalTarget`.
    * @param options.idempotencyKey - Client-supplied idempotency key; defaults to `body.runId` or a new uuid.
    * @returns A stream of run events.
+   * @throws {ValidationError} When `sessionId` is blank, before any request is sent.
    *
    * @example
    * ```ts
    * const stream = client.workflows.runs.resume(runId, {
    *   decision: 'approve',
-   *   message: 'Looks good — continue.',
    *   sessionId,
    * })
    * for await (const event of stream) {
@@ -359,6 +371,7 @@ export class WorkflowRunsResource {
     options: { idempotencyKey?: string } = {},
   ): AgentRunStream {
     validateId(runId, 'run_id')
+    requireSessionId(body.sessionId)
     return this.createRun('ResumeRunsController_create', body, { runId }, options)
   }
 
@@ -394,29 +407,72 @@ export class WorkflowRunsResource {
   }
 
   /**
-   * Request a graceful stop for a running execution.
+   * Supersede a run's current turn with a follow-up turn.
+   *
+   * The run is cancelled and `nextRun` starts as a new run on the same conversation.
+   * On a run that has already finished nothing is cancelled, and `nextRun` simply
+   * starts a follow-up turn. `nextRun.runId` is pinned (a new uuid when you do not
+   * set one), so a retried request returns the same run instead of starting another.
    *
    * @param runId - Run id to interrupt.
+   * @param nextRun - The follow-up turn: `message` and `sessionId` (the run's conversation id).
+   * @param options.lastSeenEventId - Id of the last event you rendered, so the cancelled
+   *   turn's saved output stops there.
+   * @returns The new run (`runId`, `status`); follow it with {@link stream}.
+   * @throws {ValidationError} When `nextRun.sessionId` is blank, before any request is sent.
+   *
+   * @example
+   * ```ts
+   * const { runId: nextRunId } = await client.workflows.runs.interrupt(runId, {
+   *   message: 'Only count EMEA.',
+   *   sessionId,
+   * })
+   * for await (const event of client.workflows.runs.stream(nextRunId)) {
+   *   if (event.type === 'token') process.stdout.write(event.content)
+   * }
+   * ```
    */
-  async interrupt(runId: string): Promise<void> {
+  async interrupt(
+    runId: string,
+    nextRun: FollowUpRunRequest,
+    options: { lastSeenEventId?: string } = {},
+  ): Promise<RunAdmission> {
     validateId(runId, 'run_id')
-    await invokeWithRetry(this.config, this.http, 'RunLifecycleController_interrupt', {
+    requireSessionId(nextRun.sessionId)
+    const jsonBody = {
+      nextRun: { ...nextRun, runId: nextRun.runId?.trim() || randomRunId() },
+      ...(options.lastSeenEventId ? { lastSeenEventId: options.lastSeenEventId } : {}),
+    }
+    return (await invokeWithRetry(this.config, this.http, 'RunLifecycleController_interrupt', {
       pathParams: { runId },
-      jsonBody: {},
-    })
+      jsonBody,
+    })) as RunAdmission
   }
 
   /**
-   * Move a queued run back into an editable state before it starts.
+   * Replace the turn of a run that is still queued (not yet started).
    *
    * @param runId - Queued run id.
+   * @param nextRun - The replacement turn: `message` and `sessionId` (the run's conversation id).
+   * @returns The edited run (`runId`, `status`).
+   * @throws {ValidationError} When `nextRun.sessionId` is blank, before any request is sent.
+   * @throws {ConflictError} When the run has already started.
+   *
+   * @example
+   * ```ts
+   * await client.workflows.runs.editQueued(queuedRunId, {
+   *   message: 'Summarize last week instead.',
+   *   sessionId,
+   * })
+   * ```
    */
-  async editQueued(runId: string): Promise<void> {
+  async editQueued(runId: string, nextRun: FollowUpRunRequest): Promise<RunAdmission> {
     validateId(runId, 'run_id')
-    await invokeWithRetry(this.config, this.http, 'RunLifecycleController_editQueued', {
+    requireSessionId(nextRun.sessionId)
+    return (await invokeWithRetry(this.config, this.http, 'RunLifecycleController_editQueued', {
       pathParams: { runId },
-      jsonBody: {},
-    })
+      jsonBody: { nextRun },
+    })) as RunAdmission
   }
 
   /**
@@ -452,12 +508,12 @@ export class WorkflowRunsResource {
    *
    * @param sessionIds - Up to 100 session ids.
    * @returns Active runs matching any of the given sessions.
-   * @throws {Error} When more than 100 session ids are provided.
+   * @throws {ValidationError} When more than 100 session ids are provided.
    */
   async activeBySession(sessionIds: readonly string[]): Promise<ActiveConversationRun[]> {
     const uniqueSessionIds = [...new Set(sessionIds.map((id) => id.trim()).filter(Boolean))]
     if (uniqueSessionIds.length > 100) {
-      throw new Error('sessionIds must contain at most 100 ids')
+      throw new ValidationError('sessionIds must contain at most 100 ids')
     }
     return parseActiveRunsArray(
       await invokeWithRetry(this.config, this.http, 'RunLifecycleController_activeBySession', {
@@ -467,17 +523,19 @@ export class WorkflowRunsResource {
   }
 
   /**
-   * Reconnect to an in-progress run and stream run events.
+   * Reconnect to a run and stream its events.
    *
    * @param runId - Run id to follow.
-   * @param options.lastEventId - Resume after this event id when catching up.
-   * @returns A stream of run events from the current execution point.
+   * @param options.lastEventId - The `id` of the last event you handled; the stream resumes
+   *   after it. Omit to replay the run from its first event.
+   * @returns A stream of run events.
    *
    * @example
    * ```ts
-   * const stream = client.workflows.runs.stream(runId, { lastEventId: checkpoint })
-   * for await (const event of stream) {
+   * let lastEventId: string | undefined
+   * for await (const event of client.workflows.runs.stream(runId, { lastEventId })) {
    *   if (event.type === 'token') process.stdout.write(event.content)
+   *   lastEventId = event.id // after handling it: reconnect with it if the connection drops
    * }
    * ```
    */

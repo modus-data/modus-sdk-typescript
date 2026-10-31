@@ -7,9 +7,9 @@ import {
   resolveOrganizationId,
   resolveTimeoutMs,
 } from './_auth.js'
+import { ModusError } from './_exceptions.js'
 
 export const DEFAULT_BASE_URL = 'https://api.getmodus.com'
-export const DEFAULT_AGENT_HOST = 'https://agent.getmodus.com'
 export const DEFAULT_TIMEOUT_MS = 300_000
 export const DEFAULT_MAX_RETRIES = 2
 
@@ -52,7 +52,8 @@ export interface ModusOptions {
 export interface ModusConfig {
   readonly apiKey: string
   readonly baseUrl: string
-  readonly agentHost: string
+  /** Agent host for chat and runs; undefined when it cannot be derived from a custom baseUrl. */
+  readonly agentHost: string | undefined
   readonly organizationId?: string
   readonly baseUrls: Readonly<Record<string, string>>
   readonly timeoutMs: number
@@ -83,13 +84,13 @@ export function createModusConfig(options: ModusOptions = {}): ModusConfig {
   const baseUrlOverrides = normalizeBaseUrls(options.baseUrls)
   // baseUrls['agent-service'] must drive streaming too (same origin as invoke).
   // When unset, derive agent.<rest> from api.<rest> baseUrl so staging chat
-  // works with only the API origin env override (no separate agent-host override).
-  const agentHost = normalizeBaseUrl(
+  // works with only the API origin env override. A custom baseUrl gets no
+  // agent host rather than production's, which would receive its token.
+  const explicitAgentHost =
     baseUrlOverrides['agent-service'] ??
-      resolveAgentHost(options.agentHost) ??
-      deriveAgentHostFromBaseUrl(baseUrl) ??
-      DEFAULT_AGENT_HOST,
-  )
+    resolveAgentHost(options.agentHost) ??
+    deriveAgentHostFromBaseUrl(baseUrl)
+  const agentHost = explicitAgentHost === undefined ? undefined : normalizeBaseUrl(explicitAgentHost)
   const organizationId = resolveOrganizationId(options.organizationId)
   return Object.freeze({
     apiKey: resolveApiKey(options.apiKey),
@@ -98,7 +99,7 @@ export function createModusConfig(options: ModusOptions = {}): ModusConfig {
     ...(organizationId !== undefined ? { organizationId } : {}),
     baseUrls: Object.freeze({
       'modus-api': baseUrl,
-      'agent-service': agentHost,
+      ...(agentHost !== undefined ? { 'agent-service': agentHost } : {}),
       ...baseUrlOverrides,
     }),
     timeoutMs: resolveTimeoutMs(options.timeoutMs) ?? DEFAULT_TIMEOUT_MS,
@@ -115,13 +116,22 @@ export function resolveServiceBaseUrl(
 ): string {
   // Prefer explicit agentHost / baseUrls over OpenAPI-codegen serverUrl so
   // MODUS_AGENT_HOST and agentHost= always win over stale generated defaults.
-  if (service === 'agent-service') {
-    return config.baseUrls['agent-service'] ?? config.agentHost ?? generatedBaseUrl ?? config.baseUrl
-  }
+  if (service === 'agent-service') return requireAgentHost(config)
   return config.baseUrls[service] ?? generatedBaseUrl ?? config.baseUrl
 }
 
 export function formatConfigForLog(config: ModusConfig): string {
   const masked = config.apiKey.length > 10 ? `${config.apiKey.slice(0, 10)}***` : '***'
   return `ModusConfig(apiKey=${JSON.stringify(masked)}, baseUrl=${JSON.stringify(config.baseUrl)}, timeoutMs=${config.timeoutMs}, maxRetries=${config.maxRetries})`
+}
+
+/** The agent host for chat and runs; throws when a custom baseUrl leaves it unknown. */
+export function requireAgentHost(config: ModusConfig): string {
+  if (config.agentHost === undefined) {
+    throw new ModusError(
+      `No agent host for baseUrl ${JSON.stringify(config.baseUrl)}. ` +
+        'Pass agentHost (or set MODUS_AGENT_HOST) to chat or run with a custom baseUrl.',
+    )
+  }
+  return config.agentHost
 }

@@ -1,3 +1,4 @@
+import { ValidationError } from '../../_exceptions.js'
 import type { ModusConfig } from '../../_config.js'
 import { ModusConversationsResourceBase } from '../../_generated/resources/consumption/modus/conversations.js'
 import type { HttpClient } from '../../_http.js'
@@ -19,7 +20,7 @@ function listParams(
   sourceRef?: string,
 ): Record<string, string | number | boolean | undefined | null> {
   if (kind !== undefined && !ALLOWED_KINDS.has(kind)) {
-    throw new Error(
+    throw new ValidationError(
       `kind must be one of ${[...ALLOWED_KINDS].sort().join(', ')}, got ${JSON.stringify(kind)}`,
     )
   }
