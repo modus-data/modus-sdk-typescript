@@ -1324,6 +1324,28 @@ export interface paths {
         patch: operations["ScopesController_patchMcpConfig"];
         trace?: never;
     };
+    "/api/v1/scopes/{id}/mcp-exposure-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview MCP exposure catalog
+         * @description Lists tools this scope can expose to MCP clients. A field you send replaces the current draft; a field you omit stays as stored. Nothing is saved. Entries you cannot access are left out, and stored selections on them are counted in hiddenSelectedCount.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["ScopesController_mcpExposureCatalog"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/scopes/{id}/memories": {
         parameters: {
             query?: never;
@@ -4707,6 +4729,99 @@ export interface components {
              */
             teachModus: boolean;
         };
+        McpExposureCatalogChildDto: {
+            /**
+             * @description Exposure key for this tool.
+             * @example toolset_action:web_search::tavily_search
+             */
+            key: string;
+            /**
+             * @description Action or tool name this key selects.
+             * @example tavily_search
+             */
+            actionKey?: string;
+            /**
+             * @description Name shown for this tool.
+             * @example Web Search
+             */
+            label: string;
+        };
+        McpExposureCatalogEntryDto: {
+            /**
+             * @description Kind of tool this row exposes.
+             * @example tool
+             */
+            family: components["schemas"]["McpExposureFamily"];
+            /**
+             * @description Exposure key for the whole row.
+             * @example toolset:web_search
+             */
+            parentKey: string;
+            /**
+             * @description Toolset entry this row comes from.
+             * @example web_search
+             */
+            toolsetKey: string;
+            /**
+             * @description Connection this row belongs to, when the row is one connection.
+             * @example c1111111-2222-4333-8444-555555555555
+             */
+            connectionId?: string;
+            /**
+             * @description Name shown for this row.
+             * @example Web Search
+             */
+            label: string;
+            /** @description Tools under this row. Selecting the parent key exposes all of them, including ones added later. */
+            children: components["schemas"]["McpExposureCatalogChildDto"][];
+        };
+        McpExposureCatalogRequestDto: {
+            /** @description Toolset to preview. Omit to keep the current draft. An object replaces it for this call only. */
+            toolset?: {
+                [key: string]: unknown;
+            };
+            /** @description Connections to preview. Omit to keep the current draft. A list replaces it for this call only. */
+            connectionSet?: {
+                [key: string]: unknown;
+            }[];
+            /** @description Tool exposure to resolve. Omit to keep the current draft. An object replaces it for this call only. */
+            mcpToolExposure?: {
+                [key: string]: unknown;
+            };
+        };
+        McpExposureCatalogResponseDto: {
+            /** @description Tools this scope can expose. Rows you cannot access are left out. */
+            entries: components["schemas"]["McpExposureCatalogEntryDto"][];
+            /**
+             * @description Exposure keys from the resolved selection that are in the visible catalog. Discovery selects every visible key.
+             * @example [
+             *       "toolset:web_search"
+             *     ]
+             */
+            selectedKeys: string[];
+            /**
+             * @description Stored or sent keys that are not in the catalog. They are reported, not dropped.
+             * @example [
+             *       "toolset:retired"
+             *     ]
+             */
+            unknownKeys: string[];
+            /**
+             * @description True when you can manage this scope. Manage is what allows exposing every current and future tool. This call is refused otherwise.
+             * @example true
+             */
+            discoveryAllowed: boolean;
+            /**
+             * @description How many stored keys point at rows you cannot access. Those keys are not listed.
+             * @example 0
+             */
+            hiddenSelectedCount: number;
+        };
+        /**
+         * @description Kind of tool this row exposes.
+         * @enum {string}
+         */
+        McpExposureFamily: "integration_actions" | "data_connection" | "custom_mcp" | "mcp_server" | "connection_actions" | "analytics" | "tool";
         McpToolExposureConfigDto: {
             /**
              * @description Exposure format. Always 1.
@@ -19475,6 +19590,208 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatchSkillMcpConfigResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_mcpExposureCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["McpExposureCatalogRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpExposureCatalogResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */

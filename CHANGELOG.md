@@ -11,6 +11,7 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`mgmt.scopes.mcpExposureCatalog(scopeId, request)`.** Lists the tools a scope can expose to MCP clients. A field you send replaces the current draft for this call; a field you omit stays as stored. Nothing is saved. Rows you cannot access are left out, and stored selections on them are counted. `McpExposureCatalogRequest` and `McpExposureCatalog` import from `@getmodus/sdk/management`.
 - **Every type a public method takes or returns is exported.** The resource classes (`WorkflowRunsResource`, `ManagementScopesResource`, …), `ModusConfig`, the custom context item inputs and results (`CreateCustomContextItemInput`, `CreatedCustomContextItem`, …), and the evaluation, usage, interface, supervision and user types import from `@getmodus/sdk` or `@getmodus/sdk/management`, so a variable that holds a result can be annotated.
 - **`access` on custom context item creates.** `context.customItems.create()` and `batchCreate()` inputs take `access` (`scope`, `groupIds`, `userIds`), which the endpoint already accepted. Omitted, everyone in the organization can see the item; to change it, delete and re-create the item.
 - **A trace id for every call.** Each request sends a W3C `traceparent` (a new trace per call, kept across its retries, each re-send also carrying `X-Modus-Retry-Attempt`), and every `ModusError` from an HTTP call carries it as `traceId`. Quote `traceId` with `requestId` to support: it also names a call that never reached Modus. A `traceparent` you set in `defaultHeaders` is sent as is.

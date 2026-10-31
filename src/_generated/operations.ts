@@ -1050,6 +1050,17 @@ export const OPERATIONS = {
     responseSchema: "ListSkillsResponseDto",
     idempotent: false,
   },
+  "ScopesController_mcpExposureCatalog": {
+    method: "POST",
+    path: "/api/v1/scopes/{id}/mcp-exposure-catalog",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: ["id"],
+    queryParams: [],
+    requestSchema: "McpExposureCatalogRequestDto",
+    responseSchema: "McpExposureCatalogResponseDto",
+    idempotent: true,
+  },
   "ScopesController_patchMcpConfig": {
     method: "PATCH",
     path: "/api/v1/scopes/{id}/mcp-config",

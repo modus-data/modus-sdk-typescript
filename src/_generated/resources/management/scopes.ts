@@ -3,8 +3,12 @@
 import type { ModusConfig } from '../../../_config.js'
 import type { HttpClient } from '../../../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../../../_pagination.js'
-import { asRecord, invokeWithRetry } from '../../../_request.js'
+import { asRecord, invokeWithRetry, omitUndefined } from '../../../_request.js'
 import { validateId, validatePageSize } from '../../../_validation.js'
+import type {
+  McpExposureCatalog,
+  McpExposureCatalogRequest,
+} from '../../../management/scopes/mcp-exposure-catalog.js'
 import type { Scope } from '../../../types/scopes.js'
 import type { VariationView } from '../../../types/views.js'
 
@@ -131,6 +135,36 @@ export class ScopesResourceBase {
     await invokeWithRetry(this.config, this.http, 'ScopesController_delete', {
       pathParams: { id: scopeId },
     })
+  }
+
+  /**
+   * Preview MCP exposure catalog.
+   *
+   * Lists tools this scope can expose to MCP clients. A field you send replaces the current draft;
+   * a field you omit stays as stored. Nothing is saved. Entries you cannot access are left out, and
+   * stored selections on them are counted in hiddenSelectedCount.
+   *
+   * **Requires:** `scopes:write`
+   *
+   * @param scopeId - Numeric scope id.
+   * @param request - Request body; see `McpExposureCatalogRequest`.
+   *
+   * @example
+   * ```ts
+   * const catalog = await mgmt.scopes.mcpExposureCatalog(42, {})
+   * catalog.discoveryAllowed
+   * ```
+   */
+  async mcpExposureCatalog(
+    scopeId: number | string,
+    request: McpExposureCatalogRequest,
+  ): Promise<McpExposureCatalog> {
+    validateId(scopeId, 'scope_id')
+    const data = await invokeWithRetry(this.config, this.http, 'ScopesController_mcpExposureCatalog', {
+      pathParams: { id: scopeId },
+      jsonBody: omitUndefined(request as Record<string, unknown>),
+    })
+    return data as McpExposureCatalog
   }
 
   /**

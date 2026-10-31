@@ -39,6 +39,7 @@ export type { ManagementScopesResource } from './scopes/skills.js'
 export type { ScopeMemoriesResource } from './scopes/memories.js'
 export type { ScopeEvaluationsResource } from './scopes/evaluations.js'
 export type { ScopeSupervisionResource, SetSupervisionRequest, Supervision } from './scopes/supervision.js'
+export type { McpExposureCatalog, McpExposureCatalogRequest } from './scopes/mcp-exposure-catalog.js'
 export type {
   AddScopeInterface,
   ScopeInterface,

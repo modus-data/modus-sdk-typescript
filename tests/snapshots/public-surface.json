@@ -96,6 +96,7 @@
   "ManagementScopesResource.getVariation": "(scopeId: number | string, options: { variationUid: string; }): Promise<Scope>",
   "ManagementScopesResource.interfaces": "(scopeId: number | string): ScopeInterfacesResource",
   "ManagementScopesResource.list": "(options?: { pageSize?: number; pageToken?: string; search?: string; view?: VariationView; managerId?: number; }): Promise<Page<Scope>>",
+  "ManagementScopesResource.mcpExposureCatalog": "(scopeId: number | string, request: McpExposureCatalogRequest): Promise<McpExposureCatalog>",
   "ManagementScopesResource.memories": "(scopeId: number | string): ScopeMemoriesResource",
   "ManagementScopesResource.patchMcpConfig": "(scopeId: number | string, options: { mcpConfig: Record<string, unknown>; }): Promise<void>",
   "ManagementScopesResource.requestOwnershipTransfer": "(scopeId: number | string, options: { newOwnerUserId: string; }): Promise<Scope>",

@@ -36,7 +36,7 @@ describe('@getmodus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(125)
+    expect(Object.keys(OPERATIONS).length).toBe(126)
     expect(OPERATIONS.ConnectionsController_listSelections).toMatchObject({
       method: 'GET',
       path: '/api/v1/connections/{connectionId}/selections',
