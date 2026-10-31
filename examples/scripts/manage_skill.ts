@@ -10,7 +10,7 @@
  *   npx tsx examples/scripts/manage_skill.ts --write --delete
  */
 import { Modus } from '@getmodus/sdk'
-import { ModusManagement } from '@getmodus/sdk/management'
+import { ModusManagement, type PlatformToolsetEntry, type ToolsetInput } from '@getmodus/sdk/management'
 
 const EXAMPLE_PREFIX = '[SDK Example]'
 
@@ -19,16 +19,19 @@ function exampleName(): string {
   return `${EXAMPLE_PREFIX} Revenue Analysis ${stamp}`
 }
 
-function toolsetForExample(): Record<string, unknown> {
-  // A SQL action key such as SELECT:<connection-id>: names a connection most orgs lack, so the SQL tool is opt-in.
-  const sqlSelector = process.env.MODUS_SQL_SELECTOR
-  if (sqlSelector) {
-    return {
-      sql_runner: [sqlSelector],
-      memory: { enabled: true },
-    }
+function toolsetForExample(): ToolsetInput {
+  const platform = process.env.MODUS_SQL_PLATFORM
+  const connectionId = process.env.MODUS_SQL_CONNECTION_ID
+  if (platform === undefined && connectionId === undefined) return { memory: { enabled: true } }
+  if (!platform || !connectionId) {
+    throw new Error('Set both MODUS_SQL_PLATFORM (e.g. postgresql) and MODUS_SQL_CONNECTION_ID.')
   }
-  return { memory: { enabled: true } }
+  return {
+    [platform]: {
+      byConnection: { [connectionId]: { actions: ['query'] } },
+    } satisfies PlatformToolsetEntry,
+    memory: { enabled: true },
+  }
 }
 
 const write = process.argv.includes('--write')

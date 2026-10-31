@@ -281,6 +281,41 @@ console.log(access.canManage)
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
 
+### Connection-specific toolsets
+
+Use the catalog platform key and an explicit lowercase connection UUID. SQL platforms
+(such as `postgresql`, `snowflake` or `bigquery`) grant `query`:
+
+```ts
+import type { PlatformToolsetEntry, ToolsetInput } from '@getmodus/sdk/management'
+
+const toolset: ToolsetInput = {
+  postgresql: {
+    byConnection: {
+      '11111111-1111-4111-8111-111111111111': { actions: ['query'] },
+    },
+  } satisfies PlatformToolsetEntry,
+  slack: {
+    byConnection: {
+      '22222222-2222-4222-8222-222222222222': {
+        actions: ['SendMessage'],
+        rules: { allowedChannelIds: ['C123'], allowedChannelNames: { C123: 'support' } },
+      },
+    },
+  } satisfies PlatformToolsetEntry,
+  memory: { enabled: true },
+}
+await mgmt.scopes.update(scope.id, { toolset })
+```
+
+Replace the example UUIDs with your chosen connections and use action IDs from
+`mgmt.tools.list()`. Each connection has its own grants; connections are never merged
+or substituted. Empty slots/maps are valid. Actions are trimmed operation names without
+`:` suffixes. The API rejects flat `{ actions }` entries, integration action arrays,
+`scope`/personal encodings and unknown keys (including the retired `sql_runner`, `looker_bi`,
+`langfuse_observability` and `*_analytics`) with a typed `UnprocessableError` (422), even when
+resending a stored value. General tools, MCP, Pipedream and Coding formats are unchanged.
+
 ## Pagination
 
 List endpoints return a `Page<T>`. Iterate the current page, or use `.autoPagingIter()` for all pages:
@@ -378,6 +413,9 @@ curl -fsSLO https://raw.githubusercontent.com/modus-data/modus-sdk-typescript/ma
 export MODUS_API_KEY=modus_pat_xxx
 npx tsx quickstart.ts
 ```
+
+For SQL in `manage_skill.ts`, set both `MODUS_SQL_PLATFORM` (for example `postgresql`)
+and `MODUS_SQL_CONNECTION_ID` to a connection you can access; SQL is omitted otherwise.
 
 See [CHANGELOG.md](./CHANGELOG.md) for release history.
 

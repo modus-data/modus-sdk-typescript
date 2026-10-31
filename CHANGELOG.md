@@ -159,16 +159,23 @@ release, including pre-1.0 (`0.x`) releases.
 - **Workflow interface config.** Slack and Teams `config` on a workflow interface is `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. An MCP interface accepts no config keys. An unknown key or invalid value in a changed config returns 422 with violations; `config: null` returns 400. Unchanged stored values are accepted.
 - **`searchQuery` documents word search.** `context.customItems.list({ searchQuery })` (`GET /context/custom-items`) describes
   word search: it returns rows that contain every word of the query, case-insensitive.
-- **Known toolset values are validated.** A new or edited scope `toolset` value must match that tool's shape.
-  Most tools take an array of strings. `file_publish` takes `{ actions: string[], rules?: { nameMode: "any" | "restricted", allowedNames: string[] } }`.
+- **Known toolset values are validated by the API.** Integration entries require per-connection grants (see **Removed** below).
+  General tools retain their formats: `file_publish` takes `{ actions: string[], rules?: { nameMode: "any" | "restricted", allowedNames: string[] } }`;
   Coding tools take an array of `{ connectionUid, repoOwner, repoName, branch }`.
-  `sql_runner` entries are `VERB:connectionId:`, optionally followed by `database:schema`, where `VERB` is `SELECT`, `INSERT`, `UPDATE`, `DELETE`, or `CREATE`.
-  A value that does not match is `422`
-  with rule `toolset.bad_value`; an unknown key stays `toolset.unknown_key`. Sending the same stored value again succeeds,
-  including a historical value the new check would reject, and removing that value succeeds.
+  Invalid nonintegration values return `422` with rule `toolset.bad_value`; unknown keys use `toolset.unknown_key`.
+  Unchanged stored nonintegration values can still be resent or removed.
 
 ### Removed
 
+- **Breaking (MAJOR), CU-z93r0b8wwz: implicit integration toolset binding and retired layouts.**
+  Use `{ <platform>: { byConnection: { <lowercase connection UUID>: { actions: [...], rules? } } } }`.
+  SQL grants use the SQL platform key (for example `postgresql`) with `actions: ['query']`.
+  Flat `{ actions }`, integration action arrays, `scope`/personal encodings, action suffixes,
+  `sql_runner`, `looker_bi`, `langfuse_observability` and `*_analytics` are rejected with
+  `UnprocessableError` (422), including unchanged stored entries. General tools, MCP, Pipedream
+  and Coding are unchanged. `PlatformToolsetEntry`, `ToolsetSlot` and `ToolsetRules` are
+  exported from `@getmodus/sdk/management`; `ToolsetInput` remains an open map.
+  The SQL example now takes `MODUS_SQL_PLATFORM` and `MODUS_SQL_CONNECTION_ID`, not `MODUS_SQL_SELECTOR`.
 - **Breaking: `ToolsetDto` and `ToolsetToolDto`.** Both are removed from `components["schemas"]`. Scope create and update `toolset` is a map of tool key to its configuration; type it with `ToolsetInput` from `@getmodus/sdk/management`. The generated `{ tools: [{ id, enabled, config }] }` models are gone. Unknown keys are rejected.
 - **Breaking (pre-1.0): evaluation case timestamps.** Scope evaluation cases no longer include `createdAt` or `updatedAt`.
 

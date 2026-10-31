@@ -145,7 +145,7 @@ export type {
   UpdateDashboardElementInput,
   UpdateDashboardLayoutInput,
 } from '../types/context-dashboards.js'
-export type { ToolsetInput } from './types/toolset.js'
+export type { PlatformToolsetEntry, ToolsetInput, ToolsetRules, ToolsetSlot } from './types/toolset.js'
 export type {
   Memory,
   MemorySearchRequest,

@@ -3577,16 +3577,20 @@ export interface components {
              */
             instructions?: string[];
             /**
-             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
-             *         "actions": [
-             *           "SendMessage"
-             *         ],
-             *         "rules": {
-             *           "allowedChannelIds": [
-             *             "C1"
-             *           ]
+             *         "byConnection": {
+             *           "11111111-1111-4111-8111-111111111111": {
+             *             "actions": [
+             *               "SendMessage"
+             *             ],
+             *             "rules": {
+             *               "allowedChannelIds": [
+             *                 "C1"
+             *               ]
+             *             }
+             *           }
              *         }
              *       }
              *     }
@@ -4821,7 +4825,7 @@ export interface components {
          * @description Kind of tool this row exposes.
          * @enum {string}
          */
-        McpExposureFamily: "integration_actions" | "data_connection" | "custom_mcp" | "mcp_server" | "connection_actions" | "analytics" | "tool";
+        McpExposureFamily: "integration_actions" | "data_connection" | "custom_mcp" | "mcp_server" | "tool";
         McpToolExposureConfigDto: {
             /**
              * @description Exposure format. Always 1.
@@ -5324,12 +5328,18 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description Builder-managed toolset descriptor. Map of `{toolName: config}`; opaque to the API surface.
+             * @description Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.
              * @example {
-             *       "web_search": {
-             *         "enabled": true
+             *       "postgresql": {
+             *         "byConnection": {
+             *           "11111111-1111-4111-8111-111111111111": {
+             *             "actions": [
+             *               "query"
+             *             ]
+             *           }
+             *         }
              *       },
-             *       "calculator": {
+             *       "web_search": {
              *         "enabled": true
              *       }
              *     }
@@ -5435,7 +5445,7 @@ export interface components {
         };
         ToolCatalogActionDto: {
             /**
-             * @description Stable action id: the exact string to list in `toolset.<id>.byConnection.<connectionId>.actions` (or `toolset.<id>.actions`, which binds to the newest workspace connection).
+             * @description Stable action name. A connected integration lists it in `toolset.<id>.byConnection.<connectionId>.actions` under the UUID of the connection the scope author selected; SQL platforms grant `query`. A general tool lists it in its own configuration, e.g. `toolset.web_search: ["search"]`.
              * @example list_dags
              */
             name: string;
@@ -5452,13 +5462,13 @@ export interface components {
         };
         ToolCatalogEntryDto: {
             /**
-             * @description Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.
-             * @example sql_runner
+             * @description Stable toolset key. Integrations use `{ [id]: { byConnection: { [connectionId]: { actions: ["query"] } } } }`; general tools keep their own configuration.
+             * @example postgresql
              */
             id: string;
             /**
              * @description Human-readable name for display.
-             * @example SQL Runner
+             * @example PostgreSQL
              */
             displayName: string;
             /**
@@ -5782,16 +5792,20 @@ export interface components {
              */
             instructions?: string[] | null;
             /**
-             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
-             *         "actions": [
-             *           "SendMessage"
-             *         ],
-             *         "rules": {
-             *           "allowedChannelIds": [
-             *             "C1"
-             *           ]
+             *         "byConnection": {
+             *           "11111111-1111-4111-8111-111111111111": {
+             *             "actions": [
+             *               "SendMessage"
+             *             ],
+             *             "rules": {
+             *               "allowedChannelIds": [
+             *                 "C1"
+             *               ]
+             *             }
+             *           }
              *         }
              *       }
              *     }
