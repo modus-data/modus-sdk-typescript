@@ -30287,7 +30287,6 @@
         "type": "string",
         "enum": [
           "integration_actions",
-          "data_connection",
           "custom_mcp",
           "mcp_server",
           "tool"
