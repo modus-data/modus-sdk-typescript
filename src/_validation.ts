@@ -55,6 +55,7 @@ export const CHAT_MODELS = [
   'llama-3.3-70b-instruct',
   'gemini-3.1-pro-preview',
   'gemini-3-flash-preview',
+  'gemini-3.8-flash',
   'grok-4.3-fast',
   'grok-4.3',
   'grok-4.7',
