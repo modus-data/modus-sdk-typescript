@@ -32,8 +32,9 @@ export class ScopesResourceBase {
    * @param options.pageToken - Opaque page token from a previous response's `nextPageToken`. Omit
    *   for the first page.
    * @param options.search - Case-insensitive substring filter on scope name.
-   * @param options.view - Variation view. `active` reads deployed; `draft` reads the latest builder
-   *   snapshot.
+   * @param options.view - Variation view. `active` reads the deployed version, or the latest draft
+   *   when nothing is published. `draft` reads the latest builder snapshot. `published` reads only
+   *   the published version, and only scopes you can use.
    * @param options.managerId - Return only scopes supervised by this manager scope id.
    * @returns A page of scopes.
    *
@@ -87,13 +88,15 @@ export class ScopesResourceBase {
   /**
    * Get a scope.
    *
-   * Returns a scope. `view=active` (default) returns the deployed version; `view=draft` returns the
-   * latest unpublished edits. Returns 404 if you cannot access the scope.
+   * Returns a scope. `view=active` (default) is the deployed version, or the latest draft when
+   * nothing is published. `view=draft` is the latest edits. `view=published` is only the published
+   * version, and only if you can use the scope. Returns 404 if you cannot access it.
    *
    * **Requires:** `scopes:read`
    *
    * @param scopeId - Numeric scope id.
-   * @param options.view - Which variation snapshot to read. Defaults to `active`.
+   * @param options.view - Which version to read. Defaults to `active`. `published` is only the
+   *   published version, and only if you can use the scope.
    *
    * @example
    * ```ts

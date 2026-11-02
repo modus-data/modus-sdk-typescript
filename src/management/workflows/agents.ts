@@ -76,7 +76,7 @@ export class ManagementWorkflowsResource extends WorkflowsResourceBase {
    * Retrieve a workflow with full configuration.
    *
    * @param workflowId - Numeric workflow id.
-   * @param options.view - Variation view: `"active"` (deployed) or `"draft"`.
+   * @param options.view - Variation view: `"active"` (deployed), `"draft"`, or `"published"` (published workflow you can use).
    * @returns The workflow.
    * @example
    * ```ts

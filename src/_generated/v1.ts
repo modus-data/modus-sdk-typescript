@@ -1004,7 +1004,7 @@ export interface paths {
         };
         /**
          * Get a scope
-         * @description Returns a scope. `view=active` (default) returns the deployed version; `view=draft` returns the latest unpublished edits. Returns 404 if you cannot access the scope.
+         * @description Returns a scope. `view=active` (default) is the deployed version, or the latest draft when nothing is published. `view=draft` is the latest edits. `view=published` is only the published version, and only if you can use the scope. Returns 404 if you cannot access it.
          *
          *     **Requires:** `scopes:read`
          */
@@ -1753,7 +1753,7 @@ export interface paths {
         };
         /**
          * Get a workflow
-         * @description Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.
+         * @description Returns a workflow. `view=draft` (default) and `view=active` allow use or manage access. Active is the deployed version, or the latest draft when nothing is published. `view=published` is a published workflow of type workflow that you can use. Returns 404 if you cannot access it.
          *
          *     **Requires:** `workflows:read`
          */
@@ -5066,6 +5066,11 @@ export interface components {
              * @example Predicts churn risk for a customer given a 90-day usage window.
              */
             description?: string | null;
+            /**
+             * @description Summary written for this scope so a caller can choose it. Null when none has been written.
+             * @example Answers questions about warehouse revenue and churn.
+             */
+            generatedDescription?: string | null;
             /**
              * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
              * @example active
@@ -15894,8 +15899,8 @@ export interface operations {
                 pageToken?: string;
                 /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
-                /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
-                view?: "active" | "draft";
+                /** @description Variation view. `active` reads the deployed version, or the latest draft when nothing is published. `draft` reads the latest builder snapshot. `published` reads only the published version, and only scopes you can use. */
+                view?: "active" | "draft" | "published";
                 /** @description Case-insensitive substring filter on scope name. */
                 search?: string;
                 /** @description Return only scopes supervised by this manager scope id. */
@@ -16221,8 +16226,8 @@ export interface operations {
     ScopesController_get: {
         parameters: {
             query?: {
-                /** @description Which variation snapshot to read. Defaults to `active`. */
-                view?: "active" | "draft";
+                /** @description Which version to read. Defaults to `active`. `published` is only the published version, and only if you can use the scope. */
+                view?: "active" | "draft" | "published";
             };
             header?: never;
             path: {
@@ -23135,8 +23140,8 @@ export interface operations {
                 pageToken?: string;
                 /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
-                /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
-                view?: "active" | "draft";
+                /** @description Variation view. `active` reads the deployed version. `draft` reads the latest builder snapshot. `published` reads only a published workflow of type workflow that you can use; tasks are excluded. */
+                view?: "active" | "draft" | "published";
                 /** @description Filter by workflow type. */
                 type?: "task" | "workflow";
                 /** @description Case-insensitive substring filter on workflow name. */
@@ -23462,8 +23467,8 @@ export interface operations {
     WorkflowsController_get: {
         parameters: {
             query?: {
-                /** @description Which variation snapshot to read. Defaults to `draft`. */
-                view?: "active" | "draft";
+                /** @description Which version to read. Defaults to `draft`. `published` is a published workflow of type workflow that you can use. */
+                view?: "active" | "draft" | "published";
             };
             header?: never;
             path: {

@@ -11015,11 +11015,12 @@
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Variation view. `active` reads deployed; `draft` reads the latest builder snapshot.",
+            "description": "Variation view. `active` reads the deployed version, or the latest draft when nothing is published. `draft` reads the latest builder snapshot. `published` reads only the published version, and only scopes you can use.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -11414,7 +11415,7 @@
     },
     "/api/v1/scopes/{id}": {
       "get": {
-        "description": "Returns a scope. `view=active` (default) returns the deployed version; `view=draft` returns the latest unpublished edits. Returns 404 if you cannot access the scope.\n\n**Requires:** `scopes:read`",
+        "description": "Returns a scope. `view=active` (default) is the deployed version, or the latest draft when nothing is published. `view=draft` is the latest edits. `view=published` is only the published version, and only if you can use the scope. Returns 404 if you cannot access it.\n\n**Requires:** `scopes:read`",
         "operationId": "ScopesController_get",
         "parameters": [
           {
@@ -11432,11 +11433,12 @@
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Which variation snapshot to read. Defaults to `active`.",
+            "description": "Which version to read. Defaults to `active`. `published` is only the published version, and only if you can use the scope.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -19811,11 +19813,12 @@
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Variation view. `active` reads deployed; `draft` reads the latest builder snapshot.",
+            "description": "Variation view. `active` reads the deployed version. `draft` reads the latest builder snapshot. `published` reads only a published workflow of type workflow that you can use; tasks are excluded.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -20218,7 +20221,7 @@
     },
     "/api/v1/workflows/{id}": {
       "get": {
-        "description": "Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.\n\n**Requires:** `workflows:read`",
+        "description": "Returns a workflow. `view=draft` (default) and `view=active` allow use or manage access. Active is the deployed version, or the latest draft when nothing is published. `view=published` is a published workflow of type workflow that you can use. Returns 404 if you cannot access it.\n\n**Requires:** `workflows:read`",
         "operationId": "WorkflowsController_get",
         "parameters": [
           {
@@ -20236,11 +20239,12 @@
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Which variation snapshot to read. Defaults to `draft`.",
+            "description": "Which version to read. Defaults to `draft`. `published` is a published workflow of type workflow that you can use.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -30776,6 +30780,12 @@
             "description": "Optional one-paragraph description of what this scope does.",
             "example": "Predicts churn risk for a customer given a 90-day usage window.",
             "nullable": true
+          },
+          "generatedDescription": {
+            "type": "string",
+            "nullable": true,
+            "description": "Summary written for this scope so a caller can choose it. Null when none has been written.",
+            "example": "Answers questions about warehouse revenue and churn."
           },
           "status": {
             "description": "Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.",

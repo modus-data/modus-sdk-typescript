@@ -16,7 +16,7 @@ function parseWorkflow(raw: unknown): Workflow {
 /**
  * Read and run access to Modus workflows.
  *
- * - `list` / `get` — browse workflows (`view: 'active'` or `'draft'`)
+ * - `list` / `get` — browse workflows (`view: 'active'`, `'draft'`, or `'published'`)
  * - `chat` — send a workflow a message and stream its reply
  * - {@link WorkflowRunsResource runs} — start, monitor, and control workflow runs
  * - {@link AgentWorkflowActionsResource workflowActions} — execute workflow actions

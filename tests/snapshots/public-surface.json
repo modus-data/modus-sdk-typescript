@@ -171,7 +171,7 @@
   "ScopeMemoriesResource.list": "(options?: { pageSize?: number; pageToken?: string; userId?: string; }): Promise<Page<Memory>>",
   "ScopeMemoriesResource.search": "(request: MemorySearchRequest): Promise<MemorySearchResult>",
   "ScopeMemoriesResource.update": "(memoryId: string, update: MemoryUpdate, options?: { updateMask?: string; }): Promise<void>",
-  "ScopeSupervisionResource.get": "(options?: { view?: VariationView; }): Promise<Supervision>",
+  "ScopeSupervisionResource.get": "(options?: { view?: SupervisionView; }): Promise<Supervision>",
   "ScopeSupervisionResource.set": "(request: SetSupervisionRequest): Promise<Supervision>",
   "ScopeSupervisionResource.setActive": "(request: SetSupervisionRequest): Promise<Supervision>",
   "ScopesResource.chat": "(scopeId: number | string, message: string, options: ChatOptions): ChatSession",

@@ -11,6 +11,9 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.
+- **Breaking (pre-1.0): `SupervisionView`.** `mgmt.scopes.supervision(id).get({ view })` takes `SupervisionView` (`'active' | 'draft'`). `published` is not a supervision view. `VariationView` now also allows `'published'`, so a value typed as `VariationView` no longer type-checks there. Migration: type it as `SupervisionView`. Runtime values are unchanged.
+- **`view: 'published'` on scope and workflow list and get.** Returns the published version you can use. A scope or workflow that is only a draft, deleted, or that you can manage but not use is left out. For workflows it is also type workflow only; a task is left out. `active` and `draft` are unchanged.
 - **`gemini-3.8-flash` model.** Google's generally available Gemini 3.8 Flash is an accepted chat
   model id.
 - **`mgmt.scopes.mcpExposureCatalog(scopeId, request)`.** Lists the tools a scope can expose to MCP clients. A field you send replaces the current draft for this call; a field you omit stays as stored. Nothing is saved. Rows you cannot access are left out, and stored selections on them are counted. `McpExposureCatalogRequest` and `McpExposureCatalog` import from `@getmodus/sdk/management`.

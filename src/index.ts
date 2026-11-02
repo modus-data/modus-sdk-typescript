@@ -68,7 +68,7 @@ export type {
 } from './types/conversations.js'
 export { conversationScopeId, conversationSkillId } from './types/conversations.js'
 export type { Connection, ConnectionSelection } from './types/connections.js'
-export type { VariationView } from './types/views.js'
+export type { SupervisionView, VariationView } from './types/views.js'
 export type {
   ContextItem,
   ContextItemAncestor,
