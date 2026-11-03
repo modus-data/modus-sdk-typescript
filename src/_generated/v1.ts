@@ -2687,6 +2687,11 @@ export interface components {
              * @example completed
              */
             status: string;
+            /**
+             * @description Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.
+             * @enum {string}
+             */
+            statusReason?: "approval_timeout" | "agent_reported_issue";
             /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
@@ -4443,6 +4448,11 @@ export interface components {
              * @example completed
              */
             status: string;
+            /**
+             * @description Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.
+             * @enum {string}
+             */
+            statusReason?: "approval_timeout" | "agent_reported_issue";
             /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
@@ -4457,11 +4467,6 @@ export interface components {
             pendingApproval?: {
                 [key: string]: unknown;
             };
-            /**
-             * @description Display-only signal that the workflow closed for a non-success reason.
-             * @enum {string}
-             */
-            statusReason?: "approval_timeout";
             /** @description Where the payload was read from. `live-query` = the run is still in progress; `history` = a completed run. */
             source: components["schemas"]["AutomationRunSource"];
             /** @description Final result of a `task`-typed workflow run. Free-form (depends on the workflow). */

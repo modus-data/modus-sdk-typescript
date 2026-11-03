@@ -26028,6 +26028,14 @@
             "description": "Run status (running / awaiting_human / completed / error / cancelled).",
             "example": "completed"
           },
+          "statusReason": {
+            "type": "string",
+            "description": "Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.",
+            "enum": [
+              "approval_timeout",
+              "agent_reported_issue"
+            ]
+          },
           "triggerType": {
             "type": "string",
             "description": "Trigger type for the run (schedule / webhook / api / slack / manual)."
@@ -29656,6 +29664,14 @@
             "description": "Run status (running / awaiting_human / completed / error / cancelled).",
             "example": "completed"
           },
+          "statusReason": {
+            "type": "string",
+            "description": "Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.",
+            "enum": [
+              "approval_timeout",
+              "agent_reported_issue"
+            ]
+          },
           "triggerType": {
             "type": "string",
             "description": "Trigger type for the run (schedule / webhook / api / slack / manual)."
@@ -29680,13 +29696,6 @@
             "type": "object",
             "description": "Pending approval payload (only present when status is awaiting_human).",
             "additionalProperties": true
-          },
-          "statusReason": {
-            "type": "string",
-            "description": "Display-only signal that the workflow closed for a non-success reason.",
-            "enum": [
-              "approval_timeout"
-            ]
           },
           "source": {
             "description": "Where the payload was read from. `live-query` = the run is still in progress; `history` = a completed run.",
