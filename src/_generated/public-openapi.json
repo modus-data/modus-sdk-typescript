@@ -26969,7 +26969,7 @@
           },
           "content": {
             "type": "object",
-            "description": "Main textual or structured content for the custom item.",
+            "description": "Main textual or structured content for the custom item. Long text or structured bodies are also split into searchable excerpts asynchronously.",
             "additionalProperties": true
           },
           "url": {
@@ -31838,7 +31838,7 @@
           },
           "content": {
             "type": "object",
-            "description": "Replacement main textual or structured content.",
+            "description": "Replacement main textual or structured content. Long text or structured bodies are also split into searchable excerpts asynchronously.",
             "additionalProperties": true
           },
           "url": {

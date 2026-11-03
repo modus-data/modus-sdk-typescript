@@ -3387,7 +3387,7 @@ export interface components {
              * @example Enterprise contract renewal metadata from the internal billing system.
              */
             description?: string;
-            /** @description Main textual or structured content for the custom item. */
+            /** @description Main textual or structured content for the custom item. Long text or structured bodies are also split into searchable excerpts asynchronously. */
             content?: {
                 [key: string]: unknown;
             };
@@ -5660,7 +5660,7 @@ export interface components {
              * @example Updated internal billing metadata.
              */
             description?: string;
-            /** @description Replacement main textual or structured content. */
+            /** @description Replacement main textual or structured content. Long text or structured bodies are also split into searchable excerpts asynchronously. */
             content?: {
                 [key: string]: unknown;
             };
