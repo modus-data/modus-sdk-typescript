@@ -24,6 +24,7 @@ interface ManagementScopesOperations {
   readonly create: OperationId
   readonly update: OperationId
   readonly deploy: OperationId
+  readonly applySelectionOps: OperationId
   readonly delete: OperationId
   readonly restore: OperationId
   readonly requestOwnershipTransfer: OperationId
@@ -42,6 +43,7 @@ const MANAGEMENT_SCOPE_OPERATIONS: ManagementScopesOperations = {
   create: 'ScopesController_create',
   update: 'ScopesController_update',
   deploy: 'ScopesController_deploy',
+  applySelectionOps: 'ScopesController_applySelectionOps',
   delete: 'ScopesController_delete',
   restore: 'ScopesController_restore',
   requestOwnershipTransfer: 'ScopesController_requestOwnershipTransfer',
@@ -265,6 +267,46 @@ export class ManagementScopesResource extends ScopesResourceBase {
       }),
     )
     return parseScope(data.scope)
+  }
+
+  /**
+   * Apply selection changes to a scope.
+   *
+   * Pass `validateOnly: true` to run the same checks and return the scope that would
+   * be saved, without writing. `selectRoot`, `deselectRoot`, and `setRootDeepRules`
+   * are deprecated; send `setConnectionPreferences`.
+   *
+   * @param scopeId - Scope id.
+   * @param ops - Selection changes, applied in order.
+   * @param options.toolset - The scope toolset after the edit, when the edit changed it.
+   * @param options.validateOnly - When true, check and return the planned scope without writing.
+   * @returns The scope, or the scope that would be saved when `validateOnly` is true.
+   * @example
+   * ```ts
+   * const mgmt = new ModusManagement()
+   * const preview = await mgmt.scopes.applySelectionOps(42, [{
+   *   op: 'setConnectionPreferences',
+   *   connectionId: '11111111-1111-4111-8111-111111111111',
+   *   preferences: { schemaVersion: 2, mode: 'all', include: [], exclude: [] },
+   * }], { validateOnly: true })
+   * console.log(preview.id)
+   * ```
+   */
+  async applySelectionOps(
+    scopeId: number | string,
+    ops: ReadonlyArray<Record<string, unknown>>,
+    options?: { toolset?: Record<string, unknown>; validateOnly?: boolean },
+  ): Promise<Scope> {
+    validateId(scopeId, 'scope_id')
+    const data = await invokeWithRetry(this.config, this.http, this.ops.applySelectionOps, {
+      pathParams: { id: scopeId },
+      jsonBody: omitUndefined({
+        ops,
+        toolset: options?.toolset,
+        validateOnly: options?.validateOnly ? true : undefined,
+      }),
+    })
+    return parseScope(data)
   }
 
   /**

@@ -1029,6 +1029,28 @@ export interface paths {
         patch: operations["ScopesController_update"];
         trace?: never;
     };
+    "/api/v1/scopes/{id}/applySelectionOps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply selection changes to a scope
+         * @description Applies `ops` to the scope draft. Preview first with `validateOnly: true`: it writes nothing and returns the selection that would be saved, marked `validateOnly: true` so it cannot be mistaken for a commit. The server derives tool grants. Use `setConnectionPreferences`; root ops are deprecated.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["ScopesController_applySelectionOps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/scopes/{id}/context": {
         parameters: {
             query?: never;
@@ -2621,6 +2643,16 @@ export interface components {
          * @enum {string}
          */
         ApiErrorStatus: "INVALID_ARGUMENT" | "UNAUTHENTICATED" | "PERMISSION_DENIED" | "NOT_FOUND" | "ALREADY_EXISTS" | "RESOURCE_EXHAUSTED" | "INTERNAL" | "UNAVAILABLE" | "DEADLINE_EXCEEDED";
+        ApplySelectionOpsDto: {
+            /** @description Selection ops, applied in order. */
+            ops: components["schemas"]["SelectionOpDto"][];
+            /** @description The scope toolset after the edit, when the edit changed it. */
+            toolset?: {
+                [key: string]: unknown;
+            };
+            /** @description When true, run every check a commit would and return the scope that would be saved, without writing it. The response carries `connectionSet`, `toolset` and `contextSelections` as they would be stored, with secret header values withheld and no secret minted, and is marked `validateOnly: true` at the top level. Every other field keeps its stored value, so a preview still needs a second call without `validateOnly` to save. */
+            validateOnly?: boolean;
+        };
         AutomationRunListItemDto: {
             /**
              * @description Composite run identifier (`workflowId:temporalRunId`).
@@ -5133,6 +5165,11 @@ export interface components {
              * @enum {string|null}
              */
             manageDenial: "not_owner" | "needs_group_manage" | null;
+            /**
+             * @description Present and `true` only on an `applySelectionOps` preview (`validateOnly: true`): the `variation` below is the selection that **would** be saved, and nothing was written. Absent on every committed response. Without it a preview is indistinguishable from a commit -- the surrounding fields (`updatedAt`, `hasUnpublishedChanges`, `activeVariationId`, `draftVariationId`) all keep their stored values -- so a caller that stops here silently never saves the selection.
+             * @example true
+             */
+            validateOnly?: boolean;
         };
         ScopeInterfaceDto: {
             /**
@@ -5225,6 +5262,19 @@ export interface components {
              */
             limit?: number;
         };
+        SelectedContextItemDto: {
+            /** @description Stable id of the pinned context item. */
+            uid: string;
+            /** @description Label shown for the pinned context item. */
+            label: string;
+            /**
+             * @description Kind of user content this item is.
+             * @enum {string}
+             */
+            contextType: "files" | "links" | "notes" | "saved_queries" | "dashboards";
+            /** @description Connection the item belongs to, when it has one. */
+            connectionId?: string;
+        };
         SelectionModelDto: {
             /**
              * @description What one selectable unit is called.
@@ -5251,6 +5301,35 @@ export interface components {
              * @example 1
              */
             arity: number;
+        };
+        SelectionOpDto: {
+            /**
+             * @description Which selection edit this op makes. selectRoot, deselectRoot, and setRootDeepRules are deprecated and will be removed; use setConnectionPreferences.
+             * @enum {string}
+             */
+            op: "selectRoot" | "deselectRoot" | "setRootDeepRules" | "setConnectionPreferences" | "pinItem" | "unpinItem" | "clearPinnedItems" | "setAdditionalContextRules";
+            /** @description Connection of the data-asset root, or whose preferences are set. */
+            connectionId?: string;
+            /** @description Path of the data-asset root within its connection. */
+            path?: string[];
+            /** @description Fully-selected subtree paths strictly beneath the root. Each path is an array of strings. */
+            includes?: string[][];
+            /** @description Unselected subtree paths beneath the root. Each path is an array of strings. */
+            excludes?: string[][];
+            /** @description The connection’s whole data selection, as workspace access preferences. */
+            preferences?: {
+                [key: string]: unknown;
+            };
+            /** @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`. */
+            contextEnabled?: boolean;
+            /** @description The pinned context item. */
+            item?: components["schemas"]["SelectedContextItemDto"];
+            /** @description Uid of the pinned item to remove. */
+            uid?: string;
+            /** @description Additional context rules; null clears them. */
+            value?: {
+                [key: string]: unknown;
+            } | null;
         };
         SetSupervisionRequestDto: {
             /**
@@ -5850,7 +5929,7 @@ export interface components {
              */
             connectionSet?: components["schemas"]["ConnectionSetItemDto"][] | null;
             /**
-             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.
+             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it. For an incremental edit, use Apply selection changes to a scope.
              * @example []
              */
             contextSelections?: {
@@ -16560,6 +16639,208 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateSkillDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScopeDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_applySelectionOps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplySelectionOpsDto"];
             };
         };
         responses: {

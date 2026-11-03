@@ -86,6 +86,7 @@
   "ManagementDashboardsResource.updateDraft": "(dashboardId: string, input: UpdateDashboardDraftInput): Promise<Dashboard>",
   "ManagementDashboardsResource.updateLayout": "(dashboardId: string, input: UpdateDashboardLayoutInput): Promise<Dashboard>",
   "ManagementScopesResource.acceptOwnershipTransfer": "(scopeId: number | string): Promise<Scope>",
+  "ManagementScopesResource.applySelectionOps": "(scopeId: number | string, ops: ReadonlyArray<Record<string, unknown>>, options?: { toolset?: Record<string, unknown>; validateOnly?: boolean; }): Promise<Scope>",
   "ManagementScopesResource.cancelOwnershipTransfer": "(scopeId: number | string): Promise<Scope>",
   "ManagementScopesResource.conversations": "(scopeId: number | string): ScopeConversationsResource",
   "ManagementScopesResource.create": "(options: CreateScopeOptions): Promise<Scope>",

@@ -12029,6 +12029,299 @@
         ]
       }
     },
+    "/api/v1/scopes/{id}/applySelectionOps": {
+      "post": {
+        "description": "Applies `ops` to the scope draft. Preview first with `validateOnly: true`: it writes nothing and returns the selection that would be saved, marked `validateOnly: true` so it cannot be mistaken for a commit. The server derives tool grants. Use `setConnectionPreferences`; root ops are deprecated.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopesController_applySelectionOps",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "format": "int32",
+              "example": 42,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplySelectionOpsDto"
+              },
+              "examples": {
+                "commit": {
+                  "value": {
+                    "ops": [
+                      {
+                        "op": "setConnectionPreferences",
+                        "connectionId": "<uuid>",
+                        "preferences": {
+                          "schemaVersion": 2,
+                          "mode": "manual",
+                          "include": [
+                            {
+                              "path": [
+                                {
+                                  "type": "database",
+                                  "by": "id",
+                                  "id": "analytics"
+                                },
+                                {
+                                  "type": "schema",
+                                  "by": "id",
+                                  "id": "public"
+                                }
+                              ]
+                            }
+                          ],
+                          "exclude": []
+                        },
+                        "contextEnabled": true
+                      }
+                    ]
+                  }
+                },
+                "preview": {
+                  "value": {
+                    "validateOnly": true,
+                    "ops": [
+                      {
+                        "op": "setConnectionPreferences",
+                        "connectionId": "<uuid>",
+                        "preferences": {
+                          "schemaVersion": 2,
+                          "mode": "manual",
+                          "include": [
+                            {
+                              "path": [
+                                {
+                                  "type": "database",
+                                  "by": "id",
+                                  "id": "analytics"
+                                },
+                                {
+                                  "type": "schema",
+                                  "by": "id",
+                                  "id": "public"
+                                }
+                              ]
+                            }
+                          ],
+                          "exclude": []
+                        },
+                        "contextEnabled": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Apply selection changes to a scope",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/scopes/{id}/context": {
       "post": {
         "deprecated": true,
@@ -25668,6 +25961,31 @@
         ],
         "description": "Canonical status string for the error."
       },
+      "ApplySelectionOpsDto": {
+        "type": "object",
+        "properties": {
+          "ops": {
+            "description": "Selection ops, applied in order.",
+            "maxItems": 5000,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectionOpDto"
+            }
+          },
+          "toolset": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The scope toolset after the edit, when the edit changed it."
+          },
+          "validateOnly": {
+            "type": "boolean",
+            "description": "When true, run every check a commit would and return the scope that would be saved, without writing it. The response carries `connectionSet`, `toolset` and `contextSelections` as they would be stored, with secret header values withheld and no secret minted, and is marked `validateOnly: true` at the top level. Every other field keeps its stored value, so a preview still needs a second call without `validateOnly` to save."
+          }
+        },
+        "required": [
+          "ops"
+        ]
+      },
       "AutomationRunListItemDto": {
         "type": "object",
         "properties": {
@@ -30879,6 +31197,11 @@
             "nullable": true,
             "description": "Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true.",
             "example": "needs_group_manage"
+          },
+          "validateOnly": {
+            "type": "boolean",
+            "description": "Present and `true` only on an `applySelectionOps` preview (`validateOnly: true`): the `variation` below is the selection that **would** be saved, and nothing was written. Absent on every committed response. Without it a preview is indistinguishable from a commit -- the surrounding fields (`updatedAt`, `hasUnpublishedChanges`, `activeVariationId`, `draftVariationId`) all keep their stored values -- so a caller that stops here silently never saves the selection.",
+            "example": true
           }
         },
         "required": [
@@ -31052,6 +31375,39 @@
           "query"
         ]
       },
+      "SelectedContextItemDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "Stable id of the pinned context item."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label shown for the pinned context item."
+          },
+          "contextType": {
+            "type": "string",
+            "enum": [
+              "files",
+              "links",
+              "notes",
+              "saved_queries",
+              "dashboards"
+            ],
+            "description": "Kind of user content this item is."
+          },
+          "connectionId": {
+            "type": "string",
+            "description": "Connection the item belongs to, when it has one."
+          }
+        },
+        "required": [
+          "uid",
+          "label",
+          "contextType"
+        ]
+      },
       "SelectionModelDto": {
         "type": "object",
         "properties": {
@@ -31100,6 +31456,86 @@
         "required": [
           "objectType",
           "arity"
+        ]
+      },
+      "SelectionOpDto": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "selectRoot",
+              "deselectRoot",
+              "setRootDeepRules",
+              "setConnectionPreferences",
+              "pinItem",
+              "unpinItem",
+              "clearPinnedItems",
+              "setAdditionalContextRules"
+            ],
+            "description": "Which selection edit this op makes. selectRoot, deselectRoot, and setRootDeepRules are deprecated and will be removed; use setConnectionPreferences."
+          },
+          "connectionId": {
+            "type": "string",
+            "description": "Connection of the data-asset root, or whose preferences are set."
+          },
+          "path": {
+            "description": "Path of the data-asset root within its connection.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "includes": {
+            "type": "array",
+            "description": "Fully-selected subtree paths strictly beneath the root. Each path is an array of strings.",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "excludes": {
+            "type": "array",
+            "description": "Unselected subtree paths beneath the root. Each path is an array of strings.",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "preferences": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The connection’s whole data selection, as workspace access preferences."
+          },
+          "contextEnabled": {
+            "type": "boolean",
+            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`."
+          },
+          "item": {
+            "description": "The pinned context item.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SelectedContextItemDto"
+              }
+            ]
+          },
+          "uid": {
+            "type": "string",
+            "description": "Uid of the pinned item to remove."
+          },
+          "value": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Additional context rules; null clears them."
+          }
+        },
+        "required": [
+          "op"
         ]
       },
       "SetSupervisionRequestDto": {
@@ -32186,7 +32622,7 @@
           },
           "contextSelections": {
             "type": "array",
-            "description": "Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.",
+            "description": "Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it. For an incremental edit, use Apply selection changes to a scope.",
             "items": {
               "type": "object",
               "additionalProperties": true

@@ -962,6 +962,17 @@ export const OPERATIONS = {
     responseSchema: "EvaluationCaseDto",
     idempotent: false,
   },
+  "ScopesController_applySelectionOps": {
+    method: "POST",
+    path: "/api/v1/scopes/{id}/applySelectionOps",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: ["id"],
+    queryParams: [],
+    requestSchema: "ApplySelectionOpsDto",
+    responseSchema: "ScopeDto",
+    idempotent: false,
+  },
   "ScopesController_cancelOwnershipTransfer": {
     method: "DELETE",
     path: "/api/v1/scopes/{id}/transfer-ownership",

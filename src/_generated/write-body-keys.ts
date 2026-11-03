@@ -46,6 +46,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ScopeRunsController_create: ["message", "sessionId", "organizationId", "version", "fileThreadId", "config", "attachments", "userContext", "source", "runId", "subordinateSkillIds"],
   ScopesController_acceptOwnershipTransfer: [],
   ScopesController_addEvaluationCase: ["id", "task", "expectedOutput"],
+  ScopesController_applySelectionOps: ["ops", "toolset", "validateOnly"],
   ScopesController_create: ["name", "description", "expectedOutput", "instructions", "toolset", "model", "connectionSet", "contextSelections", "includeOwnLearnings", "interfaces", "accessConfig"],
   ScopesController_deploy: [],
   ScopesController_mcpExposureCatalog: ["toolset", "connectionSet", "mcpToolExposure"],

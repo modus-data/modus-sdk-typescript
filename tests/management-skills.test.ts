@@ -45,6 +45,45 @@ describe('ModusManagement.scopes', () => {
     expect(body.includeOwnLearnings).toBe(false)
   })
 
+  it('applySelectionOps posts ops and omits catalog and a false preview', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 42, name: 'X', status: 'draft' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const ops = [{
+      op: 'setConnectionPreferences',
+      connectionId: '11111111-1111-4111-8111-111111111111',
+      preferences: { schemaVersion: 2, mode: 'all', include: [], exclude: [] },
+    }]
+    const scope = await mgmt.scopes.applySelectionOps(42, ops)
+    expect(scope.id).toBe(42)
+    const [url, init] = fetch.mock.calls[0] ?? []
+    expect(String(url)).toBe(`${BASE}/api/v1/scopes/42/applySelectionOps`)
+    expect(init?.method).toBe('POST')
+    expect(JSON.parse(String(init?.body))).toEqual({ ops })
+  })
+
+  it('applySelectionOps sends validateOnly and toolset when asked', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 42, name: 'X', status: 'draft' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await mgmt.scopes.applySelectionOps(42, [{ op: 'setConnectionPreferences' }], {
+      validateOnly: true,
+      toolset: {},
+    })
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))
+    expect(body.validateOnly).toBe(true)
+    expect(body.toolset).toEqual({})
+    expect(body).not.toHaveProperty('catalog')
+  })
+
   it('deploy returns scope from deploy response', async () => {
     const fetch = vi.fn().mockResolvedValue(
       new Response(

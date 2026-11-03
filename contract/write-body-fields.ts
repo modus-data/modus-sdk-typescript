@@ -169,6 +169,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ScopeInterfacesController_update: ['name', 'config'],
   ScopesController_requestOwnershipTransfer: ['newOwnerUserId'],
   ScopesController_patchMcpConfig: ['config'],
+  ScopesController_applySelectionOps: ['ops', 'toolset', 'validateOnly'],
   ScopesController_mcpExposureCatalog: ['toolset', 'connectionSet', 'mcpToolExposure'],
   ScopesController_deploy: [],
   ScopesController_restore: [],
