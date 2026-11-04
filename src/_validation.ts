@@ -35,6 +35,7 @@ export const CHAT_MODELS = [
   'claude-sonnet-4.6',
   'claude-opus-4.8',
   'claude-opus-5.5',
+  'claude-haiku-5.5',
   'gpt-5.2',
   'gpt-5.5',
   'gpt-5-mini',
