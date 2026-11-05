@@ -6602,7 +6602,7 @@ export interface components {
          * @description Origin of the run. Set by the server for API tokens.
          * @enum {string}
          */
-        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
         SkillRunDto: {
             /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
@@ -15709,7 +15709,7 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
@@ -17251,7 +17251,7 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
