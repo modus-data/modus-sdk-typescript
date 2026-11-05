@@ -6552,7 +6552,7 @@ export interface components {
             connectionSelections?: {
                 [key: string]: unknown;
             }[];
-            /** @description Schema scopes (runtime-owned shape). */
+            /** @description Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences), `context_enabled` and `path` (a row the preferences compile to). */
             connectionSet?: {
                 [key: string]: unknown;
             }[];
