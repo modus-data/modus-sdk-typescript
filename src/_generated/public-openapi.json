@@ -10636,6 +10636,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
                 "other"
@@ -12650,6 +12651,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
                 "other"
@@ -34101,6 +34103,7 @@
           "slack_dm",
           "teams",
           "context_chat",
+          "context_suggestions",
           "dashboard_copilot",
           "dashboard_assistant",
           "other"
