@@ -34,6 +34,53 @@ export class ModusManagement extends ModusClientBase {
 }
 
 export type { ModusOptions }
+export type { ModusConfig } from '../_config.js'
+export type { ManagementScopesResource } from './scopes/skills.js'
+export type { ScopeMemoriesResource } from './scopes/memories.js'
+export type { ScopeEvaluationsResource } from './scopes/evaluations.js'
+export type { ScopeSupervisionResource, SetSupervisionRequest, Supervision } from './scopes/supervision.js'
+export type { McpExposureCatalog, McpExposureCatalogRequest } from './scopes/mcp-exposure-catalog.js'
+export type {
+  AddScopeInterface,
+  ScopeInterface,
+  ScopeInterfacesResource,
+  UpdateScopeInterface,
+} from './scopes/interfaces.js'
+export type { ManagementWorkflowsResource } from './workflows/agents.js'
+export type {
+  AddAgentInterface,
+  AgentInterface,
+  UpdateAgentInterface,
+  WorkflowInterfacesResource,
+} from './workflows/interfaces.js'
+export type { ManagementContextResource } from './context/context.js'
+export type { ManagementContextItemsResource } from './context/items.js'
+export type { BatchUploadOptions, ManagementContextFilesResource } from './context/files.js'
+export type { ManagementDashboardElementsResource, ManagementDashboardsResource } from './context/dashboards.js'
+export type { ManagementUsageResource } from './usage.js'
+export type { ManagementToolsResource } from './tools.js'
+export type { ManagementUsersResource, MemberGroup, OrgMember } from './users.js'
+export type {
+  AddEvaluationCase,
+  EvaluationCase,
+  EvaluationConfig,
+  EvaluationRun,
+  EvaluationRunWithResults,
+  TriggerEvaluationRunResponse,
+  UpdateEvaluationCase,
+  UpdateEvaluationConfig,
+} from './types/evaluations.js'
+export type { JsonObjectInput, JsonObjectListInput } from './types/json-blob.js'
+export type { CreatedContextItem } from '../types/context.js'
+export type { ToolCatalogEntry } from '../types/tools.js'
+export type {
+  UsageBucket,
+  UsageReport,
+  UsageRollup,
+  UsageTotals,
+  UsageUser,
+  UsageUsersReport,
+} from '../types/usage.js'
 export type {
   CreateScopeOptions,
   UpdateScopeOptions,
@@ -57,11 +104,13 @@ export type {
   UpdateContextItemAccessInput,
 } from '../types/context.js'
 export type {
+  BulkFinalizeResult,
   BulkUploadFromUrlsResult,
   BulkUploadUrlsResult,
   FinalizeInput,
   FailedUploadFromUrl,
   FailedUploadUrl,
+  FinalizeFailure,
   FileUpload,
   FileUploadStatus,
   UploadDirFailure,
@@ -96,7 +145,7 @@ export type {
   UpdateDashboardElementInput,
   UpdateDashboardLayoutInput,
 } from '../types/context-dashboards.js'
-export type { ToolsetInput } from './types/toolset.js'
+export type { PlatformToolsetEntry, ToolsetInput, ToolsetRules, ToolsetSlot } from './types/toolset.js'
 export type {
   Memory,
   MemorySearchRequest,

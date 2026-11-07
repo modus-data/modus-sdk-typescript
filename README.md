@@ -73,12 +73,38 @@ const client = new Modus({ apiKey: process.env.MODUS_API_KEY })
 Create an API token in the Modus app (**Settings → API Tokens** on your Modus home page). Prefer an environment variable over hardcoding keys in source:
 
 ```bash
-export MODUS_API_KEY=modus_xxx
+export MODUS_API_KEY=modus_pat_xxx
 ```
 
 ```ts
-const client = new Modus({ apiKey: 'modus_xxx' })
+const client = new Modus({ apiKey: 'modus_pat_xxx' })
 ```
+
+### Staging and custom hosts
+
+The client talks to `https://api.getmodus.com` by default. Chat, runs and context compose
+(`modus.getContext()`, `scopes.getContext()`) go to the agent host, which for a Modus API origin
+is derived from it (`api.getmodus.com` → `agent.getmodus.com`, `api.staging.getmodus.com` →
+`agent.staging.getmodus.com`). Any other `baseUrl` needs `agentHost` for those calls. Point the
+client elsewhere with options or environment variables:
+
+| Option | Environment variable | Default |
+|--------|----------------------|---------|
+| `baseUrl` | `MODUS_BASE_URL` | `https://api.getmodus.com` |
+| `agentHost` | `MODUS_AGENT_HOST` | derived from `baseUrl`: `api.getmodus.com` → `agent.getmodus.com`, `api.<env>.getmodus.com` → `agent.<env>.getmodus.com`; none for any other host |
+
+```ts
+const staging = new Modus({ baseUrl: 'https://api.staging.getmodus.com' })
+
+// A host that is not api.getmodus.com or api.<env>.getmodus.com needs its agent host too,
+// or chat, runs and getContext() throw
+const selfHosted = new Modus({
+  baseUrl: 'https://modus-api.internal.example.com',
+  agentHost: 'https://modus-agent.internal.example.com',
+})
+```
+
+An option wins over its environment variable. `ModusManagement` takes the same options.
 
 ## Using Modus
 
@@ -247,12 +273,49 @@ if (destination) {
 const access = await mgmt.context.items.updateAccess(note.uid, {
   visibility: 'private',
   groupPermissions: {},
+  // Replace with the email of a member of your organization; anyone else is a 422
   sharedWith: [{ email: 'ana@example.com', permission: 'use' }],
 })
 console.log(access.canManage)
 ```
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
+
+Updating a scope replaces whole lists such as `connectionSet`, `contextSelections`, and `evaluations`. Add or change one evaluation case with `scopes.evaluations(id).addCase`, `updateCase`, or `deleteCase`. Change one connection's selection with `applySelectionOps` (`validateOnly: true` previews and does not write). `selectRoot`, `deselectRoot`, and `setRootDeepRules` are deprecated.
+### Connection-specific toolsets
+
+Use the catalog platform key and an explicit lowercase connection UUID. SQL platforms
+(such as `postgresql`, `snowflake` or `bigquery`) grant `query`:
+
+```ts
+import type { PlatformToolsetEntry, ToolsetInput } from '@getmodus/sdk/management'
+
+const toolset: ToolsetInput = {
+  postgresql: {
+    byConnection: {
+      '11111111-1111-4111-8111-111111111111': { actions: ['query'] },
+    },
+  } satisfies PlatformToolsetEntry,
+  slack: {
+    byConnection: {
+      '22222222-2222-4222-8222-222222222222': {
+        actions: ['SendMessage'],
+        rules: { allowedChannelIds: ['C123'], allowedChannelNames: { C123: 'support' } },
+      },
+    },
+  } satisfies PlatformToolsetEntry,
+  memory: { enabled: true },
+}
+await mgmt.scopes.update(scope.id, { toolset })
+```
+
+Replace the example UUIDs with your chosen connections and use action IDs from
+`mgmt.tools.list()`. Each connection has its own grants; connections are never merged
+or substituted. Empty slots/maps are valid. Actions are trimmed operation names without
+`:` suffixes. The API rejects flat `{ actions }` entries, integration action arrays,
+`scope`/personal encodings and unknown keys (including the retired `sql_runner`, `looker_bi`,
+`langfuse_observability` and `*_analytics`) with a typed `UnprocessableError` (422), even when
+resending a stored value. General tools, MCP, Pipedream and Coding formats are unchanged.
 
 ## Pagination
 
@@ -276,6 +339,7 @@ import {
   AuthenticationError,
   PermissionDeniedError,
   RateLimitError,
+  ValidationError,
   ModusError,
 } from '@getmodus/sdk'
 
@@ -292,16 +356,24 @@ try {
     console.log('Token is missing scopes:', e.info?.missing)
   } else if (e instanceof RateLimitError) {
     console.log(`Rate limited. Retry after ${e.retryAfter}s`)
+  } else if (e instanceof ValidationError) {
+    // Rejected by the SDK before any request was sent, so there is no status or requestId
+    console.log(`Invalid argument: ${e.message}`)
   } else if (e instanceof ModusError) {
-    console.log(`API error ${e.statusCode} ${e.code}: ${e.message} (request ${e.requestId})`)
+    console.log(`API error ${e.statusCode} ${e.code}: ${e.message} (request ${e.requestId}, trace ${e.traceId})`)
   } else {
     throw e
   }
 }
 ```
 
-Every error carries `code` (for example `NOT_FOUND`), `requestId` (quote it to support) and,
-when the server sends one, `info` with structured detail. A request that fails schema
+Every error the server returns carries `statusCode`, `code` (for example `NOT_FOUND`),
+`requestId` and `traceId` (quote both to support) and, when the server sends one, `info` with
+structured detail. An `APIConnectionError` (no response was received) carries only
+`traceId`, which names the call; the request may still have reached Modus and run, so check
+before repeating a create. A `ValidationError` (for
+example an unsupported chat model) is raised by the SDK before a request is sent, so it has none
+of these. A request that fails schema
 validation is a `BadRequestError` (400); one that is well-formed but breaks a business rule
 is an `UnprocessableError` (422), with the rule in `info`.
 
@@ -325,17 +397,26 @@ Pass `maxRetries: 0` to turn retries off.
 
 ## Examples
 
-Runnable scripts ship in this repository:
+Runnable scripts live in the [GitHub repository](https://github.com/modus-data/modus-sdk-typescript/tree/main/examples/scripts),
+not in the npm package. Each imports `@getmodus/sdk`, so run it from an ES-module project with the
+SDK installed:
 
 - `examples/scripts/quickstart.ts` — list scopes and context (`Modus`)
-- `examples/scripts/modus_chat.ts` — buffered and streaming Modus chat, context compose, conversations
-- `examples/scripts/chat.ts` — buffered scope chat with thread follow-up
+- `examples/scripts/modus_chat.ts` — awaited and streamed Modus chat, context compose, conversations
+- `examples/scripts/chat.ts` — scope chat with thread follow-up
 - `examples/scripts/manage_skill.ts` — create and deploy a scope (`ModusManagement`, `--write` optional)
 
 ```bash
-export MODUS_API_KEY=modus_xxx
-npx tsx examples/scripts/quickstart.ts
+mkdir modus-examples && cd modus-examples
+npm init -y && npm pkg set type=module
+npm install @getmodus/sdk tsx
+curl -fsSLO https://raw.githubusercontent.com/modus-data/modus-sdk-typescript/main/examples/scripts/quickstart.ts
+export MODUS_API_KEY=modus_pat_xxx
+npx tsx quickstart.ts
 ```
+
+For SQL in `manage_skill.ts`, set both `MODUS_SQL_PLATFORM` (for example `postgresql`)
+and `MODUS_SQL_CONNECTION_ID` to a connection you can access; SQL is omitted otherwise.
 
 See [CHANGELOG.md](./CHANGELOG.md) for release history.
 

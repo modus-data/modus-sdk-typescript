@@ -48,17 +48,21 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/** Call `fn`, re-sending up to `maxRetries` times while the error is `retryable`. */
+/**
+ * Call `fn`, re-sending up to `maxRetries` times while the error is `retryable`. `fn` gets
+ * the number of sends before this one: 0 first, then 1, 2, … on each re-send.
+ */
 export async function withRetry<T>(
-  fn: () => Promise<T>,
+  fn: (resend: number) => Promise<T>,
   maxRetries: number,
   options: WithRetryOptions = {},
 ): Promise<T> {
   let deployNotFoundRetries = 0
   let attempt = 0
+  let sends = 0
   while (true) {
     try {
-      return await fn()
+      return await fn(sends++)
     } catch (error) {
       if (
         options.retryNotFoundOnDeploy &&

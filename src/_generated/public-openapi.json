@@ -122,7 +122,7 @@
             "description": "Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range.",
             "schema": {
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -294,7 +294,7 @@
             "description": "Max items per page. Defaults to 25. Values outside 1..100 are clamped to that range.",
             "schema": {
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -468,7 +468,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -5960,7 +5960,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -7662,7 +7662,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -9290,7 +9290,7 @@
               "maximum": 200,
               "default": 25,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -10582,7 +10582,7 @@
             "schema": {
               "minimum": 0,
               "example": 0,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -10594,7 +10594,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 10,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -10636,6 +10636,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
                 "other"
@@ -11008,18 +11009,19 @@
               "minimum": 1,
               "maximum": 100,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Variation view. `active` reads deployed; `draft` reads the latest builder snapshot.",
+            "description": "Variation view. `active` reads the deployed version, or the latest draft when nothing is published. `draft` reads the latest builder snapshot. `published` reads only the published version, and only scopes you can use.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -11041,8 +11043,9 @@
             "description": "Return only scopes supervised by this manager scope id.",
             "schema": {
               "maximum": 2147483647,
+              "format": "int32",
               "example": 17,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11413,7 +11416,7 @@
     },
     "/api/v1/scopes/{id}": {
       "get": {
-        "description": "Returns a scope. `view=active` (default) returns the deployed version; `view=draft` returns the latest unpublished edits. Returns 404 if you cannot access the scope.\n\n**Requires:** `scopes:read`",
+        "description": "Returns a scope. `view=active` (default) is the deployed version, or the latest draft when nothing is published. `view=draft` is the latest edits. `view=published` is only the published version, and only if you can use the scope. Returns 404 if you cannot access it.\n\n**Requires:** `scopes:read`",
         "operationId": "ScopesController_get",
         "parameters": [
           {
@@ -11422,19 +11425,21 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Which variation snapshot to read. Defaults to `active`.",
+            "description": "Which version to read. Defaults to `active`. `published` is only the published version, and only if you can use the scope.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -11594,8 +11599,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -11844,8 +11850,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12023,6 +12030,299 @@
         ]
       }
     },
+    "/api/v1/scopes/{id}/applySelectionOps": {
+      "post": {
+        "description": "Applies `ops` to the scope draft. Preview first with `validateOnly: true`: it writes nothing and returns the selection that would be saved, marked `validateOnly: true` so it cannot be mistaken for a commit. The server derives tool grants. Use `setConnectionPreferences`; root ops are deprecated.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopesController_applySelectionOps",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "format": "int32",
+              "example": 42,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplySelectionOpsDto"
+              },
+              "examples": {
+                "commit": {
+                  "value": {
+                    "ops": [
+                      {
+                        "op": "setConnectionPreferences",
+                        "connectionId": "<uuid>",
+                        "preferences": {
+                          "schemaVersion": 2,
+                          "mode": "manual",
+                          "include": [
+                            {
+                              "path": [
+                                {
+                                  "type": "database",
+                                  "by": "id",
+                                  "id": "analytics"
+                                },
+                                {
+                                  "type": "schema",
+                                  "by": "id",
+                                  "id": "public"
+                                }
+                              ]
+                            }
+                          ],
+                          "exclude": []
+                        },
+                        "contextEnabled": true
+                      }
+                    ]
+                  }
+                },
+                "preview": {
+                  "value": {
+                    "validateOnly": true,
+                    "ops": [
+                      {
+                        "op": "setConnectionPreferences",
+                        "connectionId": "<uuid>",
+                        "preferences": {
+                          "schemaVersion": 2,
+                          "mode": "manual",
+                          "include": [
+                            {
+                              "path": [
+                                {
+                                  "type": "database",
+                                  "by": "id",
+                                  "id": "analytics"
+                                },
+                                {
+                                  "type": "schema",
+                                  "by": "id",
+                                  "id": "public"
+                                }
+                              ]
+                            }
+                          ],
+                          "exclude": []
+                        },
+                        "contextEnabled": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScopeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Apply selection changes to a scope",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/scopes/{id}/context": {
       "post": {
         "deprecated": true,
@@ -12035,8 +12335,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12273,8 +12574,9 @@
             "in": "path",
             "description": "Numeric scope id. Use 0 for cross-scope recent history.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12295,7 +12597,7 @@
             "schema": {
               "minimum": 0,
               "example": 0,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12307,7 +12609,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 10,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12349,6 +12651,7 @@
                 "slack_dm",
                 "teams",
                 "context_chat",
+                "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
                 "other"
@@ -12550,8 +12853,9 @@
             "in": "path",
             "description": "Numeric scope id. Use 0 for cross-scope conversation lookup.",
             "schema": {
+              "format": "int32",
               "example": 0,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12573,7 +12877,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 30,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -12584,7 +12888,7 @@
             "schema": {
               "minimum": 0,
               "example": 120,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12744,8 +13048,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -12979,8 +13284,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -13204,8 +13510,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -13436,8 +13743,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -13635,8 +13943,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -13794,8 +14103,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14035,8 +14345,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14230,8 +14541,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -14242,7 +14554,7 @@
             "schema": {
               "minimum": 1,
               "maximum": 100,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -14411,8 +14723,9 @@
             "in": "path",
             "description": "Scope ID",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -14582,8 +14895,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14741,8 +15055,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -14985,8 +15300,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15245,8 +15561,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15445,8 +15762,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -15695,6 +16013,248 @@
         ]
       }
     },
+    "/api/v1/scopes/{id}/mcp-exposure-catalog": {
+      "post": {
+        "description": "Lists tools this scope can expose to MCP clients. A field you send replaces the current draft; a field you omit stays as stored. Nothing is saved. Entries you cannot access are left out, and stored selections on them are counted in hiddenSelectedCount.\n\n**Requires:** `scopes:write`",
+        "operationId": "ScopesController_mcpExposureCatalog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Numeric scope id.",
+            "schema": {
+              "format": "int32",
+              "example": 42,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpExposureCatalogRequestDto"
+              },
+              "examples": {
+                "currentDraft": {
+                  "summary": "Current draft",
+                  "value": {}
+                },
+                "overlay": {
+                  "summary": "Replace the toolset for this call",
+                  "value": {
+                    "toolset": {
+                      "web_search": [
+                        "tavily_search"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpExposureCatalogResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Missing required scope(s) for this operation.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                    "info": {
+                      "missing": [
+                        "<required-scope>"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Preview MCP exposure catalog",
+        "tags": [
+          "Scopes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "scopes:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/scopes/{id}/memories": {
       "get": {
         "description": "Returns a page of the scope’s memories (up to 1000 total). Pass `nextPageToken` as `pageToken` to fetch the next page. Optional `userId` filters to one end user.\n\n**Requires:** `scopes:read`",
@@ -15706,8 +16266,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15729,7 +16290,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 100,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -15752,7 +16313,7 @@
               "minimum": 1,
               "maximum": 1000,
               "example": 100,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -15912,8 +16473,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -16151,8 +16713,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -16401,8 +16964,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -16601,8 +17165,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -16798,8 +17363,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -16970,8 +17536,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17211,8 +17778,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17452,8 +18020,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17682,8 +18251,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -17879,8 +18449,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -18076,8 +18647,9 @@
             "in": "path",
             "description": "Numeric scope id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -18260,7 +18832,7 @@
               "minimum": 1,
               "maximum": 12,
               "example": 5,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -18270,8 +18842,9 @@
             "description": "Return suggestions scoped to this numeric scope id. Omit for org-general suggestions.",
             "schema": {
               "maximum": 2147483647,
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -18680,7 +19253,7 @@
               "minimum": 1,
               "maximum": 100,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -19528,18 +20101,19 @@
               "minimum": 1,
               "maximum": 100,
               "example": 25,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Variation view. `active` reads deployed; `draft` reads the latest builder snapshot.",
+            "description": "Variation view. `active` reads the deployed version. `draft` reads the latest builder snapshot. `published` reads only a published workflow of type workflow that you can use; tasks are excluded.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -19942,7 +20516,7 @@
     },
     "/api/v1/workflows/{id}": {
       "get": {
-        "description": "Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.\n\n**Requires:** `workflows:read`",
+        "description": "Returns a workflow. `view=draft` (default) and `view=active` allow use or manage access. Active is the deployed version, or the latest draft when nothing is published. `view=published` is a published workflow of type workflow that you can use. Returns 404 if you cannot access it.\n\n**Requires:** `workflows:read`",
         "operationId": "WorkflowsController_get",
         "parameters": [
           {
@@ -19951,19 +20525,21 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
             "name": "view",
             "required": false,
             "in": "query",
-            "description": "Which variation snapshot to read. Defaults to `draft`.",
+            "description": "Which version to read. Defaults to `draft`. `published` is a published workflow of type workflow that you can use.",
             "schema": {
               "enum": [
                 "active",
-                "draft"
+                "draft",
+                "published"
               ],
               "type": "string"
             }
@@ -20123,8 +20699,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -20375,8 +20952,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -20565,8 +21143,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -20800,8 +21379,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -20959,8 +21539,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -21201,8 +21782,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -21391,8 +21973,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -21650,8 +22233,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -21850,8 +22434,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -22047,8 +22632,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -22095,7 +22681,7 @@
             "schema": {
               "minimum": 1,
               "maximum": 100,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -22264,8 +22850,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -22443,8 +23030,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -22680,8 +23268,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -22910,8 +23499,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -23107,8 +23697,9 @@
             "in": "path",
             "description": "Numeric workflow id.",
             "schema": {
+              "format": "int32",
               "example": 42,
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -23815,7 +24406,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Events after the cursor, the next cursor and the run status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunEventsPollResponseDto"
+                }
+              }
+            }
           },
           "429": {
             "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
@@ -25111,7 +25709,8 @@
             "example": "00000000-0000-4000-a000-000000000300"
           },
           "agentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Parent workflow id.",
             "example": 42
           },
@@ -25198,13 +25797,14 @@
         "type": "object",
         "properties": {
           "agent_id": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope (workflow) id to invoke at this step.",
             "example": 17,
             "minimum": 1
           },
           "priority_order": {
-            "type": "number",
+            "type": "integer",
             "description": "Execution order (1-indexed).",
             "example": 1,
             "minimum": 1
@@ -25363,6 +25963,31 @@
         ],
         "description": "Canonical status string for the error."
       },
+      "ApplySelectionOpsDto": {
+        "type": "object",
+        "properties": {
+          "ops": {
+            "description": "Selection ops, applied in order.",
+            "maxItems": 5000,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectionOpDto"
+            }
+          },
+          "toolset": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The scope toolset after the edit, when the edit changed it."
+          },
+          "validateOnly": {
+            "type": "boolean",
+            "description": "When true, run every check a commit would and return the scope that would be saved, without writing it. The response carries `connectionSet`, `toolset` and `contextSelections` as they would be stored, with secret header values withheld and no secret minted, and is marked `validateOnly: true` at the top level. Every other field keeps its stored value, so a preview still needs a second call without `validateOnly` to save."
+          }
+        },
+        "required": [
+          "ops"
+        ]
+      },
       "AutomationRunListItemDto": {
         "type": "object",
         "properties": {
@@ -25381,7 +26006,8 @@
             "description": "Run identifier; a workflow may have multiple runs after a retry."
           },
           "agentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Parent workflow id.",
             "example": 42
           },
@@ -25404,6 +26030,14 @@
             "description": "Run status (running / awaiting_human / completed / error / cancelled).",
             "example": "completed"
           },
+          "statusReason": {
+            "type": "string",
+            "description": "Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.",
+            "enum": [
+              "approval_timeout",
+              "agent_reported_issue"
+            ]
+          },
           "triggerType": {
             "type": "string",
             "description": "Trigger type for the run (schedule / webhook / api / slack / manual)."
@@ -25417,7 +26051,7 @@
             "description": "ISO-8601 end timestamp; absent for in-flight runs."
           },
           "durationMs": {
-            "type": "number",
+            "type": "integer",
             "description": "Duration in milliseconds (when end timestamp is known)."
           },
           "summary": {
@@ -25466,7 +26100,7 @@
         "type": "object",
         "properties": {
           "upsertedCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of relations created or updated by the batch.",
             "example": 12
           }
@@ -25655,7 +26289,8 @@
             "example": "application/pdf"
           },
           "fileSize": {
-            "type": "number",
+            "type": "integer",
+            "format": "int64",
             "description": "File size in bytes. Rejected above 50MB.",
             "example": 1048576
           }
@@ -25759,7 +26394,7 @@
             "minLength": 1
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "description": "Maximum context items to return. Omit to return all selected items.",
             "example": 25,
             "minimum": 1,
@@ -25789,12 +26424,12 @@
             "example": []
           },
           "originalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total context items in the scope's configured context selection (before composition strategies).",
             "example": 42
           },
           "selectedCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Context items the composer kept for this intent.",
             "example": 12
           },
@@ -26340,7 +26975,8 @@
             "example": "agent_42_abc-xyz"
           },
           "scopeId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope id returned by the list/detail adapter. This is not conversation ownership.",
             "example": 42
           },
@@ -26387,7 +27023,8 @@
             "example": "agent_42_abc-xyz"
           },
           "scopeId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope id returned by the list adapter. This is not conversation ownership.",
             "example": 42
           },
@@ -26409,7 +27046,7 @@
             "example": "context_chat"
           },
           "messageCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total number of message turns in the (post-collapse) conversation.",
             "example": 12
           },
@@ -26506,17 +27143,17 @@
         "type": "object",
         "properties": {
           "startIndex": {
-            "type": "number",
+            "type": "integer",
             "description": "Zero-based source-message index of the first returned message. Source-message indexes include non-visible tool and system messages.",
             "example": 90
           },
           "endIndex": {
-            "type": "number",
+            "type": "integer",
             "description": "Exclusive zero-based source-message index after the last returned message.",
             "example": 120
           },
           "totalMessages": {
-            "type": "number",
+            "type": "integer",
             "description": "Total source-message count used for paging. The returned visible message array can be shorter than endIndex - startIndex.",
             "example": 120
           },
@@ -26660,7 +27297,7 @@
           },
           "content": {
             "type": "object",
-            "description": "Main textual or structured content for the custom item.",
+            "description": "Main textual or structured content for the custom item. Long text or structured bodies are also split into searchable excerpts asynchronously.",
             "additionalProperties": true
           },
           "url": {
@@ -26882,7 +27519,7 @@
             "default": false
           },
           "pageLimit": {
-            "type": "number",
+            "type": "integer",
             "description": "Maximum number of search results to store when `isCrawl` is true. Ignored otherwise.",
             "minimum": 1,
             "maximum": 200,
@@ -27009,16 +27646,20 @@
           "toolset": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {\"byConnection\": {\"<connectionId>\": config}} to pick one.",
+            "description": "Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.",
             "example": {
               "slack": {
-                "actions": [
-                  "SendMessage"
-                ],
-                "rules": {
-                  "allowedChannelIds": [
-                    "C1"
-                  ]
+                "byConnection": {
+                  "11111111-1111-4111-8111-111111111111": {
+                    "actions": [
+                      "SendMessage"
+                    ],
+                    "rules": {
+                      "allowedChannelIds": [
+                        "C1"
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -28295,7 +28936,7 @@
           },
           "message": {
             "type": "string",
-            "example": "Skill was not found or you lack permission."
+            "example": "Scope was not found or you lack permission."
           },
           "requestId": {
             "type": "string",
@@ -28306,7 +28947,7 @@
             "description": "Optional domain-specific context. Shape varies per endpoint — see the operation's error response examples.",
             "additionalProperties": true,
             "example": {
-              "skillId": "sk_abc123"
+              "scopeId": 42
             }
           }
         },
@@ -28361,7 +29002,7 @@
             }
           },
           "dayOfMonth": {
-            "type": "number",
+            "type": "integer",
             "description": "Day of month for monthly frequency",
             "minimum": 1,
             "maximum": 31
@@ -28375,6 +29016,7 @@
       },
       "EvaluationCadenceFrequency": {
         "type": "string",
+        "nullable": true,
         "enum": [
           "daily",
           "weekly",
@@ -28594,7 +29236,8 @@
             "description": "Run ID"
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Scope ID"
           },
           "trigger": {
@@ -28625,15 +29268,15 @@
             "description": "When the run finished"
           },
           "totalCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Total number of evaluation cases"
           },
           "passedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of passed cases"
           },
           "failedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of failed cases"
           },
           "avgScore": {
@@ -28694,7 +29337,8 @@
             "description": "Run ID"
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Scope ID"
           },
           "trigger": {
@@ -28725,15 +29369,15 @@
             "description": "When the run finished"
           },
           "totalCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Total number of evaluation cases"
           },
           "passedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of passed cases"
           },
           "failedCases": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of failed cases"
           },
           "avgScore": {
@@ -28799,7 +29443,7 @@
         "type": "object",
         "properties": {
           "index": {
-            "type": "number",
+            "type": "integer",
             "description": "Index of the failing entry in the request `uploads` array.",
             "example": 2
           },
@@ -28824,7 +29468,7 @@
         "type": "object",
         "properties": {
           "index": {
-            "type": "number",
+            "type": "integer",
             "description": "Index of the failing entry in the request `urls` array.",
             "example": 1
           },
@@ -28849,7 +29493,7 @@
         "type": "object",
         "properties": {
           "index": {
-            "type": "number",
+            "type": "integer",
             "description": "Index of the failing entry in the request `files` array.",
             "example": 2
           },
@@ -28904,7 +29548,8 @@
             "example": "application/pdf"
           },
           "fileSize": {
-            "type": "number",
+            "type": "integer",
+            "format": "int64",
             "nullable": true,
             "example": 1048576
           },
@@ -28929,7 +29574,7 @@
             "description": "Whether the file was successfully parsed. Null while pending/processing."
           },
           "documentCount": {
-            "type": "number",
+            "type": "integer",
             "nullable": true,
             "example": 1
           },
@@ -28997,7 +29642,8 @@
             "description": "Run identifier; a workflow may have multiple runs after a retry."
           },
           "agentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Parent workflow id.",
             "example": 42
           },
@@ -29020,6 +29666,14 @@
             "description": "Run status (running / awaiting_human / completed / error / cancelled).",
             "example": "completed"
           },
+          "statusReason": {
+            "type": "string",
+            "description": "Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.",
+            "enum": [
+              "approval_timeout",
+              "agent_reported_issue"
+            ]
+          },
           "triggerType": {
             "type": "string",
             "description": "Trigger type for the run (schedule / webhook / api / slack / manual)."
@@ -29033,7 +29687,7 @@
             "description": "ISO-8601 end timestamp; absent for in-flight runs."
           },
           "durationMs": {
-            "type": "number",
+            "type": "integer",
             "description": "Duration in milliseconds (when end timestamp is known)."
           },
           "summary": {
@@ -29044,13 +29698,6 @@
             "type": "object",
             "description": "Pending approval payload (only present when status is awaiting_human).",
             "additionalProperties": true
-          },
-          "statusReason": {
-            "type": "string",
-            "description": "Display-only signal that the workflow closed for a non-success reason.",
-            "enum": [
-              "approval_timeout"
-            ]
           },
           "source": {
             "description": "Where the payload was read from. `live-query` = the run is still in progress; `history` = a completed run.",
@@ -29243,7 +29890,7 @@
             "type": "object",
             "description": "Per-status counts (all_executions / running / awaiting_human / error / completed).",
             "additionalProperties": {
-              "type": "number"
+              "type": "integer"
             },
             "example": {
               "all_executions": 100,
@@ -29339,7 +29986,7 @@
             "example": "eyJjcmVhdGVkQXQiOiIyMDI2LTA1LTAxIiwidWlkIjoiYWJjIn0"
           },
           "totalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Approximate total count of matching items (when known). Some filter combinations skip this for cost reasons.",
             "nullable": true,
             "example": 142
@@ -29367,17 +30014,17 @@
             "example": "eyJwYWdlIjoxLCJwYWdlU2l6ZSI6MTB9"
           },
           "totalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total threads visible in the scanned window after filters. Not a global count.",
             "example": 47
           },
           "page": {
-            "type": "number",
+            "type": "integer",
             "description": "Legacy echo of the requested 0-indexed page. Retained for SPA backwards-compatibility; new callers should rely on `pageToken` / `nextPageToken`.",
             "example": 0
           },
           "pageSize": {
-            "type": "number",
+            "type": "integer",
             "description": "Legacy echo of the requested `pageSize`. Retained for SPA backwards-compatibility.",
             "example": 10
           }
@@ -29404,7 +30051,7 @@
             "description": "Opaque token for the next page; `null` when this was the last page."
           },
           "totalCount": {
-            "type": "number",
+            "type": "integer",
             "nullable": true,
             "description": "Approximate total count of matching custom context items, when known."
           }
@@ -29825,6 +30472,160 @@
           "teachModus"
         ]
       },
+      "McpExposureCatalogChildDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Exposure key for this tool.",
+            "example": "toolset_action:web_search::tavily_search"
+          },
+          "actionKey": {
+            "type": "string",
+            "description": "Action or tool name this key selects.",
+            "example": "tavily_search"
+          },
+          "label": {
+            "type": "string",
+            "description": "Name shown for this tool.",
+            "example": "Web Search"
+          }
+        },
+        "required": [
+          "key",
+          "label"
+        ]
+      },
+      "McpExposureCatalogEntryDto": {
+        "type": "object",
+        "properties": {
+          "family": {
+            "description": "Kind of tool this row exposes.",
+            "example": "tool",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/McpExposureFamily"
+              }
+            ]
+          },
+          "parentKey": {
+            "type": "string",
+            "description": "Exposure key for the whole row.",
+            "example": "toolset:web_search"
+          },
+          "toolsetKey": {
+            "type": "string",
+            "description": "Toolset entry this row comes from.",
+            "example": "web_search"
+          },
+          "connectionId": {
+            "type": "string",
+            "description": "Connection this row belongs to, when the row is one connection.",
+            "example": "c1111111-2222-4333-8444-555555555555"
+          },
+          "label": {
+            "type": "string",
+            "description": "Name shown for this row.",
+            "example": "Web Search"
+          },
+          "children": {
+            "description": "Tools under this row. Selecting the parent key exposes all of them, including ones added later.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpExposureCatalogChildDto"
+            }
+          }
+        },
+        "required": [
+          "family",
+          "parentKey",
+          "toolsetKey",
+          "label",
+          "children"
+        ]
+      },
+      "McpExposureCatalogRequestDto": {
+        "type": "object",
+        "properties": {
+          "toolset": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Toolset to preview. Omit to keep the current draft. An object replaces it for this call only."
+          },
+          "connectionSet": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Connections to preview. Omit to keep the current draft. A list replaces it for this call only."
+          },
+          "mcpToolExposure": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Tool exposure to resolve. Omit to keep the current draft. An object replaces it for this call only."
+          }
+        }
+      },
+      "McpExposureCatalogResponseDto": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "description": "Tools this scope can expose. Rows you cannot access are left out.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpExposureCatalogEntryDto"
+            }
+          },
+          "selectedKeys": {
+            "description": "Exposure keys from the resolved selection that are in the visible catalog. Discovery selects every visible key.",
+            "example": [
+              "toolset:web_search"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unknownKeys": {
+            "description": "Stored or sent keys that are not in the catalog. They are reported, not dropped.",
+            "example": [
+              "toolset:retired"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "discoveryAllowed": {
+            "type": "boolean",
+            "description": "True when you can manage this scope. Manage is what allows exposing every current and future tool. This call is refused otherwise.",
+            "example": true
+          },
+          "hiddenSelectedCount": {
+            "type": "integer",
+            "description": "How many stored keys point at rows you cannot access. Those keys are not listed.",
+            "example": 0
+          }
+        },
+        "required": [
+          "entries",
+          "selectedKeys",
+          "unknownKeys",
+          "discoveryAllowed",
+          "hiddenSelectedCount"
+        ]
+      },
+      "McpExposureFamily": {
+        "type": "string",
+        "enum": [
+          "integration_actions",
+          "custom_mcp",
+          "mcp_server",
+          "tool"
+        ],
+        "description": "Kind of tool this row exposes."
+      },
       "McpToolExposureConfigDto": {
         "type": "object",
         "properties": {
@@ -29870,7 +30671,7 @@
         "description": "subset lists keys. discovery exposes every tool this scope can call."
       },
       "McpToolExposureVersion": {
-        "type": "number",
+        "type": "integer",
         "enum": [
           1
         ],
@@ -29912,7 +30713,7 @@
             ]
           },
           "member_count": {
-            "type": "number",
+            "type": "integer",
             "nullable": true,
             "description": "Member count for directory-sourced groups. Present (and non-null) only when `source` is \"directory\".",
             "example": 42
@@ -29988,7 +30789,7 @@
             ]
           },
           "contextWindow": {
-            "type": "number",
+            "type": "integer",
             "description": "Selected model context window in tokens.",
             "minimum": 1
           }
@@ -30004,7 +30805,7 @@
             "minLength": 1
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "description": "Maximum context items to return. Omit to return all selected items.",
             "example": 25,
             "minimum": 1,
@@ -30033,11 +30834,11 @@
             "example": []
           },
           "originalCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Total context items in the configured scope (before composition strategies)."
           },
           "selectedCount": {
-            "type": "number",
+            "type": "integer",
             "description": "Context items the composer kept for this intent."
           },
           "contextItemUids": {
@@ -30257,7 +31058,8 @@
             ]
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Selected Home scope id when known."
           },
           "threadId": {
@@ -30287,7 +31089,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric scope id (stable per-org; not reused after delete).",
             "example": 42
           },
@@ -30306,6 +31109,12 @@
             "description": "Optional one-paragraph description of what this scope does.",
             "example": "Predicts churn risk for a customer given a 90-day usage window.",
             "nullable": true
+          },
+          "generatedDescription": {
+            "type": "string",
+            "nullable": true,
+            "description": "Summary written for this scope so a caller can choose it. Null when none has been written.",
+            "example": "Answers questions about warehouse revenue and churn."
           },
           "status": {
             "description": "Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.",
@@ -30399,6 +31208,11 @@
             "nullable": true,
             "description": "Why `canManage` is false, for client-facing guidance: `needs_group_manage` (shared, but no group you belong to grants Manage) or `not_owner` (private, and you are not the owner). `null` when `canManage` is true.",
             "example": "needs_group_manage"
+          },
+          "validateOnly": {
+            "type": "boolean",
+            "description": "Present and `true` only on an `applySelectionOps` preview (`validateOnly: true`): the `variation` below is the selection that **would** be saved, and nothing was written. Absent on every committed response. Without it a preview is indistinguishable from a commit -- the surrounding fields (`updatedAt`, `hasUnpublishedChanges`, `activeVariationId`, `draftVariationId`) all keep their stored values -- so a caller that stops here silently never saves the selection.",
+            "example": true
           }
         },
         "required": [
@@ -30425,7 +31239,8 @@
             "example": "00000000-0000-4000-a000-000000000500"
           },
           "scopeId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Scope id.",
             "example": 42
           },
@@ -30560,7 +31375,7 @@
             "example": "user_clerk_X"
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "description": "Override the default page size for search results (legacy default is 10).",
             "example": 10,
             "minimum": 1,
@@ -30569,6 +31384,39 @@
         },
         "required": [
           "query"
+        ]
+      },
+      "SelectedContextItemDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "Stable id of the pinned context item."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label shown for the pinned context item."
+          },
+          "contextType": {
+            "type": "string",
+            "enum": [
+              "files",
+              "links",
+              "notes",
+              "saved_queries",
+              "dashboards"
+            ],
+            "description": "Kind of user content this item is."
+          },
+          "connectionId": {
+            "type": "string",
+            "description": "Connection the item belongs to, when it has one."
+          }
+        },
+        "required": [
+          "uid",
+          "label",
+          "contextType"
         ]
       },
       "SelectionModelDto": {
@@ -30587,7 +31435,7 @@
             }
           },
           "depthBelowRoot": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               0,
               1
@@ -30611,7 +31459,7 @@
             "example": "repository"
           },
           "arity": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of path segments in a unit of this kind.",
             "example": 1
           }
@@ -30619,6 +31467,86 @@
         "required": [
           "objectType",
           "arity"
+        ]
+      },
+      "SelectionOpDto": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "selectRoot",
+              "deselectRoot",
+              "setRootDeepRules",
+              "setConnectionPreferences",
+              "pinItem",
+              "unpinItem",
+              "clearPinnedItems",
+              "setAdditionalContextRules"
+            ],
+            "description": "Which selection edit this op makes. selectRoot, deselectRoot, and setRootDeepRules are deprecated and will be removed; use setConnectionPreferences."
+          },
+          "connectionId": {
+            "type": "string",
+            "description": "Connection of the data-asset root, or whose preferences are set."
+          },
+          "path": {
+            "description": "Path of the data-asset root within its connection.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "includes": {
+            "type": "array",
+            "description": "Fully-selected subtree paths strictly beneath the root. Each path is an array of strings.",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "excludes": {
+            "type": "array",
+            "description": "Unselected subtree paths beneath the root. Each path is an array of strings.",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "preferences": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The connection’s whole data selection, as workspace access preferences."
+          },
+          "contextEnabled": {
+            "type": "boolean",
+            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`."
+          },
+          "item": {
+            "description": "The pinned context item.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SelectedContextItemDto"
+              }
+            ]
+          },
+          "uid": {
+            "type": "string",
+            "description": "Uid of the pinned item to remove."
+          },
+          "value": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Additional context rules; null clears them."
+          }
+        },
+        "required": [
+          "op"
         ]
       },
       "SetSupervisionRequestDto": {
@@ -30633,7 +31561,8 @@
             ],
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -30758,13 +31687,19 @@
           },
           "toolset": {
             "type": "object",
-            "description": "Builder-managed toolset descriptor. Map of `{toolName: config}`; opaque to the API surface.",
+            "description": "Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.",
             "additionalProperties": true,
             "example": {
-              "web_search": {
-                "enabled": true
+              "postgresql": {
+                "byConnection": {
+                  "11111111-1111-4111-8111-111111111111": {
+                    "actions": [
+                      "query"
+                    ]
+                  }
+                }
               },
-              "calculator": {
+              "web_search": {
                 "enabled": true
               }
             }
@@ -30887,7 +31822,8 @@
             "description": "Stable suggestion id."
           },
           "skillId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "nullable": true,
             "description": "Numeric scope id this suggestion is scoped to."
           },
@@ -30919,7 +31855,8 @@
         "type": "object",
         "properties": {
           "supervisorAgentId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric id of the scope that supervises the listed subordinates. Echoes the `:id` from the URL path.",
             "example": 42
           },
@@ -30932,7 +31869,8 @@
             ],
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -30959,7 +31897,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Stable action id: the exact string to list in `toolset.<id>.byConnection.<connectionId>.actions` (or `toolset.<id>.actions`, which binds to the newest workspace connection).",
+            "description": "Stable action name. A connected integration lists it in `toolset.<id>.byConnection.<connectionId>.actions` under the UUID of the connection the scope author selected; SQL platforms grant `query`. A general tool lists it in its own configuration, e.g. `toolset.web_search: [\"search\"]`.",
             "example": "list_dags"
           },
           "displayName": {
@@ -30984,13 +31922,13 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.",
-            "example": "sql_runner"
+            "description": "Stable toolset key. Integrations use `{ [id]: { byConnection: { [connectionId]: { actions: [\"query\"] } } } }`; general tools keep their own configuration.",
+            "example": "postgresql"
           },
           "displayName": {
             "type": "string",
             "description": "Human-readable name for display.",
-            "example": "SQL Runner"
+            "example": "PostgreSQL"
           },
           "category": {
             "type": "string",
@@ -31139,7 +32077,7 @@
             }
           },
           "day_of_month": {
-            "type": "number",
+            "type": "integer",
             "description": "Required for monthly schedules. Calendar day 1-31.",
             "example": 15,
             "minimum": 1,
@@ -31347,7 +32285,7 @@
           },
           "content": {
             "type": "object",
-            "description": "Replacement main textual or structured content.",
+            "description": "Replacement main textual or structured content. Long text or structured bodies are also split into searchable excerpts asynchronously.",
             "additionalProperties": true
           },
           "url": {
@@ -31631,16 +32569,20 @@
           "toolset": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {\"byConnection\": {\"<connectionId>\": config}} to pick one.",
+            "description": "Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.",
             "example": {
               "slack": {
-                "actions": [
-                  "SendMessage"
-                ],
-                "rules": {
-                  "allowedChannelIds": [
-                    "C1"
-                  ]
+                "byConnection": {
+                  "11111111-1111-4111-8111-111111111111": {
+                    "actions": [
+                      "SendMessage"
+                    ],
+                    "rules": {
+                      "allowedChannelIds": [
+                        "C1"
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -31691,7 +32633,7 @@
           },
           "contextSelections": {
             "type": "array",
-            "description": "Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.",
+            "description": "Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it. For an incremental edit, use Apply selection changes to a scope.",
             "items": {
               "type": "object",
               "additionalProperties": true
@@ -31736,7 +32678,8 @@
             ]
           },
           "managerId": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Re-parent the scope under a new manager (or remove its current manager when null). When this field is present, all other fields are ignored.",
             "example": 17,
             "nullable": true
@@ -31788,7 +32731,8 @@
             "example": "application/pdf"
           },
           "fileSize": {
-            "type": "number",
+            "type": "integer",
+            "format": "int64",
             "description": "File size in bytes. Rejected above 50MB.",
             "example": 1048576
           }
@@ -31869,15 +32813,15 @@
             "description": "The grouped dimension value (scope/workflow id, interface, or model)."
           },
           "call_count": {
-            "type": "number",
+            "type": "integer",
             "description": "Number of LLM_CALL events in this bucket for this model."
           },
           "input_tokens": {
-            "type": "number",
+            "type": "integer",
             "description": "Sum of input (prompt) tokens."
           },
           "output_tokens": {
-            "type": "number",
+            "type": "integer",
             "description": "Sum of output (response) tokens."
           },
           "credits": {
@@ -31898,13 +32842,13 @@
         "type": "object",
         "properties": {
           "call_count": {
-            "type": "number"
+            "type": "integer"
           },
           "input_tokens": {
-            "type": "number"
+            "type": "integer"
           },
           "output_tokens": {
-            "type": "number"
+            "type": "integer"
           },
           "credits": {
             "type": "number",
@@ -31935,7 +32879,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
+            "format": "int32",
             "description": "Numeric workflow id (stable per-org; not reused after delete).",
             "example": 42
           },
@@ -32306,7 +33251,7 @@
             }
           },
           "day_of_month": {
-            "type": "number",
+            "type": "integer",
             "description": "Required for monthly schedules. Calendar day 1-31.",
             "example": 15,
             "minimum": 1,
@@ -32495,7 +33440,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32580,7 +33525,8 @@
             "type": "string"
           },
           "originalSize": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "storageFileName": {
             "type": "string"
@@ -32589,7 +33535,8 @@
             "type": "string"
           },
           "sizeBytes": {
-            "type": "number"
+            "type": "integer",
+            "format": "int64"
           },
           "summary": {
             "type": "string",
@@ -32727,7 +33674,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32743,7 +33690,8 @@
             "description": "Saved scope ids to subordinate under this Modus run.",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -32849,7 +33797,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32865,7 +33813,8 @@
             "description": "Saved scope ids to scope the Modus run to.",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },
@@ -32922,7 +33871,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -32984,7 +33933,7 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3."
+            "description": "Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, claude-haiku-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, gemini-3.8-flash, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3."
           },
           "modelSettings": {
             "description": "Model-specific runtime controls.",
@@ -33048,6 +33997,70 @@
           }
         }
       },
+      "RunEventsPollEventDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stream id of the event. Send the last one as `Last-Event-ID` to resume after it."
+          },
+          "type": {
+            "type": "string",
+            "description": "Event type, such as `token`, `done`, `error` or `cancelled`. The other fields depend on it."
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "type"
+        ]
+      },
+      "RunEventsPollResponseDto": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "description": "Events after the request cursor, oldest first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunEventsPollEventDto"
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Stream id of the last event returned. Send it as `Last-Event-ID` on the next poll."
+          },
+          "status": {
+            "description": "Current run status. A workflow run reports `pending` until it ends, then its terminal status.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunEventsPollStatus"
+              }
+            ]
+          },
+          "done": {
+            "type": "boolean",
+            "description": "True once a terminal event (`done`, `error`, `cancelled` or a `workflow_*` one) is in `events`: stop polling."
+          }
+        },
+        "required": [
+          "events",
+          "cursor",
+          "status",
+          "done"
+        ]
+      },
+      "RunEventsPollStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "pending",
+          "running",
+          "succeeded",
+          "cancelled",
+          "failed"
+        ],
+        "description": "Current run status. A workflow run reports `pending` until it ends, then its terminal status."
+      },
       "RunModelSettingsDto": {
         "type": "object",
         "properties": {
@@ -33059,7 +34072,7 @@
             ]
           },
           "contextWindow": {
-            "type": "number",
+            "type": "integer",
             "description": "Selected model context window in tokens.",
             "minimum": 1
           }
@@ -33090,6 +34103,7 @@
           "slack_dm",
           "teams",
           "context_chat",
+          "context_suggestions",
           "dashboard_copilot",
           "dashboard_assistant",
           "other"
@@ -33149,7 +34163,7 @@
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
           "streamProtocolVersion": {
-            "type": "number",
+            "type": "integer",
             "enum": [
               2
             ],
@@ -33165,7 +34179,8 @@
             "description": "Subordinate scope ids for an unsaved supervisor-scope draft test.",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "integer",
+              "format": "int32"
             }
           }
         },

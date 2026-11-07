@@ -3,6 +3,7 @@ import type { OperationId } from './_generated/operations.js'
 import type { HttpClient } from './_http.js'
 import { invokeOperation } from './_openapi-invoke.js'
 import { withRetry } from './_retry.js'
+import { headerValue, newTraceId, traceparent } from './_trace.js'
 import { assertWriteBodyKeys } from './_validation.js'
 
 export async function invokeWithRetry(
@@ -19,9 +20,22 @@ export async function invokeWithRetry(
   if (options.jsonBody !== undefined) {
     assertWriteBodyKeys(operationId, options.jsonBody)
   }
-  return withRetry(() => invokeOperation(http, operationId, options), config.maxRetries, {
-    retryNotFoundOnDeploy: operationId.endsWith('_deploy'),
-  })
+  // One trace per call, kept across its re-sends, unless the caller sends their own traceparent.
+  const own = headerValue(config.defaultHeaders, 'traceparent') ?? headerValue(options.headers, 'traceparent')
+  const traceId = own === undefined ? newTraceId() : undefined
+  return withRetry(
+    (resend) =>
+      invokeOperation(http, operationId, {
+        ...options,
+        headers: {
+          ...(traceId ? { traceparent: traceparent(traceId) } : {}),
+          ...(resend > 0 ? { 'X-Modus-Retry-Attempt': String(resend) } : {}),
+          ...options.headers,
+        },
+      }),
+    config.maxRetries,
+    { retryNotFoundOnDeploy: operationId.endsWith('_deploy') },
+  )
 }
 
 export function omitUndefined<T extends Record<string, unknown>>(obj: T): Record<string, unknown> {

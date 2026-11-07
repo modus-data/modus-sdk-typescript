@@ -8,6 +8,9 @@ const { version } = JSON.parse(
 export default defineConfig({
   entry: ['src/index.ts', 'src/management/index.ts'],
   format: ['esm', 'cjs'],
+  // One shared chunk for both entrypoints in CJS too: without it `management/index.cjs` bundles its own
+  // copies of the error classes and `Page`, so `instanceof ModusError` fails across entrypoints.
+  splitting: true,
   dts: true,
   clean: true,
   sourcemap: true,

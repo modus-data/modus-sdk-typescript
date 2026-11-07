@@ -201,6 +201,28 @@ const SAMPLES: Record<string, Record<string, unknown>> = {
   ScopeInterface: {"id": "if-1", "scopeId": 1, "type": "slack", "name": "Slack", "config": {"accessMode": "all"}, "createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-01T00:00:00Z"},
   Supervision: {"supervisorAgentId": 1, "subordinateAgentIds": [2]},
   SetSupervisionRequest: {"subordinateAgentIds": [2]},
+  McpExposureCatalogRequest: {
+    toolset: { web_search: ['tavily_search'] },
+    connectionSet: [{ connection_id: 'conn-1', path: ['public'] }],
+    mcpToolExposure: { version: 1, mode: 'subset', allowedIntegrationKeys: ['toolset:web_search'] },
+  },
+  McpExposureCatalog: {
+    entries: [{
+      family: 'tool',
+      parentKey: 'toolset:web_search',
+      toolsetKey: 'web_search',
+      label: 'Web Search',
+      children: [{
+        key: 'toolset_action:web_search::tavily_search',
+        actionKey: 'tavily_search',
+        label: 'Web Search',
+      }],
+    }],
+    selectedKeys: ['toolset:web_search'],
+    unknownKeys: [],
+    discoveryAllowed: true,
+    hiddenSelectedCount: 0,
+  },
   EvaluationConfig: {"enabled": false, "notifications": {"recipients": [], "channels": {"email": false}}},
   UpdateEvaluationConfig: {"enabled": true},
   TriggerEvaluationRunResponse: {"runId": "run-1"},
@@ -373,7 +395,7 @@ describe('generated resource wiring', () => {
 
   it('samples a query argument from the scalar the spec gives the parameter', () => {
     expect(querySample('ConnectionsController_list', 'type')).toBe('q')
-    expect(querySample('ConnectionsController_list', 'pageSize')).toBe(1.5)
+    expect(querySample('ConnectionsController_list', 'pageSize')).toBe(7)
     // A $ref parameter schema resolves before the scalar is read.
     expect(querySample('DashboardsController_list', 'view')).toBe('q')
   })

@@ -19,8 +19,9 @@ export interface ModusOptions {
   /** API origin without a path suffix (default `https://api.getmodus.com`). */
   baseUrl?: string
   /**
-   * Agent-host origin for streaming runs.
-   * @internal Staging/local escape hatch — not part of the public client surface.
+   * Agent-host origin for chat, runs and context compose (`getContext()`). Derived from a Modus
+   * `baseUrl`: `api.getmodus.com` → `agent.getmodus.com`, `api.<env>.getmodus.com` →
+   * `agent.<env>.getmodus.com`. Required for any other `baseUrl`.
    */
   agentHost?: string
   /**

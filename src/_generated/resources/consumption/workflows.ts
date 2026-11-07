@@ -29,8 +29,9 @@ export class WorkflowsResourceBase {
    *   for the first page.
    * @param options.search - Case-insensitive substring filter on workflow name.
    * @param options.type - Filter by workflow type.
-   * @param options.view - Variation view. `active` reads deployed; `draft` reads the latest builder
-   *   snapshot.
+   * @param options.view - Variation view. `active` reads the deployed version. `draft` reads the
+   *   latest builder snapshot. `published` reads only a published workflow of type workflow that
+   *   you can use; tasks are excluded.
    * @param options.includeVariation - Include the requested variation payload (`trigger`,
    *   `workflowStructure`, `agentSelection`) on list rows.
    * @returns A page of workflows.

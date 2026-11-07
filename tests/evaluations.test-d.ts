@@ -1,5 +1,9 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import type { EvaluationRun, EvaluationRunWithResults } from '../src/management/types/evaluations.js'
+import type {
+  EvaluationConfig,
+  EvaluationRun,
+  EvaluationRunWithResults,
+} from '../src/management/types/evaluations.js'
 
 describe('evaluation run types', () => {
   it('types result fields as their nullable scalars', () => {
@@ -12,5 +16,10 @@ describe('evaluation run types', () => {
   it('types run timestamps and score as their nullable scalars', () => {
     expectTypeOf<EvaluationRun['finishedAt']>().toEqualTypeOf<string | null | undefined>()
     expectTypeOf<EvaluationRun['avgScore']>().toEqualTypeOf<number | null | undefined>()
+  })
+
+  it('types cadence frequency as nullable, as the API returns it', () => {
+    type Cadence = NonNullable<EvaluationConfig['cadence']>
+    expectTypeOf<null>().toExtend<Cadence['frequency']>()
   })
 })

@@ -1004,7 +1004,7 @@ export interface paths {
         };
         /**
          * Get a scope
-         * @description Returns a scope. `view=active` (default) returns the deployed version; `view=draft` returns the latest unpublished edits. Returns 404 if you cannot access the scope.
+         * @description Returns a scope. `view=active` (default) is the deployed version, or the latest draft when nothing is published. `view=draft` is the latest edits. `view=published` is only the published version, and only if you can use the scope. Returns 404 if you cannot access it.
          *
          *     **Requires:** `scopes:read`
          */
@@ -1027,6 +1027,28 @@ export interface paths {
          *     **Requires:** `scopes:write`
          */
         patch: operations["ScopesController_update"];
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/applySelectionOps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply selection changes to a scope
+         * @description Applies `ops` to the scope draft. Preview first with `validateOnly: true`: it writes nothing and returns the selection that would be saved, marked `validateOnly: true` so it cannot be mistaken for a commit. The server derives tool grants. Use `setConnectionPreferences`; root ops are deprecated.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["ScopesController_applySelectionOps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/scopes/{id}/context": {
@@ -1322,6 +1344,28 @@ export interface paths {
          *     **Requires:** `scopes:write`
          */
         patch: operations["ScopesController_patchMcpConfig"];
+        trace?: never;
+    };
+    "/api/v1/scopes/{id}/mcp-exposure-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview MCP exposure catalog
+         * @description Lists tools this scope can expose to MCP clients. A field you send replaces the current draft; a field you omit stays as stored. Nothing is saved. Entries you cannot access are left out, and stored selections on them are counted in hiddenSelectedCount.
+         *
+         *     **Requires:** `scopes:write`
+         */
+        post: operations["ScopesController_mcpExposureCatalog"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/scopes/{id}/memories": {
@@ -1731,7 +1775,7 @@ export interface paths {
         };
         /**
          * Get a workflow
-         * @description Returns a workflow. `view=draft` (default) returns the latest unpublished edits; `view=active` returns the deployed version. Requires use or manage permission; `canUse` and `canManage` in the response say which. Returns 404 if you cannot access the workflow.
+         * @description Returns a workflow. `view=draft` (default) and `view=active` allow use or manage access. Active is the deployed version, or the latest draft when nothing is published. `view=published` is a published workflow of type workflow that you can use. Returns 404 if you cannot access it.
          *
          *     **Requires:** `workflows:read`
          */
@@ -2473,6 +2517,7 @@ export interface components {
              */
             id: string;
             /**
+             * Format: int32
              * @description Parent workflow id.
              * @example 42
              */
@@ -2522,6 +2567,7 @@ export interface components {
         };
         AgentSelectionEntryDto: {
             /**
+             * Format: int32
              * @description Numeric scope (workflow) id to invoke at this step.
              * @example 17
              */
@@ -2597,6 +2643,16 @@ export interface components {
          * @enum {string}
          */
         ApiErrorStatus: "INVALID_ARGUMENT" | "UNAUTHENTICATED" | "PERMISSION_DENIED" | "NOT_FOUND" | "ALREADY_EXISTS" | "RESOURCE_EXHAUSTED" | "INTERNAL" | "UNAVAILABLE" | "DEADLINE_EXCEEDED";
+        ApplySelectionOpsDto: {
+            /** @description Selection ops, applied in order. */
+            ops: components["schemas"]["SelectionOpDto"][];
+            /** @description The scope toolset after the edit, when the edit changed it. */
+            toolset?: {
+                [key: string]: unknown;
+            };
+            /** @description When true, run every check a commit would and return the scope that would be saved, without writing it. The response carries `connectionSet`, `toolset` and `contextSelections` as they would be stored, with secret header values withheld and no secret minted, and is marked `validateOnly: true` at the top level. Every other field keeps its stored value, so a preview still needs a second call without `validateOnly` to save. */
+            validateOnly?: boolean;
+        };
         AutomationRunListItemDto: {
             /**
              * @description Composite run identifier (`workflowId:temporalRunId`).
@@ -2611,6 +2667,7 @@ export interface components {
             /** @description Run identifier; a workflow may have multiple runs after a retry. */
             temporalRunId?: string;
             /**
+             * Format: int32
              * @description Parent workflow id.
              * @example 42
              */
@@ -2630,6 +2687,11 @@ export interface components {
              * @example completed
              */
             status: string;
+            /**
+             * @description Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.
+             * @enum {string}
+             */
+            statusReason?: "approval_timeout" | "agent_reported_issue";
             /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
@@ -2739,6 +2801,7 @@ export interface components {
              */
             contentType?: string;
             /**
+             * Format: int64
              * @description File size in bytes. Rejected above 50MB.
              * @example 1048576
              */
@@ -3155,6 +3218,7 @@ export interface components {
              */
             threadId: string;
             /**
+             * Format: int32
              * @description Numeric scope id returned by the list/detail adapter. This is not conversation ownership.
              * @example 42
              */
@@ -3181,6 +3245,7 @@ export interface components {
              */
             threadId: string;
             /**
+             * Format: int32
              * @description Numeric scope id returned by the list adapter. This is not conversation ownership.
              * @example 42
              */
@@ -3359,7 +3424,7 @@ export interface components {
              * @example Enterprise contract renewal metadata from the internal billing system.
              */
             description?: string;
-            /** @description Main textual or structured content for the custom item. */
+            /** @description Main textual or structured content for the custom item. Long text or structured bodies are also split into searchable excerpts asynchronously. */
             content?: {
                 [key: string]: unknown;
             };
@@ -3549,16 +3614,20 @@ export interface components {
              */
             instructions?: string[];
             /**
-             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
-             *         "actions": [
-             *           "SendMessage"
-             *         ],
-             *         "rules": {
-             *           "allowedChannelIds": [
-             *             "C1"
-             *           ]
+             *         "byConnection": {
+             *           "11111111-1111-4111-8111-111111111111": {
+             *             "actions": [
+             *               "SendMessage"
+             *             ],
+             *             "rules": {
+             *               "allowedChannelIds": [
+             *                 "C1"
+             *               ]
+             *             }
+             *           }
              *         }
              *       }
              *     }
@@ -4018,14 +4087,14 @@ export interface components {
             code: components["schemas"]["ApiErrorCode"];
             /** @description Canonical status string for the error. */
             status: components["schemas"]["ApiErrorStatus"];
-            /** @example Skill was not found or you lack permission. */
+            /** @example Scope was not found or you lack permission. */
             message: string;
             /** @example req_01HQ7K8ABCDEFGHIJKLMNOPQRS */
             requestId: string;
             /**
              * @description Optional domain-specific context. Shape varies per endpoint — see the operation's error response examples.
              * @example {
-             *       "skillId": "sk_abc123"
+             *       "scopeId": 42
              *     }
              */
             info?: {
@@ -4066,9 +4135,9 @@ export interface components {
         };
         /**
          * @description Schedule frequency
-         * @enum {string}
+         * @enum {string|null}
          */
-        EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom";
+        EvaluationCadenceFrequency: "daily" | "weekly" | "monthly" | "custom" | null;
         EvaluationCaseDto: {
             /** @description Stable id of the evaluation case. */
             id: string;
@@ -4143,7 +4212,10 @@ export interface components {
         EvaluationRunDto: {
             /** @description Run ID */
             id: string;
-            /** @description Scope ID */
+            /**
+             * Format: int32
+             * @description Scope ID
+             */
             skillId: number;
             /** @description How the run was triggered */
             trigger: components["schemas"]["EvaluationRunTrigger"];
@@ -4187,7 +4259,10 @@ export interface components {
         EvaluationRunWithResultsDto: {
             /** @description Run ID */
             id: string;
-            /** @description Scope ID */
+            /**
+             * Format: int32
+             * @description Scope ID
+             */
             skillId: number;
             /** @description How the run was triggered */
             trigger: components["schemas"]["EvaluationRunTrigger"];
@@ -4302,7 +4377,10 @@ export interface components {
             folderPath?: string | null;
             /** @example application/pdf */
             contentType?: string | null;
-            /** @example 1048576 */
+            /**
+             * Format: int64
+             * @example 1048576
+             */
             fileSize?: number | null;
             /** @example context_uploads/7a3f9d2c.../Q3-churn-report.pdf */
             s3Key?: string | null;
@@ -4350,6 +4428,7 @@ export interface components {
             /** @description Run identifier; a workflow may have multiple runs after a retry. */
             temporalRunId?: string;
             /**
+             * Format: int32
              * @description Parent workflow id.
              * @example 42
              */
@@ -4369,6 +4448,11 @@ export interface components {
              * @example completed
              */
             status: string;
+            /**
+             * @description Display-only annotation of a completed run: `approval_timeout` when a human approval timed out, `agent_reported_issue` when a workflow step said it could not finish part of its task.
+             * @enum {string}
+             */
+            statusReason?: "approval_timeout" | "agent_reported_issue";
             /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
@@ -4383,11 +4467,6 @@ export interface components {
             pendingApproval?: {
                 [key: string]: unknown;
             };
-            /**
-             * @description Display-only signal that the workflow closed for a non-success reason.
-             * @enum {string}
-             */
-            statusReason?: "approval_timeout";
             /** @description Where the payload was read from. `live-query` = the run is still in progress; `history` = a completed run. */
             source: components["schemas"]["AutomationRunSource"];
             /** @description Final result of a `task`-typed workflow run. Free-form (depends on the workflow). */
@@ -4691,6 +4770,99 @@ export interface components {
              */
             teachModus: boolean;
         };
+        McpExposureCatalogChildDto: {
+            /**
+             * @description Exposure key for this tool.
+             * @example toolset_action:web_search::tavily_search
+             */
+            key: string;
+            /**
+             * @description Action or tool name this key selects.
+             * @example tavily_search
+             */
+            actionKey?: string;
+            /**
+             * @description Name shown for this tool.
+             * @example Web Search
+             */
+            label: string;
+        };
+        McpExposureCatalogEntryDto: {
+            /**
+             * @description Kind of tool this row exposes.
+             * @example tool
+             */
+            family: components["schemas"]["McpExposureFamily"];
+            /**
+             * @description Exposure key for the whole row.
+             * @example toolset:web_search
+             */
+            parentKey: string;
+            /**
+             * @description Toolset entry this row comes from.
+             * @example web_search
+             */
+            toolsetKey: string;
+            /**
+             * @description Connection this row belongs to, when the row is one connection.
+             * @example c1111111-2222-4333-8444-555555555555
+             */
+            connectionId?: string;
+            /**
+             * @description Name shown for this row.
+             * @example Web Search
+             */
+            label: string;
+            /** @description Tools under this row. Selecting the parent key exposes all of them, including ones added later. */
+            children: components["schemas"]["McpExposureCatalogChildDto"][];
+        };
+        McpExposureCatalogRequestDto: {
+            /** @description Toolset to preview. Omit to keep the current draft. An object replaces it for this call only. */
+            toolset?: {
+                [key: string]: unknown;
+            };
+            /** @description Connections to preview. Omit to keep the current draft. A list replaces it for this call only. */
+            connectionSet?: {
+                [key: string]: unknown;
+            }[];
+            /** @description Tool exposure to resolve. Omit to keep the current draft. An object replaces it for this call only. */
+            mcpToolExposure?: {
+                [key: string]: unknown;
+            };
+        };
+        McpExposureCatalogResponseDto: {
+            /** @description Tools this scope can expose. Rows you cannot access are left out. */
+            entries: components["schemas"]["McpExposureCatalogEntryDto"][];
+            /**
+             * @description Exposure keys from the resolved selection that are in the visible catalog. Discovery selects every visible key.
+             * @example [
+             *       "toolset:web_search"
+             *     ]
+             */
+            selectedKeys: string[];
+            /**
+             * @description Stored or sent keys that are not in the catalog. They are reported, not dropped.
+             * @example [
+             *       "toolset:retired"
+             *     ]
+             */
+            unknownKeys: string[];
+            /**
+             * @description True when you can manage this scope. Manage is what allows exposing every current and future tool. This call is refused otherwise.
+             * @example true
+             */
+            discoveryAllowed: boolean;
+            /**
+             * @description How many stored keys point at rows you cannot access. Those keys are not listed.
+             * @example 0
+             */
+            hiddenSelectedCount: number;
+        };
+        /**
+         * @description Kind of tool this row exposes.
+         * @enum {string}
+         */
+        McpExposureFamily: "integration_actions" | "custom_mcp" | "mcp_server" | "tool";
         McpToolExposureConfigDto: {
             /**
              * @description Exposure format. Always 1.
@@ -4715,7 +4887,7 @@ export interface components {
         McpToolExposureMode: "subset" | "discovery";
         /**
          * @description Exposure format. Always 1.
-         * @enum {number}
+         * @enum {integer}
          */
         McpToolExposureVersion: 1;
         MemberGroupDto: {
@@ -4892,7 +5064,10 @@ export interface components {
              * @example home
              */
             source?: components["schemas"]["SuggestionEventSource"];
-            /** @description Selected Home scope id when known. */
+            /**
+             * Format: int32
+             * @description Selected Home scope id when known.
+             */
             skillId?: number;
             /** @description Conversation thread id when the event is tied to a chat. */
             threadId?: string;
@@ -4908,6 +5083,7 @@ export interface components {
         ResourceLifecycleStatus: "draft" | "active" | "deleted";
         ScopeDto: {
             /**
+             * Format: int32
              * @description Numeric scope id (stable per-org; not reused after delete).
              * @example 42
              */
@@ -4927,6 +5103,11 @@ export interface components {
              * @example Predicts churn risk for a customer given a 90-day usage window.
              */
             description?: string | null;
+            /**
+             * @description Summary written for this scope so a caller can choose it. Null when none has been written.
+             * @example Answers questions about warehouse revenue and churn.
+             */
+            generatedDescription?: string | null;
             /**
              * @description Lifecycle status. `draft` = never deployed. `active` = deployed. `deleted` = soft-deleted.
              * @example active
@@ -4989,6 +5170,11 @@ export interface components {
              * @enum {string|null}
              */
             manageDenial: "not_owner" | "needs_group_manage" | null;
+            /**
+             * @description Present and `true` only on an `applySelectionOps` preview (`validateOnly: true`): the `variation` below is the selection that **would** be saved, and nothing was written. Absent on every committed response. Without it a preview is indistinguishable from a commit -- the surrounding fields (`updatedAt`, `hasUnpublishedChanges`, `activeVariationId`, `draftVariationId`) all keep their stored values -- so a caller that stops here silently never saves the selection.
+             * @example true
+             */
+            validateOnly?: boolean;
         };
         ScopeInterfaceDto: {
             /**
@@ -4997,6 +5183,7 @@ export interface components {
              */
             id: string;
             /**
+             * Format: int32
              * @description Scope id.
              * @example 42
              */
@@ -5080,6 +5267,19 @@ export interface components {
              */
             limit?: number;
         };
+        SelectedContextItemDto: {
+            /** @description Stable id of the pinned context item. */
+            uid: string;
+            /** @description Label shown for the pinned context item. */
+            label: string;
+            /**
+             * @description Kind of user content this item is.
+             * @enum {string}
+             */
+            contextType: "files" | "links" | "notes" | "saved_queries" | "dashboards";
+            /** @description Connection the item belongs to, when it has one. */
+            connectionId?: string;
+        };
         SelectionModelDto: {
             /**
              * @description What one selectable unit is called.
@@ -5091,7 +5291,7 @@ export interface components {
             /**
              * @description How many levels below a unit a scope may still name. 0 means the unit itself only.
              * @example 0
-             * @enum {number}
+             * @enum {integer}
              */
             depthBelowRoot: 0 | 1;
         };
@@ -5106,6 +5306,35 @@ export interface components {
              * @example 1
              */
             arity: number;
+        };
+        SelectionOpDto: {
+            /**
+             * @description Which selection edit this op makes. selectRoot, deselectRoot, and setRootDeepRules are deprecated and will be removed; use setConnectionPreferences.
+             * @enum {string}
+             */
+            op: "selectRoot" | "deselectRoot" | "setRootDeepRules" | "setConnectionPreferences" | "pinItem" | "unpinItem" | "clearPinnedItems" | "setAdditionalContextRules";
+            /** @description Connection of the data-asset root, or whose preferences are set. */
+            connectionId?: string;
+            /** @description Path of the data-asset root within its connection. */
+            path?: string[];
+            /** @description Fully-selected subtree paths strictly beneath the root. Each path is an array of strings. */
+            includes?: string[][];
+            /** @description Unselected subtree paths beneath the root. Each path is an array of strings. */
+            excludes?: string[][];
+            /** @description The connection’s whole data selection, as workspace access preferences. */
+            preferences?: {
+                [key: string]: unknown;
+            };
+            /** @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`. */
+            contextEnabled?: boolean;
+            /** @description The pinned context item. */
+            item?: components["schemas"]["SelectedContextItemDto"];
+            /** @description Uid of the pinned item to remove. */
+            uid?: string;
+            /** @description Additional context rules; null clears them. */
+            value?: {
+                [key: string]: unknown;
+            } | null;
         };
         SetSupervisionRequestDto: {
             /**
@@ -5188,12 +5417,18 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description Builder-managed toolset descriptor. Map of `{toolName: config}`; opaque to the API surface.
+             * @description Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.
              * @example {
-             *       "web_search": {
-             *         "enabled": true
+             *       "postgresql": {
+             *         "byConnection": {
+             *           "11111111-1111-4111-8111-111111111111": {
+             *             "actions": [
+             *               "query"
+             *             ]
+             *           }
+             *         }
              *       },
-             *       "calculator": {
+             *       "web_search": {
              *         "enabled": true
              *       }
              *     }
@@ -5257,7 +5492,10 @@ export interface components {
         SuggestionQuestionDto: {
             /** @description Stable suggestion id. */
             id: string;
-            /** @description Numeric scope id this suggestion is scoped to. */
+            /**
+             * Format: int32
+             * @description Numeric scope id this suggestion is scoped to.
+             */
             skillId?: number | null;
             /** @description Short Home button label. */
             label: string;
@@ -5272,6 +5510,7 @@ export interface components {
         };
         SupervisionDto: {
             /**
+             * Format: int32
              * @description Numeric id of the scope that supervises the listed subordinates. Echoes the `:id` from the URL path.
              * @example 42
              */
@@ -5295,7 +5534,7 @@ export interface components {
         };
         ToolCatalogActionDto: {
             /**
-             * @description Stable action id: the exact string to list in `toolset.<id>.byConnection.<connectionId>.actions` (or `toolset.<id>.actions`, which binds to the newest workspace connection).
+             * @description Stable action name. A connected integration lists it in `toolset.<id>.byConnection.<connectionId>.actions` under the UUID of the connection the scope author selected; SQL platforms grant `query`. A general tool lists it in its own configuration, e.g. `toolset.web_search: ["search"]`.
              * @example list_dags
              */
             name: string;
@@ -5312,13 +5551,13 @@ export interface components {
         };
         ToolCatalogEntryDto: {
             /**
-             * @description Stable id — use as the key in a toolset object, e.g. `{ [id]: { enabled: true } }`.
-             * @example sql_runner
+             * @description Stable toolset key. Integrations use `{ [id]: { byConnection: { [connectionId]: { actions: ["query"] } } } }`; general tools keep their own configuration.
+             * @example postgresql
              */
             id: string;
             /**
              * @description Human-readable name for display.
-             * @example SQL Runner
+             * @example PostgreSQL
              */
             displayName: string;
             /**
@@ -5505,7 +5744,7 @@ export interface components {
              * @example Updated internal billing metadata.
              */
             description?: string;
-            /** @description Replacement main textual or structured content. */
+            /** @description Replacement main textual or structured content. Long text or structured bodies are also split into searchable excerpts asynchronously. */
             content?: {
                 [key: string]: unknown;
             };
@@ -5642,16 +5881,20 @@ export interface components {
              */
             instructions?: string[] | null;
             /**
-             * @description Map of tool key to its configuration; unknown keys are rejected. A flat connected-integration entry such as slack binds to the newest workspace connection of that integration (create and update return 422 when there is none); use {"byConnection": {"<connectionId>": config}} to pick one.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
-             *         "actions": [
-             *           "SendMessage"
-             *         ],
-             *         "rules": {
-             *           "allowedChannelIds": [
-             *             "C1"
-             *           ]
+             *         "byConnection": {
+             *           "11111111-1111-4111-8111-111111111111": {
+             *             "actions": [
+             *               "SendMessage"
+             *             ],
+             *             "rules": {
+             *               "allowedChannelIds": [
+             *                 "C1"
+             *               ]
+             *             }
+             *           }
              *         }
              *       }
              *     }
@@ -5691,7 +5934,7 @@ export interface components {
              */
             connectionSet?: components["schemas"]["ConnectionSetItemDto"][] | null;
             /**
-             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it.
+             * @description Updated context selections (sources / docs the scope may read). Replaces the whole list, so send every selection to keep, including the scope's own learnings. `null` clears it. For an incremental edit, use Apply selection changes to a scope.
              * @example []
              */
             contextSelections?: {
@@ -5714,6 +5957,7 @@ export interface components {
             /** @description Updated access configuration. The service rejects changes that would lock the caller out of use + manage. */
             accessConfig?: components["schemas"]["AccessConfigDto"];
             /**
+             * Format: int32
              * @description Re-parent the scope under a new manager (or remove its current manager when null). When this field is present, all other fields are ignored.
              * @example 17
              */
@@ -5750,6 +5994,7 @@ export interface components {
              */
             contentType: string;
             /**
+             * Format: int64
              * @description File size in bytes. Rejected above 50MB.
              * @example 1048576
              */
@@ -5828,6 +6073,7 @@ export interface components {
         };
         WorkflowDto: {
             /**
+             * Format: int32
              * @description Numeric workflow id (stable per-org; not reused after delete).
              * @example 42
              */
@@ -6105,7 +6351,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6135,9 +6381,11 @@ export interface components {
             parsedContent?: string;
             uploadId?: string;
             mimeType?: string;
+            /** Format: int64 */
             originalSize?: number;
             storageFileName?: string;
             rawContentS3Key?: string;
+            /** Format: int64 */
             sizeBytes?: number;
             summary?: string | null;
         };
@@ -6193,7 +6441,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6240,7 +6488,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6270,7 +6518,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -6292,7 +6540,7 @@ export interface components {
             status: string;
         };
         RunConfigDto: {
-            /** @description Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3. */
+            /** @description Model id, e.g. claude-sonnet-4.6. API tokens must send one of: default, claude-sonnet-5, claude-sonnet-5.5, claude-sonnet-4.6, claude-opus-4.8, claude-opus-5.5, claude-haiku-5.5, gpt-5.2, gpt-5.5, gpt-5-mini, gpt-5.6-luna, gpt-6-luna, gpt-oss-120b, gpt-oss-20b, qwen3-235b-a22b-2507, qwen3-coder, qwen3-32b, deepseek-chat-v3.1, deepseek-v4-pro, deepseek-v4-flash-latest, deepseek-v4.1-flash-1017, minimax-m2.7, llama-4-maverick, llama-4-scout, llama-3.3-70b-instruct, gemini-3.1-pro-preview, gemini-3-flash-preview, gemini-3.8-flash, grok-4.3-fast, grok-4.3, grok-4.7, kimi-k3. */
             model?: string;
             /** @description Model-specific runtime controls. */
             modelSettings?: components["schemas"]["RunModelSettingsDto"];
@@ -6320,6 +6568,29 @@ export interface components {
             /** @description Set false to keep composer output inline. */
             composerFileOffload?: boolean;
         };
+        RunEventsPollEventDto: {
+            /** @description Stream id of the event. Send the last one as `Last-Event-ID` to resume after it. */
+            id: string;
+            /** @description Event type, such as `token`, `done`, `error` or `cancelled`. The other fields depend on it. */
+            type: string;
+        } & {
+            [key: string]: unknown;
+        };
+        RunEventsPollResponseDto: {
+            /** @description Events after the request cursor, oldest first. */
+            events: components["schemas"]["RunEventsPollEventDto"][];
+            /** @description Stream id of the last event returned. Send it as `Last-Event-ID` on the next poll. */
+            cursor: string;
+            /** @description Current run status. A workflow run reports `pending` until it ends, then its terminal status. */
+            status: components["schemas"]["RunEventsPollStatus"];
+            /** @description True once a terminal event (`done`, `error`, `cancelled` or a `workflow_*` one) is in `events`: stop polling. */
+            done: boolean;
+        };
+        /**
+         * @description Current run status. A workflow run reports `pending` until it ends, then its terminal status.
+         * @enum {string}
+         */
+        RunEventsPollStatus: "queued" | "pending" | "running" | "succeeded" | "cancelled" | "failed";
         RunModelSettingsDto: {
             reasoningEffort?: components["schemas"]["RunReasoningEffort"];
             /** @description Selected model context window in tokens. */
@@ -6331,7 +6602,7 @@ export interface components {
          * @description Origin of the run. Set by the server for API tokens.
          * @enum {string}
          */
-        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
         SkillRunDto: {
             /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
@@ -6356,7 +6627,7 @@ export interface components {
             runId?: string;
             /**
              * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
-             * @enum {number}
+             * @enum {integer}
              */
             streamProtocolVersion?: 2;
             experimentalFeatures?: boolean;
@@ -15438,7 +15709,7 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
@@ -15712,8 +15983,8 @@ export interface operations {
                 pageToken?: string;
                 /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
-                /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
-                view?: "active" | "draft";
+                /** @description Variation view. `active` reads the deployed version, or the latest draft when nothing is published. `draft` reads the latest builder snapshot. `published` reads only the published version, and only scopes you can use. */
+                view?: "active" | "draft" | "published";
                 /** @description Case-insensitive substring filter on scope name. */
                 search?: string;
                 /** @description Return only scopes supervised by this manager scope id. */
@@ -16039,8 +16310,8 @@ export interface operations {
     ScopesController_get: {
         parameters: {
             query?: {
-                /** @description Which variation snapshot to read. Defaults to `active`. */
-                view?: "active" | "draft";
+                /** @description Which version to read. Defaults to `active`. `published` is only the published version, and only if you can use the scope. */
+                view?: "active" | "draft" | "published";
             };
             header?: never;
             path: {
@@ -16562,6 +16833,208 @@ export interface operations {
             };
         };
     };
+    ScopesController_applySelectionOps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplySelectionOpsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScopeDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
     ScopeContextController_compose: {
         parameters: {
             query?: never;
@@ -16778,7 +17251,7 @@ export interface operations {
                 /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
                 toolName?: string;
                 /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
@@ -19422,6 +19895,208 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatchSkillMcpConfigResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScopesController_mcpExposureCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric scope id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["McpExposureCatalogRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpExposureCatalogResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -22751,8 +23426,8 @@ export interface operations {
                 pageToken?: string;
                 /** @description Max items per page. Defaults to 25. Must be between 1 and 100. */
                 pageSize?: number;
-                /** @description Variation view. `active` reads deployed; `draft` reads the latest builder snapshot. */
-                view?: "active" | "draft";
+                /** @description Variation view. `active` reads the deployed version. `draft` reads the latest builder snapshot. `published` reads only a published workflow of type workflow that you can use; tasks are excluded. */
+                view?: "active" | "draft" | "published";
                 /** @description Filter by workflow type. */
                 type?: "task" | "workflow";
                 /** @description Case-insensitive substring filter on workflow name. */
@@ -23078,8 +23753,8 @@ export interface operations {
     WorkflowsController_get: {
         parameters: {
             query?: {
-                /** @description Which variation snapshot to read. Defaults to `draft`. */
-                view?: "active" | "draft";
+                /** @description Which version to read. Defaults to `draft`. `published` is a published workflow of type workflow that you can use. */
+                view?: "active" | "draft" | "published";
             };
             header?: never;
             path: {
@@ -26315,11 +26990,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Events after the cursor, the next cursor and the run status. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunEventsPollResponseDto"];
+                };
             };
             /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
             429: {

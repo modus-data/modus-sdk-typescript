@@ -8,7 +8,7 @@ import type {
   SetSupervisionRequest,
   Supervision,
 } from '../../../../management/scopes/supervision.js'
-import type { VariationView } from '../../../../types/views.js'
+import type { SupervisionView } from '../../../../types/views.js'
 
 /** Generated base for the management `scopes.supervision` resource. */
 export class ScopesSupervisionResourceBase {
@@ -30,7 +30,7 @@ export class ScopesSupervisionResourceBase {
    *
    * @param options.view - Which variation snapshot to read. Defaults to `active`.
    */
-  async get(options: { view?: VariationView } = {}): Promise<Supervision> {
+  async get(options: { view?: SupervisionView } = {}): Promise<Supervision> {
     validateId(this.scopeId, 'scope_id')
     const data = await invokeWithRetry(this.config, this.http, 'ScopeSupervisionController_get', {
       pathParams: { id: this.scopeId },

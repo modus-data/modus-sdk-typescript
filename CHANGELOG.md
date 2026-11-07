@@ -11,6 +11,17 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.
+- **Breaking (pre-1.0): `SupervisionView`.** `mgmt.scopes.supervision(id).get({ view })` takes `SupervisionView` (`'active' | 'draft'`). `published` is not a supervision view. `VariationView` now also allows `'published'`, so a value typed as `VariationView` no longer type-checks there. Migration: type it as `SupervisionView`. Runtime values are unchanged.
+- **`view: 'published'` on scope and workflow list and get.** Returns the published version you can use. A scope or workflow that is only a draft, deleted, or that you can manage but not use is left out. For workflows it is also type workflow only; a task is left out. `active` and `draft` are unchanged.
+- **`scopes.applySelectionOps()`.** Apply selection changes to a scope. Pass `{ validateOnly: true }` to run the same checks and return the scope that would be saved, without writing. A preview result carries `validateOnly: true`; a committed one does not, and every other field keeps its stored value, so a preview still needs a second call to save. Send `setConnectionPreferences`. `selectRoot`, `deselectRoot`, and `setRootDeepRules` are deprecated.
+- **`claude-haiku-5.5` model.** Anthropic's Claude Haiku 5.5 is an accepted chat model id.
+- **`gemini-3.8-flash` model.** Google's generally available Gemini 3.8 Flash is an accepted chat
+  model id.
+- **`mgmt.scopes.mcpExposureCatalog(scopeId, request)`.** Lists the tools a scope can expose to MCP clients. A field you send replaces the current draft for this call; a field you omit stays as stored. Nothing is saved. Rows you cannot access are left out, and stored selections on them are counted. `McpExposureCatalogRequest` and `McpExposureCatalog` import from `@getmodus/sdk/management`.
+- **Every type a public method takes or returns is exported.** The resource classes (`WorkflowRunsResource`, `ManagementScopesResource`, …), `ModusConfig`, the custom context item inputs and results (`CreateCustomContextItemInput`, `CreatedCustomContextItem`, …), and the evaluation, usage, interface, supervision and user types import from `@getmodus/sdk` or `@getmodus/sdk/management`, so a variable that holds a result can be annotated.
+- **`access` on custom context item creates.** `context.customItems.create()` and `batchCreate()` inputs take `access` (`scope`, `groupIds`, `userIds`), which the endpoint already accepted. Omitted, everyone in the organization can see the item; to change it, delete and re-create the item.
+- **A trace id for every call.** Each request sends a W3C `traceparent` (a new trace per call, kept across its retries, each re-send also carrying `X-Modus-Retry-Attempt`), and every `ModusError` from an HTTP call carries it as `traceId`. Quote `traceId` with `requestId` to support: it also names a call that never reached Modus. A `traceparent` you set in `defaultHeaders` is sent as is.
 - **`access` on file finalize and URL uploads.** `FinalizeUploadDto`, each `BulkFinalizeItemDto`, `UploadFromUrlDto` and each `BulkUploadFromUrlItemDto` take an optional `access` (visibility, group permissions, shared-with) that applies only when the file is first created; omitted, the file is shared with everyone with you as owner. A service-account token cannot set it.
 - **Access on notes, saved queries, links and uploaded files.** `mgmt.context.items.updateAccess(uid, { visibility, groupPermissions, sharedWith })` replaces who can view and manage one of these items; an item with no owner becomes yours. `ContextItem` reads of these types carry `access` and `canManage`.
 - **Resume a dropped run stream.** Every run event, `approval_required` included, carries `id`, its SSE event id (`RunEventBase`), when the server sends one, so `runs.stream(runId, { lastEventId: event.id })` resumes after that event instead of replaying the run from the start.
@@ -33,6 +44,9 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Changed
 
+- **Breaking (pre-1.0): MCP tool exposure keys name a connection (CU-z93r0b9hub).** In `mcpToolExposure.allowedIntegrationKeys`, `toolset:<connectionId>` exposes every tool granted on that connection, now and later, and never another connection's; `toolset_action:<platform>:<connectionId>:<action>` exposes one tool, a SQL connection's query tool included (`toolset_action:postgresql:<connectionId>:query`). `toolset:<platform>`, `data_connection:<connectionId>` and `data_connection_tool:` keys are retired: a stored `toolset:<platform>` key became the `toolset:<connectionId>` key of each connection the scope grants on that platform, a stored `data_connection:` key on a SQL connection became that connection's `toolset:<connectionId>`, and a retired key naming no such connection was removed, and a write adding one returns 422. `mcpExposureCatalog` lists one row per connection, and `McpExposureFamily` no longer has `data_connection`.
+- **`workflows.runs.events()` returns `RunEventsPollResponse`** instead of `unknown`: `events` (each with its stream `id` and `type`), `cursor`, `status` and `done`. The response is unchanged.
+- **A numeric id that is not a whole number throws `ValidationError` before any request.** `1.5`, `NaN` or `Infinity` as a scope, workflow or other numeric id was sent, and the server answered 400.
 - **Breaking (pre-1.0): the `access` body on note, saved-query and link creates is dashboard-shaped.** The generated `CreateNoteDto`, `CreateSavedQueryDto` and `CreateLinkDto` types now take `access` as `UpdateContextItemAccessDto` (`visibility`, `groupPermissions`, `sharedWith`, the body `mgmt.context.items.updateAccess` takes) instead of `AccessPolicyDto` (`scope`, `groupIds`, `userIds`); the old shape is rejected with 400. Omitting `access` shares the item with everyone in the organization, with you as owner. `createNote`, `createSavedQuery` and `createLink` send no `access` and are unchanged.
 - **Context compose no longer fails at 30 seconds.** `scopes.getContext()` and `modus.getContext()` now call `POST /agent/v1/scopes/{id}/context` and `POST /agent/v1/modus/context` on the agent host, the host `chat()` uses. The old routes sat behind a 30-second gateway limit, so a slower compose came back as a bare 503 and was retried up to twice more while the first one was still running. Same arguments and result; a compose may now run for up to 90 seconds, and one still running then fails with `UPSTREAM_TIMEOUT` (504). Keep `timeoutMs` above 90 seconds (the default is 300). The agent host is derived the same way as for chat: `agentHost` (or `MODUS_AGENT_HOST`), else from `baseUrl`; with a custom `baseUrl` and neither set, compose throws `ModusError` before sending anything, as chat does. If your network allows only the API host, allow the agent host too.
 - **A resume with nothing to answer raises `ConflictError`.** `runs.resume` on a conversation with no write approval or connection request pending now fails with HTTP 409 (`code` `CONFLICT`) before any event, and the conversation stays usable. It used to yield one error event and leave every later turn on that conversation failing.
@@ -78,6 +92,15 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Fixed
 
+- **`EvaluationConfig.cadence.frequency` can be `null`.** The API returns `null` for a schedule without a frequency, but the type did not allow it.
+- **`@getmodus/sdk/management` resolves under `moduleResolution: "node"`.** A `typesVersions` entry points the subpath at its types, so a tsconfig on the older `node` (node10) resolution no longer fails with TS2307. `node16`, `nodenext` and `bundler` are unchanged.
+- **README.** It shows how to reach staging or a self-hosted API (`baseUrl` / `MODUS_BASE_URL`, `agentHost` / `MODUS_AGENT_HOST`); the error-handling example handles a client-side `ValidationError`, which has no `statusCode`, `code` or `requestId`; tokens are shown as `modus_pat_…`; and the example scripts are said to live in the GitHub repository, not the npm package. `agentHost` is documented as a public option.
+- **`workflows.runs.create()`, `createScope()` and `createModus()` accept a body without `sessionId`.** The types required it, so the documented examples did not compile; the SDK already starts a new conversation when it is omitted. `resume`, `interrupt` and `editQueued` still require it.
+- **Errors from `@getmodus/sdk/management` are `instanceof` the root error classes under CommonJS.** Each CommonJS entrypoint bundled its own copy of `ModusError` and the other classes, so `err instanceof ModusError` was `false` for a `ModusManagement` error under `require`. ESM was not affected.
+- **The `context.items.lookup()` and `scopes.conversations(id).get()` examples compile.**
+- **Server: `conversations.list({ kind })` filters.** `kind: 'modus'` returns only Modus threads and `kind: 'scopes'` only scope threads; before, both returned every conversation.
+- **Server: resuming a finished run ends at once.** `runs.stream(runId, { lastEventId })` with the id of the run's final `done`/`error`/`cancelled` event now ends with no events, instead of waiting forever.
+- **Server: errors use Scope and Workflow.** A missing scope is `Scope not found` with `info.scopeId` (was `Skill not found`, `info.skillId`); a missing workflow is `Workflow not found` with `info.workflowId` (was `Agent not found`, `info.agentId`). Code that read `info.skillId` or `info.agentId` must read the new key.
 - **Every rejected argument now throws `ValidationError`.** An invalid page size, chat model, `kind`, blank
   `runId` or `sessionId`, empty `updateMask`, a `beforeMessageIndex` without `messageLimit`, too many
   `sessionIds`, a bad `waitUntil`, `concurrency` or upload path (including one that does not exist or runs through a regular file), and `getNextPage()` on the last page threw a
@@ -144,16 +167,23 @@ release, including pre-1.0 (`0.x`) releases.
 - **Workflow interface config.** Slack and Teams `config` on a workflow interface is `accessMode` (`all`, `allow-list`, or `allow-org`), `allowedEmails`, and `availableChannelIds`. An MCP interface accepts no config keys. An unknown key or invalid value in a changed config returns 422 with violations; `config: null` returns 400. Unchanged stored values are accepted.
 - **`searchQuery` documents word search.** `context.customItems.list({ searchQuery })` (`GET /context/custom-items`) describes
   word search: it returns rows that contain every word of the query, case-insensitive.
-- **Known toolset values are validated.** A new or edited scope `toolset` value must match that tool's shape.
-  Most tools take an array of strings. `file_publish` takes `{ actions: string[], rules?: { nameMode: "any" | "restricted", allowedNames: string[] } }`.
+- **Known toolset values are validated by the API.** Integration entries require per-connection grants (see **Removed** below).
+  General tools retain their formats: `file_publish` takes `{ actions: string[], rules?: { nameMode: "any" | "restricted", allowedNames: string[] } }`;
   Coding tools take an array of `{ connectionUid, repoOwner, repoName, branch }`.
-  `sql_runner` entries are `VERB:connectionId:`, optionally followed by `database:schema`, where `VERB` is `SELECT`, `INSERT`, `UPDATE`, `DELETE`, or `CREATE`.
-  A value that does not match is `422`
-  with rule `toolset.bad_value`; an unknown key stays `toolset.unknown_key`. Sending the same stored value again succeeds,
-  including a historical value the new check would reject, and removing that value succeeds.
+  Invalid nonintegration values return `422` with rule `toolset.bad_value`; unknown keys use `toolset.unknown_key`.
+  Unchanged stored nonintegration values can still be resent or removed.
 
 ### Removed
 
+- **Breaking (MAJOR), CU-z93r0b8wwz: implicit integration toolset binding and retired layouts.**
+  Use `{ <platform>: { byConnection: { <lowercase connection UUID>: { actions: [...], rules? } } } }`.
+  SQL grants use the SQL platform key (for example `postgresql`) with `actions: ['query']`.
+  Flat `{ actions }`, integration action arrays, `scope`/personal encodings, action suffixes,
+  `sql_runner`, `looker_bi`, `langfuse_observability` and `*_analytics` are rejected with
+  `UnprocessableError` (422), including unchanged stored entries. General tools, MCP, Pipedream
+  and Coding are unchanged. `PlatformToolsetEntry`, `ToolsetSlot` and `ToolsetRules` are
+  exported from `@getmodus/sdk/management`; `ToolsetInput` remains an open map.
+  The SQL example now takes `MODUS_SQL_PLATFORM` and `MODUS_SQL_CONNECTION_ID`, not `MODUS_SQL_SELECTOR`.
 - **Breaking: `ToolsetDto` and `ToolsetToolDto`.** Both are removed from `components["schemas"]`. Scope create and update `toolset` is a map of tool key to its configuration; type it with `ToolsetInput` from `@getmodus/sdk/management`. The generated `{ tools: [{ id, enabled, config }] }` models are gone. Unknown keys are rejected.
 - **Breaking (pre-1.0): evaluation case timestamps.** Scope evaluation cases no longer include `createdAt` or `updatedAt`.
 

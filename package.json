@@ -41,6 +41,11 @@
       }
     }
   },
+  "typesVersions": {
+    "*": {
+      "management": ["./dist/management/index.d.ts"]
+    }
+  },
   "files": [
     "dist",
     "README.md",

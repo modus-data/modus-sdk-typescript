@@ -23,6 +23,7 @@ import type {
   ModusRunCreateRequest,
   ResumeRunRequest,
   RunAdmission,
+  RunEventsPollResponse,
   RunStatus,
   RunTimeframe,
   SkillRunCreateRequest,
@@ -394,16 +395,17 @@ export class WorkflowRunsResource {
   }
 
   /**
-   * Fetch stored run events for a run.
+   * Poll a run's buffered events once (the JSON transport, not SSE).
    *
    * @param runId - Run id.
-   * @returns Run event history for replay or inspection.
+   * @returns The poll response: `events` (each with its stream `id` and `type`), `cursor`,
+   *   `status` and `done`.
    */
-  async events(runId: string): Promise<unknown> {
+  async events(runId: string): Promise<RunEventsPollResponse> {
     validateId(runId, 'run_id')
-    return invokeWithRetry(this.config, this.http, 'RunLifecycleController_events', {
+    return (await invokeWithRetry(this.config, this.http, 'RunLifecycleController_events', {
       pathParams: { runId },
-    })
+    })) as RunEventsPollResponse
   }
 
   /**

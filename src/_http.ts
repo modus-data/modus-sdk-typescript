@@ -13,6 +13,7 @@ import {
   UnprocessableError,
 } from './_exceptions.js'
 import { isRetrySafe } from './_retry.js'
+import { headerValue, traceIdOf, traceparent } from './_trace.js'
 
 const USER_AGENT = `modus-typescript/${__SDK_VERSION__} (node/${process.version}; ${process.platform})`
 
@@ -119,13 +120,20 @@ function parseRetryAfter(headers: Headers): number | undefined {
   return Number.isNaN(date) ? undefined : Math.max(0, Math.ceil((date - Date.now()) / 1000))
 }
 
-export function raiseForStatus(response: Response, body: string, method = 'GET', idempotent = false): void {
+export function raiseForStatus(
+  response: Response,
+  body: string,
+  method = 'GET',
+  idempotent = false,
+  traceId?: string,
+): void {
   if (response.ok) return
   const status = response.status
   const { message, code, requestId, info, parsed } = parseErrorBody(body, status)
   const retryAfter = status === 429 ? parseRetryAfter(response.headers) : undefined
   const base = {
     requestId: requestId ?? response.headers.get('x-request-id') ?? undefined,
+    traceId,
     responseHeaders: headersToRecord(response.headers),
     body,
     code,
@@ -159,6 +167,7 @@ function wrapNetworkError(
   baseUrl: string,
   method: string,
   idempotent: boolean,
+  traceId: string | undefined,
 ): APIConnectionError {
   const detail =
     error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError')
@@ -171,12 +180,12 @@ function wrapNetworkError(
   return new APIConnectionError(
     `Network error communicating with Modus API at ${JSON.stringify(baseUrl)}: ${detail}. ` +
       'Check connectivity and that baseUrl is correct.',
-    { retryable: isRetrySafe(method, idempotent, { causeCode }) },
+    { retryable: isRetrySafe(method, idempotent, { causeCode }), traceId },
   )
 }
 
 /** Parse a 2xx JSON body; one that is not JSON is a non-retryable ModusError, not a network error. */
-function parseJsonBody(response: Response, body: string): unknown {
+function parseJsonBody(response: Response, body: string, traceId: string | undefined): unknown {
   try {
     return JSON.parse(body) as unknown
   } catch {
@@ -187,11 +196,20 @@ function parseJsonBody(response: Response, body: string): unknown {
       {
         statusCode: response.status,
         requestId: response.headers.get('x-request-id') ?? undefined,
+        traceId,
         responseHeaders: headersToRecord(response.headers),
         body,
       },
     )
   }
+}
+
+/** Adds a new `traceparent` unless the caller sent their own; returns the trace id sent. */
+function withTraceparent(headers: Record<string, string>): { headers: Record<string, string>; traceId?: string } {
+  const own = headerValue(headers, 'traceparent')
+  if (own !== undefined) return { headers, traceId: traceIdOf(own) }
+  const value = traceparent()
+  return { headers: { ...headers, traceparent: value }, traceId: traceIdOf(value) }
 }
 
 /** Read at most `maxChars` from the body, then cancel the remainder. */
@@ -243,22 +261,25 @@ export class HttpClient {
     const baseUrl = options.baseUrl ?? this.config.baseUrl
     const url = buildUrl(baseUrl, path, options.params)
     const idempotent = options.idempotent ?? false
+    const { headers, traceId } = withTraceparent(
+      mergeHeaders(this.defaultHeaders(), options.headers, authHeaders(this.config.apiKey)),
+    )
     let response: Response
     let body: string
     try {
       response = await this.config.fetch(url, {
         method,
-        headers: mergeHeaders(this.defaultHeaders(), options.headers, authHeaders(this.config.apiKey)),
+        headers,
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: AbortSignal.timeout(this.config.timeoutMs),
       })
       body = await response.text()
     } catch (error) {
-      throw wrapNetworkError(error, baseUrl, method, idempotent)
+      throw wrapNetworkError(error, baseUrl, method, idempotent, traceId)
     }
-    raiseForStatus(response, body, method, idempotent)
+    raiseForStatus(response, body, method, idempotent, traceId)
     if (response.status === 204 || !body) return null
-    return parseJsonBody(response, body)
+    return parseJsonBody(response, body, traceId)
   }
 
   get(path: string, params?: QueryParams, options: RequestOptions = {}): Promise<unknown> {
@@ -297,24 +318,27 @@ export class HttpClient {
     // A run streams for as long as the agent works on it, so timeoutMs bounds
     // silence between chunks (keepalives included), not the whole stream.
     const idle = new IdleTimeout(this.config.timeoutMs)
+    // Agent-service negotiates SSE vs JSON polling on Accept; JSON-only
+    // Accept returns {"runId","status":"pending"} instead of token SSE.
+    const { headers, traceId } = withTraceparent(
+      mergeHeaders(
+        this.defaultHeaders(),
+        options.headers,
+        { Accept: 'text/event-stream' },
+        authHeaders(this.config.apiKey),
+      ),
+    )
     let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
     try {
       const response = await this.config.fetch(url, {
         method,
-        // Agent-service negotiates SSE vs JSON polling on Accept; JSON-only
-        // Accept returns {"runId","status":"pending"} instead of token SSE.
-        headers: mergeHeaders(
-          this.defaultHeaders(),
-          options.headers,
-          { Accept: 'text/event-stream' },
-          authHeaders(this.config.apiKey),
-        ),
+        headers,
         body: options.json !== undefined ? JSON.stringify(options.json) : undefined,
         signal: idle.signal,
       })
       idle.touch()
       if (!response.ok) {
-        raiseForStatus(response, await response.text(), method, idempotent)
+        raiseForStatus(response, await response.text(), method, idempotent, traceId)
         return
       }
       const contentType = response.headers.get('content-type') ?? ''
@@ -324,7 +348,7 @@ export class HttpClient {
           `Unexpected stream response: expected Content-Type text/event-stream, ` +
             `got ${JSON.stringify(contentType) || '(missing)'}. ` +
             `Body preview: ${preview}`,
-          { statusCode: response.status, body: preview },
+          { statusCode: response.status, body: preview, traceId },
         )
       }
       if (!response.body) return
@@ -345,7 +369,7 @@ export class HttpClient {
       if (buffer.trim()) yield buffer
     } catch (error) {
       if (error instanceof ModusError) throw error
-      throw wrapNetworkError(error, baseUrl, method, idempotent)
+      throw wrapNetworkError(error, baseUrl, method, idempotent, traceId)
     } finally {
       idle.clear()
       // A consumer that stops early must not leave the connection open.

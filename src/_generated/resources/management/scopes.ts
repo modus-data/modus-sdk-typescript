@@ -3,8 +3,12 @@
 import type { ModusConfig } from '../../../_config.js'
 import type { HttpClient } from '../../../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../../../_pagination.js'
-import { asRecord, invokeWithRetry } from '../../../_request.js'
+import { asRecord, invokeWithRetry, omitUndefined } from '../../../_request.js'
 import { validateId, validatePageSize } from '../../../_validation.js'
+import type {
+  McpExposureCatalog,
+  McpExposureCatalogRequest,
+} from '../../../management/scopes/mcp-exposure-catalog.js'
 import type { Scope } from '../../../types/scopes.js'
 import type { VariationView } from '../../../types/views.js'
 
@@ -28,8 +32,9 @@ export class ScopesResourceBase {
    * @param options.pageToken - Opaque page token from a previous response's `nextPageToken`. Omit
    *   for the first page.
    * @param options.search - Case-insensitive substring filter on scope name.
-   * @param options.view - Variation view. `active` reads deployed; `draft` reads the latest builder
-   *   snapshot.
+   * @param options.view - Variation view. `active` reads the deployed version, or the latest draft
+   *   when nothing is published. `draft` reads the latest builder snapshot. `published` reads only
+   *   the published version, and only scopes you can use.
    * @param options.managerId - Return only scopes supervised by this manager scope id.
    * @returns A page of scopes.
    *
@@ -83,13 +88,15 @@ export class ScopesResourceBase {
   /**
    * Get a scope.
    *
-   * Returns a scope. `view=active` (default) returns the deployed version; `view=draft` returns the
-   * latest unpublished edits. Returns 404 if you cannot access the scope.
+   * Returns a scope. `view=active` (default) is the deployed version, or the latest draft when
+   * nothing is published. `view=draft` is the latest edits. `view=published` is only the published
+   * version, and only if you can use the scope. Returns 404 if you cannot access it.
    *
    * **Requires:** `scopes:read`
    *
    * @param scopeId - Numeric scope id.
-   * @param options.view - Which variation snapshot to read. Defaults to `active`.
+   * @param options.view - Which version to read. Defaults to `active`. `published` is only the
+   *   published version, and only if you can use the scope.
    *
    * @example
    * ```ts
@@ -131,6 +138,36 @@ export class ScopesResourceBase {
     await invokeWithRetry(this.config, this.http, 'ScopesController_delete', {
       pathParams: { id: scopeId },
     })
+  }
+
+  /**
+   * Preview MCP exposure catalog.
+   *
+   * Lists tools this scope can expose to MCP clients. A field you send replaces the current draft;
+   * a field you omit stays as stored. Nothing is saved. Entries you cannot access are left out, and
+   * stored selections on them are counted in hiddenSelectedCount.
+   *
+   * **Requires:** `scopes:write`
+   *
+   * @param scopeId - Numeric scope id.
+   * @param request - Request body; see `McpExposureCatalogRequest`.
+   *
+   * @example
+   * ```ts
+   * const catalog = await mgmt.scopes.mcpExposureCatalog(42, {})
+   * catalog.discoveryAllowed
+   * ```
+   */
+  async mcpExposureCatalog(
+    scopeId: number | string,
+    request: McpExposureCatalogRequest,
+  ): Promise<McpExposureCatalog> {
+    validateId(scopeId, 'scope_id')
+    const data = await invokeWithRetry(this.config, this.http, 'ScopesController_mcpExposureCatalog', {
+      pathParams: { id: scopeId },
+      jsonBody: omitUndefined(request as Record<string, unknown>),
+    })
+    return data as McpExposureCatalog
   }
 
   /**
