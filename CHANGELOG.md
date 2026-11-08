@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-11-08
+
 ### Added
 
 - **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.
