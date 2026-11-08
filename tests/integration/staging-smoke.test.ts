@@ -32,6 +32,31 @@ function mgmt(): ModusManagement {
   return new ModusManagement({ baseUrl: baseUrl(), timeoutMs: 120_000 })
 }
 
+// The designated smoke org's mined context is its Slack workspace (STAGING-SMOKE.md).
+const ORG_WIDE_COMPOSE_QUERY = 'sdk staging smoke — which Slack channels does this workspace have'
+
+// The server stores "[SDK Staging Smoke]-files-…" as "_SDK_Staging_Smoke_-files-…".
+const UPLOAD_FIXTURE_PREFIX = '_SDK_Staging_Smoke_-'
+
+/**
+ * Delete the context files earlier smoke runs uploaded (Python, TypeScript and CLI).
+ * Left in place they pile up in the org this smoke composes against (~95 had, a third
+ * of its items). Files under an hour old may belong to a run still in flight, so they stay.
+ */
+async function deleteStaleUploadFixtures(m: ModusManagement): Promise<void> {
+  const cutoff = Date.now() - 60 * 60 * 1000
+  const page = await m.context.items.list({ contextType: 'file_upload', pageSize: 200 })
+  // Collect first: deleting mid-iteration shifts later pages and skips items.
+  const stale: string[] = []
+  for await (const item of page.autoPagingIter()) {
+    const fileName = String((item.content as { fileName?: unknown } | undefined)?.fileName ?? '')
+    if (fileName.startsWith(UPLOAD_FIXTURE_PREFIX) && Date.parse(item.createdAt) < cutoff) {
+      stale.push(item.uid)
+    }
+  }
+  for (const uid of stale) await m.context.items.delete(uid)
+}
+
 describe.skipIf(!hasLive)('staging journey smoke', () => {
   let createdUid: string | undefined
 
@@ -112,14 +137,6 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
       expect(typeof composed.selectedCount, `${label}: selectedCount`).toBe('number')
       expect(composed.sessionId, `${label}: sessionId`).toBeTruthy()
 
-      // Deliberately not asserting originalCount > 0: whether this org has mined
-      // context is an environment fact, and failing on it would make the check
-      // red for a data reason. Coherence is still assertable — having found items
-      // and rendered nothing is a composer bug in any org.
-      if (composed.originalCount > 0) {
-        expect(composed.context.length, `${label}: found ${composed.originalCount} items but rendered no context`).toBeGreaterThan(0)
-      }
-
       // Compose runs on the agent host, which has no 30 s edge limit; the server
       // stops a compose at 90 s with a 504, so a 200 is always under it.
       expect(elapsedMs, `${label}: took ${elapsedMs}ms; the server deadline is 90s`).toBeLessThan(95_000)
@@ -140,11 +157,16 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     // performance.now() is monotonic; Date.now() can step backwards mid-request
     // and let an over-limit call report under the bound. Python uses
     // time.monotonic() for the same reason.
+    await deleteStaleUploadFixtures(m)
     const orgStart = performance.now()
-    const composed = await composer.modus.getContext('sdk staging smoke — list relevant tables', {
-      limit: 3,
-    })
+    const composed = await composer.modus.getContext(ORG_WIDE_COMPOSE_QUERY, { limit: 3 })
     assertComposition('org-wide getContext', composed, performance.now() - orgStart)
+    // The composer renders nothing, as a success, when it judges every candidate
+    // irrelevant; this query is one the org can answer, so empty context is a failure.
+    expect(
+      composed.context.length,
+      `org-wide getContext: rendered no context (originalCount=${composed.originalCount})`,
+    ).toBeGreaterThan(0)
 
     if (composeScopeId) {
       const scopeStart = performance.now()
@@ -218,7 +240,7 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     const runId = crypto.randomUUID().slice(0, 8)
     const filePath = join(dir, `[SDK Staging Smoke]-files-${stamp}-${runId}.txt`)
-    await writeFile(filePath, 'sdk staging smoke context file — safe to leave\n', 'utf8')
+    await writeFile(filePath, 'sdk staging smoke context file — deleted by the next run\n', 'utf8')
 
     const m = mgmt()
     const uploaded = await m.context.files.upload(filePath, { waitUntil: 'processing' })
@@ -228,7 +250,6 @@ describe.skipIf(!hasLive)('staging journey smoke', () => {
     const got = await m.context.files.get(uploaded.uploadId)
     expect(got.uploadId).toBe(uploaded.uploadId)
     expect(['processing', 'ready']).toContain(got.status)
-    // Orphan prefix documented in STAGING-SMOKE.md — no public delete for file uploads.
   }, 240_000)
 
   it('chat + streaming via agent host', async () => {
