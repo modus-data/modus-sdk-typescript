@@ -6636,9 +6636,9 @@ export interface components {
             subordinateSkillIds?: number[];
         };
         SupplementalContextDto: {
-            /** @description Background context (e.g. Slack/Teams thread + channel history) for a conversation with no saved history yet. */
+            /** @description Background context in full (e.g. Slack/Teams thread + channel history, or an MCP client's note on its conversation), not only what is new. Stored with the turn until the conversation has stored one; after that, `followUpText` is stored instead when it is sent. */
             text: string;
-            /** @description Only the background that is new since the previous turn, used once the conversation has saved history. Empty when nothing is new. */
+            /** @description Only the background that is new since the previous turn, stored instead of `text` once the conversation has stored a background. Empty when nothing is new. */
             followUpText?: string;
             /** @description Producer that supplied the supplemental context. */
             source: components["schemas"]["SupplementalContextSource"];
@@ -6647,7 +6647,7 @@ export interface components {
          * @description Producer that supplied the supplemental context.
          * @enum {string}
          */
-        SupplementalContextSource: "slack" | "teams";
+        SupplementalContextSource: "slack" | "teams" | "mcp";
         UserContextDto: {
             /** @description End-user email for personalization; also used for usage attribution. */
             email?: string;
