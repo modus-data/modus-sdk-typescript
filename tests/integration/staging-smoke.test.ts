@@ -54,7 +54,14 @@ async function deleteStaleUploadFixtures(m: ModusManagement): Promise<void> {
       stale.push(item.uid)
     }
   }
-  for (const uid of stale) await m.context.items.delete(uid)
+  for (const uid of stale) {
+    try {
+      await m.context.items.delete(uid)
+    } catch (err) {
+      // Another smoke run (the other SDK's publish) deleted it first.
+      if (!(err instanceof NotFoundError)) throw err
+    }
+  }
 }
 
 describe.skipIf(!hasLive)('staging journey smoke', () => {
