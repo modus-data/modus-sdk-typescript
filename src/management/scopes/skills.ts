@@ -273,8 +273,8 @@ export class ManagementScopesResource extends ScopesResourceBase {
    * Apply selection changes to a scope.
    *
    * Pass `validateOnly: true` to run the same checks and return the scope that would
-   * be saved, without writing. `selectRoot`, `deselectRoot`, and `setRootDeepRules`
-   * are deprecated; send `setConnectionPreferences`.
+   * be saved, without writing. Set a connection with `setConnectionPreferences` and
+   * remove it with `removeConnection`.
    *
    * @param scopeId - Scope id.
    * @param ops - Selection changes, applied in order.

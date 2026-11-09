@@ -984,7 +984,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated.
+         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).
          *
          *     **Requires:** `scopes:write`
          */
@@ -1022,7 +1022,7 @@ export interface paths {
         head?: never;
         /**
          * Update a scope
-         * @description Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated. Lists replace the stored list. Cannot remove your own access.
+         * @description Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`). Lists replace the stored list. Cannot remove your own access.
          *
          *     **Requires:** `scopes:write`
          */
@@ -2944,12 +2944,6 @@ export interface components {
              */
             connection_id: string;
             /**
-             * @deprecated
-             * @description Deprecated. Use `preferences`. Path of one selected unit; an empty array selects the whole connection. Ignored when `preferences` is sent, required otherwise.
-             * @example []
-             */
-            path?: string[];
-            /**
              * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down.
              * @example {
              *       "mode": "manual",
@@ -2982,7 +2976,7 @@ export interface components {
              *       ]
              *     }
              */
-            preferences?: {
+            preferences: {
                 [key: string]: unknown;
             };
             /**
@@ -3643,7 +3637,7 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.
+             * @description Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; an entry without `preferences`, or with `path`, is refused with 400 `legacy_entry`.
              * @example [
              *       {
              *         "connection_id": "11111111-1111-4111-8111-111111111111",
@@ -5309,18 +5303,12 @@ export interface components {
         };
         SelectionOpDto: {
             /**
-             * @description Which selection edit this op makes. selectRoot, deselectRoot, and setRootDeepRules are deprecated and will be removed; use setConnectionPreferences.
+             * @description Which selection edit this op makes. setConnectionPreferences sets a connection's whole data selection; removeConnection removes the connection from the scope.
              * @enum {string}
              */
-            op: "selectRoot" | "deselectRoot" | "setRootDeepRules" | "setConnectionPreferences" | "pinItem" | "unpinItem" | "clearPinnedItems" | "setAdditionalContextRules";
-            /** @description Connection of the data-asset root, or whose preferences are set. */
+            op: "setConnectionPreferences" | "removeConnection" | "pinItem" | "unpinItem" | "clearPinnedItems" | "setAdditionalContextRules";
+            /** @description Connection whose preferences are set, or which is removed. */
             connectionId?: string;
-            /** @description Path of the data-asset root within its connection. */
-            path?: string[];
-            /** @description Fully-selected subtree paths strictly beneath the root. Each path is an array of strings. */
-            includes?: string[][];
-            /** @description Unselected subtree paths beneath the root. Each path is an array of strings. */
-            excludes?: string[][];
             /** @description The connection’s whole data selection, as workspace access preferences. */
             preferences?: {
                 [key: string]: unknown;
@@ -5910,7 +5898,7 @@ export interface components {
             /** @description Updated model-specific runtime controls. Pass `null` to clear. */
             modelSettings?: components["schemas"]["ModelSettingsDto"] | null;
             /**
-             * @description Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated. `null` clears it.
+             * @description Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; an entry without `preferences`, or with `path`, is refused with 400 `legacy_entry`. `null` clears it.
              * @example [
              *       {
              *         "connection_id": "11111111-1111-4111-8111-111111111111",

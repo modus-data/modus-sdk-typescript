@@ -14,7 +14,7 @@ release, including pre-1.0 (`0.x`) releases.
 - **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.
 - **Breaking (pre-1.0): `SupervisionView`.** `mgmt.scopes.supervision(id).get({ view })` takes `SupervisionView` (`'active' | 'draft'`). `published` is not a supervision view. `VariationView` now also allows `'published'`, so a value typed as `VariationView` no longer type-checks there. Migration: type it as `SupervisionView`. Runtime values are unchanged.
 - **`view: 'published'` on scope and workflow list and get.** Returns the published version you can use. A scope or workflow that is only a draft, deleted, or that you can manage but not use is left out. For workflows it is also type workflow only; a task is left out. `active` and `draft` are unchanged.
-- **`scopes.applySelectionOps()`.** Apply selection changes to a scope. Pass `{ validateOnly: true }` to run the same checks and return the scope that would be saved, without writing. A preview result carries `validateOnly: true`; a committed one does not, and every other field keeps its stored value, so a preview still needs a second call to save. Send `setConnectionPreferences`. `selectRoot`, `deselectRoot`, and `setRootDeepRules` are deprecated.
+- **`scopes.applySelectionOps()`.** Apply selection changes to a scope. Pass `{ validateOnly: true }` to run the same checks and return the scope that would be saved, without writing. A preview result carries `validateOnly: true`; a committed one does not, and every other field keeps its stored value, so a preview still needs a second call to save. Set a connection with `setConnectionPreferences` and remove it with `removeConnection`.
 - **`claude-haiku-5.5` model.** Anthropic's Claude Haiku 5.5 is an accepted chat model id.
 - **`gemini-3.8-flash` model.** Google's generally available Gemini 3.8 Flash is an accepted chat
   model id.
@@ -83,6 +83,7 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Removed
 
+- **Breaking (pre-1.0): scope writes send a connection's selection only as `preferences`.** Each `connectionSet` entry `scopes.create()` and `scopes.update()` send is `{ connection_id, preferences, context_enabled? }`: `path` is removed from the request and `preferences` is required. An entry with `path` or without `preferences` is rejected with 400 and `info.reason` `legacy_entry`. `applySelectionOps()` no longer takes `selectRoot`, `deselectRoot` or `setRootDeepRules`, nor their `path`, `includes` and `excludes` fields: set a connection with `setConnectionPreferences` and remove it with the new `removeConnection`. Reads still return one row per included path, with `path`, so turn a read into one entry per connection before you write it back.
 - **Breaking (pre-1.0): `chatStream()`, `ChatStream` and `ChatRequest`.** Use `chat()`, which streams. `getFinalResult()` is replaced by `await`ing the session.
 - **Breaking (pre-1.0): `version: 'draft'` on scope chat.** API tokens run published scopes only.
 

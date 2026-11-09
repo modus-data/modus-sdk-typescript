@@ -11186,7 +11186,7 @@
         ]
       },
       "post": {
-        "description": "Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated.\n\n**Requires:** `scopes:write`",
+        "description": "Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_create",
         "parameters": [],
         "requestBody": {
@@ -11590,7 +11590,7 @@
         ]
       },
       "patch": {
-        "description": "Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`); `path` is deprecated. Lists replace the stored list. Cannot remove your own access.\n\n**Requires:** `scopes:write`",
+        "description": "Updates the scope draft. `updateMask` limits which fields change. `managerId` alone moves or detaches the scope. `connectionSet` entries name a connection and what the scope reads in it (`preferences`). Lists replace the stored list. Cannot remove your own access.\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_update",
         "parameters": [
           {
@@ -26533,15 +26533,6 @@
             "description": "Id of the connection.",
             "example": "11111111-1111-4111-8111-111111111111"
           },
-          "path": {
-            "description": "Deprecated. Use `preferences`. Path of one selected unit; an empty array selects the whole connection. Ignored when `preferences` is sent, required otherwise.",
-            "deprecated": true,
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "preferences": {
             "type": "object",
             "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down.",
@@ -26584,7 +26575,8 @@
           }
         },
         "required": [
-          "connection_id"
+          "connection_id",
+          "preferences"
         ]
       },
       "ConnectionSetItemReadDto": {
@@ -27678,7 +27670,7 @@
             ]
           },
           "connectionSet": {
-            "description": "Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated.",
+            "description": "Connections this scope can use. Each entry names a connection and what the scope reads under it in `preferences`; an entry without `preferences`, or with `path`, is refused with 400 `legacy_entry`.",
             "example": [
               {
                 "connection_id": "11111111-1111-4111-8111-111111111111",
@@ -31475,47 +31467,18 @@
           "op": {
             "type": "string",
             "enum": [
-              "selectRoot",
-              "deselectRoot",
-              "setRootDeepRules",
               "setConnectionPreferences",
+              "removeConnection",
               "pinItem",
               "unpinItem",
               "clearPinnedItems",
               "setAdditionalContextRules"
             ],
-            "description": "Which selection edit this op makes. selectRoot, deselectRoot, and setRootDeepRules are deprecated and will be removed; use setConnectionPreferences."
+            "description": "Which selection edit this op makes. setConnectionPreferences sets a connection's whole data selection; removeConnection removes the connection from the scope."
           },
           "connectionId": {
             "type": "string",
-            "description": "Connection of the data-asset root, or whose preferences are set."
-          },
-          "path": {
-            "description": "Path of the data-asset root within its connection.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "includes": {
-            "type": "array",
-            "description": "Fully-selected subtree paths strictly beneath the root. Each path is an array of strings.",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "excludes": {
-            "type": "array",
-            "description": "Unselected subtree paths beneath the root. Each path is an array of strings.",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
+            "description": "Connection whose preferences are set, or which is removed."
           },
           "preferences": {
             "type": "object",
@@ -32604,7 +32567,7 @@
             ]
           },
           "connectionSet": {
-            "description": "Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; `path` is deprecated. `null` clears it.",
+            "description": "Replacement connection list. Each entry names a connection and what the scope reads under it in `preferences`; an entry without `preferences`, or with `path`, is refused with 400 `legacy_entry`. `null` clears it.",
             "example": [
               {
                 "connection_id": "11111111-1111-4111-8111-111111111111",
