@@ -230,6 +230,8 @@ const SAMPLES: Record<string, Record<string, unknown>> = {
   Scope: { id: 1, name: 'Probe', status: 'active' },
   Memory: { id: 'mem_01', memory: 'User prefers bullet points.' },
   MemorySearchRequest: { query: 'revenue preferences' },
+  ContextItemsQuery: { sql: 'SELECT count(*) AS n FROM context_items' },
+  ContextItemsQueryResult: { rows: [{ n: '3' }], rowCount: 1, truncated: false },
   MemorySearchResult: { memories: [] },
   MemoryUpdate: { memory: 'Updated text.' },
   UsageUsersReport: { users: [] },

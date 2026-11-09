@@ -247,6 +247,17 @@ export const OPERATIONS = {
     responseSchema: null,
     idempotent: false,
   },
+  "ContextItemsQueryController_query": {
+    method: "POST",
+    path: "/api/v1/context/items/query",
+    service: "modus-api",
+    serverUrl: "https://api.getmodus.com",
+    pathParams: [],
+    queryParams: [],
+    requestSchema: "QueryContextItemsRequestDto",
+    responseSchema: "QueryContextItemsResponseDto",
+    idempotent: true,
+  },
   "CustomContextItemsController_batchCreate": {
     method: "POST",
     path: "/api/v1/context/custom-items/batch",

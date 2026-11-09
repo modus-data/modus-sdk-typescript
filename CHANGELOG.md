@@ -11,6 +11,7 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **`context.items.query({ sql, maxRows? })`.** Runs one read-only SQL statement over the `context_items` table and returns `{ rows, rowCount, truncated }`. The query sees only the items you can read. At most 1,000 rows come back (`maxRows` lowers it); `truncated` says when there were more. A query that is not read-only or not valid fails with 400, and one that runs past 20 s with 422. Off by default per organization; ask Modus to enable it. `ContextItemsQuery` and `ContextItemsQueryResult` import from `@getmodus/sdk`.
 - **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.
 - **Breaking (pre-1.0): `SupervisionView`.** `mgmt.scopes.supervision(id).get({ view })` takes `SupervisionView` (`'active' | 'draft'`). `published` is not a supervision view. `VariationView` now also allows `'published'`, so a value typed as `VariationView` no longer type-checks there. Migration: type it as `SupervisionView`. Runtime values are unchanged.
 - **`view: 'published'` on scope and workflow list and get.** Returns the published version you can use. A scope or workflow that is only a draft, deleted, or that you can manage but not use is left out. For workflows it is also type workflow only; a task is left out. `active` and `draft` are unchanged.

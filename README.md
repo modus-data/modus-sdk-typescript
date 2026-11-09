@@ -170,6 +170,13 @@ for await (const chunk of live.textStream()) {
 for await (const item of (await client.context.items.list()).autoPagingIter()) {
   console.log(item.uid, item.description ?? item.uid)
 }
+
+// One read-only SQL statement over the items you can read (at most 1,000 rows; `truncated` says when cut).
+// Off by default for an organization; ask Modus to enable it.
+const result = await client.context.items.query({
+  sql: 'SELECT context_type, count(*) AS items FROM context_items GROUP BY context_type ORDER BY items DESC',
+})
+console.log(result.rows, result.truncated)
 ```
 
 ### Workflows

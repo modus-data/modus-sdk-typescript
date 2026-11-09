@@ -19,6 +19,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
   ModusContextController_compose: ['message', 'limit'],
   SuggestionsController_recordEvent: ['eventType', 'source', 'skillId', 'threadId', 'metadata'],
   ContextItemsController_lookup: ['contextType', 'dataPath', 'contentProjection'],
+  ContextItemsQueryController_query: ['sql', 'maxRows'],
   ContextCreatorsController_createNote: ['title', 'content'],
   ContextCreatorsController_createSavedQuery: [
     'name',
