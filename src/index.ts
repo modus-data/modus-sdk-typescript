@@ -74,6 +74,8 @@ export type {
   ContextItemAncestor,
   ContextItemDeletion,
   ContextItemLookupRow,
+  ContextItemsQuery,
+  ContextItemsQueryResult,
   ContextItemMove,
   ContextItemAccessUpdate,
   UpdateContextItemAccessInput,

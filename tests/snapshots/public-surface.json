@@ -20,6 +20,7 @@
   "ContextItemsResource.listValues": "(uid: string, contextType: string, contentKeyPath: string, options?: { pageSize?: number; pageToken?: string; }): Promise<Page<ContextValueRow>>",
   "ContextItemsResource.listValuesFor": "(item: ContextItem, contentKeyPath: string, options?: { pageSize?: number; pageToken?: string; }): Promise<Page<ContextValueRow>>",
   "ContextItemsResource.lookup": "(options: { contextType: string; dataPath: string[]; contentProjection?: JsonObjectInput | ContentProjection; }): Promise<ContextItemLookupRow | undefined>",
+  "ContextItemsResource.query": "(query: ContextItemsQuery): Promise<ContextItemsQueryResult>",
   "ContextResource.customItems": "CustomContextItemsResource",
   "ContextResource.items": "ContextItemsResource",
   "CustomContextItemsResource.batchCreate": "(inputs: CreateCustomContextItemInput[]): Promise<CreatedCustomContextItem[]>",

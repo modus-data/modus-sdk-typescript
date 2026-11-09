@@ -712,6 +712,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/context/items/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Query context items with SQL
+         * @description Runs one read-only SQL statement over the `context_items` table and returns its rows. The query sees only the items you can read. A query that is not read-only or not valid returns 400; one that runs past 20 s returns 422.
+         *
+         *     **Requires:** `context:read`
+         */
+        post: operations["ContextItemsQueryController_query"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/context/items/{uid}": {
         parameters: {
             query?: never;
@@ -5047,6 +5069,39 @@ export interface components {
             dashboard: components["schemas"]["DashboardDto"];
             /** @description The version that was just published. */
             version: components["schemas"]["DashboardVersionDto"];
+        };
+        QueryContextItemsRequestDto: {
+            /**
+             * @description One read-only SQL statement (SELECT, WITH, UNION or VALUES) over the `context_items` table, whose columns are `uid`, `context_type`, `content`, `description`, `user_feedback`, `topics`, `connection_id`, `selection_id`, `data_path`, `created_at` and `updated_at`. Only the items you can read are visible to it.
+             * @example SELECT context_type, count(*) AS items FROM context_items GROUP BY context_type ORDER BY items DESC
+             */
+            sql: string;
+            /** @description The most rows to return, 1,000 when omitted. A query with more returns this many and sets `truncated`. */
+            maxRows?: number;
+        };
+        QueryContextItemsResponseDto: {
+            /**
+             * @description Result rows, one object per row keyed by column name.
+             * @example [
+             *       {
+             *         "context_type": "table_metadata",
+             *         "items": "412"
+             *       }
+             *     ]
+             */
+            rows: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * @description Number of rows returned.
+             * @example 1
+             */
+            rowCount: number;
+            /**
+             * @description True when rows were left out: the query had more than `maxRows`, or the rows passed 6 MB of JSON.
+             * @example false
+             */
+            truncated: boolean;
         };
         /**
          * @description Optional reasoning effort for models that support it.
@@ -13487,6 +13542,209 @@ export interface operations {
                 };
             };
             /** @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Missing required scope(s) for this operation.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS",
+                     *         "info": {
+                     *           "missing": [
+                     *             "<required-scope>"
+                     *           ]
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ContextItemsQueryController_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryContextItemsRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueryContextItemsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /**
+             * @description Also returned, with the message `Context SQL queries are not enabled`, when SQL queries are not enabled for your organization. They are off by default; ask Modus to enable them.
+             *
+             *     Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;

@@ -3,6 +3,8 @@ import type { components } from '../_generated/v1.js'
 export type ContextItem = components['schemas']['ContextItemDto']
 export type ContextItemAncestor = components['schemas']['ContextItemAncestorDto']
 export type ContextItemLookupRow = components['schemas']['LookupContextItemRowDto']
+export type ContextItemsQuery = components['schemas']['QueryContextItemsRequestDto']
+export type ContextItemsQueryResult = components['schemas']['QueryContextItemsResponseDto']
 export type ContextItemDeletion = components['schemas']['DeleteContextItemResponseDto']
 export type ContextItemMove = components['schemas']['MoveContextItemResponseDto']
 /** Input for `updateAccess()`; all three settings replace the current ones. */

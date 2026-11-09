@@ -1,6 +1,5 @@
-import type { ModusConfig } from '../../_config.js'
+import { ContextItemsResourceBase } from '../../_generated/resources/consumption/context/items.js'
 import { NotFoundError } from '../../_exceptions.js'
-import type { HttpClient } from '../../_http.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry, omitUndefined } from '../../_request.js'
 import { DEFAULT_MAX_PAGE_SIZE, validatePageSize } from '../../_validation.js'
@@ -67,13 +66,7 @@ function parseLookupResponse(raw: Record<string, unknown>): ContextItemLookupRow
  * }
  * ```
  */
-export class ContextItemsResource {
-  /** @internal */
-  constructor(
-    private readonly http: HttpClient,
-    private readonly config: ModusConfig,
-  ) {}
-
+export class ContextItemsResource extends ContextItemsResourceBase {
   /**
    * List knowledge-base items.
    *
