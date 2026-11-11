@@ -3244,6 +3244,11 @@ export interface components {
             /** @description Present only when a bounded message window was requested and honored. */
             messageWindow?: components["schemas"]["ConversationMessageWindowDto"];
             /**
+             * @description Identifier of the model the most recent turn ran on. Null when no turn recorded one. Absent when it could not be read, or on responses that predate the field.
+             * @example claude-sonnet-5.5
+             */
+            model?: string | null;
+            /**
              * @description ISO-8601 timestamp of the first checkpoint for this thread.
              * @example 2026-05-01T10:00:00.000Z
              */
