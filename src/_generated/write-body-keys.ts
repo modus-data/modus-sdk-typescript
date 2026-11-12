@@ -13,7 +13,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ContextFilesController_uploadUrls: ["files"],
   ContextItemAccessController_updateAccess: ["visibility", "groupPermissions", "sharedWith"],
   ContextItemsController_lookup: ["contextType", "dataPath", "contentProjection"],
-  ContextItemsController_move: ["destinationFolderUid"],
+  ContextItemsController_move: ["destinationFolderUid", "destinationFolderPath"],
   ContextItemsController_update: ["contextType", "content", "description", "userFeedback", "topics"],
   ContextItemsQueryController_query: ["sql", "maxRows"],
   CustomContextItemsController_batchCreate: ["items"],

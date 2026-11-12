@@ -11,6 +11,7 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **Move into a folder path.** `mgmt.context.items.move(uid, { destinationFolderPath })` moves a file or folder to a root-relative path such as `reports/2026`; missing folders on the path are created with the move, and existing ones are reused. `{ destinationFolderUid }` is unchanged.
 - **`model` on a conversation.** Conversation reads include `model` (`string | null`), the identifier of the model the conversation's most recent turn ran on. `null` when no turn recorded a model; absent when it could not be read.
 - **`context.items.query({ sql, maxRows? })`.** Runs one read-only SQL statement over the `context_items` table and returns `{ rows, rowCount, truncated }`. The query sees only the items you can read. At most 1,000 rows come back (`maxRows` lowers it); `truncated` says when there were more. A query that is not read-only or not valid fails with 400, and one that runs past 20 s with 422. Off by default per organization; ask Modus to enable it. `ContextItemsQuery` and `ContextItemsQueryResult` import from `@getmodus/sdk`.
 - **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.

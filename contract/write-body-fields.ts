@@ -13,7 +13,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'userFeedback',
     'topics',
   ],
-  ContextItemsController_move: ['destinationFolderUid'],
+  ContextItemsController_move: ['destinationFolderUid', 'destinationFolderPath'],
   ContextItemAccessController_updateAccess: ['visibility', 'groupPermissions', 'sharedWith'],
   ModusContextComposeController_compose: ['message', 'limit'],
   ModusContextController_compose: ['message', 'limit'],

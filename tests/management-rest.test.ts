@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { ModusManagement, type CreateWorkflowOptions, type UpdateWorkflowOptions } from '../src/management/index.js'
+import { ValidationError } from '../src/_exceptions.js'
 
 const TEST_KEY = 'modus_test_key_mgmt'
 const BASE = 'https://api.getmodus.com'
@@ -117,6 +118,28 @@ describe('ModusManagement.context', () => {
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       destinationFolderUid: null,
     })
+  })
+
+  it('items.move posts only destinationFolderPath for a path destination', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ movedItems: 1 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    await mgmt.context.items.move('file-uid', { destinationFolderPath: 'reports/2026' })
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      destinationFolderPath: 'reports/2026',
+    })
+  })
+
+  it('items.move rejects both destinations without sending a request', async () => {
+    const fetch = vi.fn()
+    const mgmt = new ModusManagement({ apiKey: TEST_KEY, baseUrl: BASE, maxRetries: 0, fetch })
+    const both = { destinationFolderUid: 'f', destinationFolderPath: 'reports' } as unknown as { destinationFolderPath: string }
+    await expect(mgmt.context.items.move('file-uid', both)).rejects.toBeInstanceOf(ValidationError)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('items.updateAccess patches the access settings', async () => {

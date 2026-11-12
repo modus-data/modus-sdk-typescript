@@ -801,7 +801,7 @@ export interface paths {
         put?: never;
         /**
          * Move a Files item
-         * @description Moves a live file or Files folder to an existing folder, or to the Files root when destinationFolderUid is null. Same-parent moves succeed as a no-op. Does not rename or merge folders.
+         * @description Moves a live file or Files folder to an existing folder by destinationFolderUid (null is the Files root), or to destinationFolderPath, creating missing folders. Same-parent moves are a no-op. Does not rename or merge folders.
          *
          *     **Requires:** `context:write`
          */
@@ -5009,10 +5009,15 @@ export interface components {
         };
         MoveContextItemDto: {
             /**
-             * @description Stored context-item uid of an existing Files folder, or null to move to the Files root. The destination must already exist. Move does not rename or merge folders.
+             * @description Stored context-item uid of an existing Files folder, or null to move to the Files root. Send this or destinationFolderPath, not both.
              * @example null
              */
-            destinationFolderUid: string | null;
+            destinationFolderUid?: string | null;
+            /**
+             * @description Root-relative destination folder path (for example `reports/2026`). Folders missing on the path are created; existing ones are reused. Send this or destinationFolderUid, not both.
+             * @example reports/2026
+             */
+            destinationFolderPath?: string;
         };
         MoveContextItemResponseDto: {
             /**

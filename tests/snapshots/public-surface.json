@@ -53,7 +53,7 @@
   "ManagementContextItemsResource.delete": "(uid: string): Promise<ContextItemDeletion>",
   "ManagementContextItemsResource.get": "(uid: string): Promise<ContextItem>",
   "ManagementContextItemsResource.list": "(options?: { pageSize?: number; pageToken?: string; contextType?: string; parentUids?: readonly string[]; ancestorUids?: readonly string[]; connectionIds?: readonly string[]; }): Promise<Page<ContextItem>>",
-  "ManagementContextItemsResource.move": "(uid: string, options: { destinationFolderUid: string | null; }): Promise<ContextItemMove>",
+  "ManagementContextItemsResource.move": "(uid: string, options: { destinationFolderUid: string | null; destinationFolderPath?: never; } | { destinationFolderPath: string; destinationFolderUid?: never; }): Promise<ContextItemMove>",
   "ManagementContextItemsResource.update": "(uid: string, options?: { content?: unknown; contextType?: string; description?: string; userFeedback?: UserFeedback; topics?: string[]; updateMask?: string; }): Promise<ContextItem>",
   "ManagementContextItemsResource.updateAccess": "(uid: string, input: UpdateContextItemAccessInput): Promise<ContextItemAccessUpdate>",
   "ManagementContextResource.createLink": "(url: string, options?: { title?: string; isCrawl?: boolean; pageLimit?: number; }): Promise<CreatedContextItem>",
