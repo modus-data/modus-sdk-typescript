@@ -288,7 +288,7 @@ console.log(access.canManage)
 
 Requires a token with write access to scopes and workflows (same as the Modus UI). Context file upload/finalize also needs `context:write`; polling status and listing context items need `context:read`.
 
-Updating a scope replaces whole lists such as `connectionSet`, `contextSelections`, and `evaluations`. Add or change one evaluation case with `scopes.evaluations(id).addCase`, `updateCase`, or `deleteCase`. Change one connection's selection with `applySelectionOps` (`validateOnly: true` previews and does not write). `selectRoot`, `deselectRoot`, and `setRootDeepRules` are deprecated.
+Updating a scope replaces whole lists such as `connectionSet`, `contextSelections`, and `evaluations`. Add or change one evaluation case with `scopes.evaluations(id).addCase`, `updateCase`, or `deleteCase`. Change one connection's selection with `applySelectionOps` (`validateOnly: true` previews and does not write). Each `connectionSet` entry is `{ connection_id, preferences }`; remove a connection with the `removeConnection` op.
 ### Connection-specific toolsets
 
 Use the catalog platform key and an explicit lowercase connection UUID. SQL platforms

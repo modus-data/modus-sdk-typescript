@@ -1,0 +1,43 @@
+{
+  "examples/scripts/manage_skill.ts": {
+    "modus/platform-name/postgresql": {
+      "count": 2
+    }
+  },
+  "tests/contract/generated-wiring.test.ts": {
+    "modus/platform-name/slack": {
+      "count": 2
+    }
+  },
+  "tests/contract/list-operations.ts": {
+    "modus/platform-name/postgresql": {
+      "count": 2
+    }
+  },
+  "tests/integration/staging-smoke.test.ts": {
+    "modus/platform-name/slack": {
+      "count": 1
+    }
+  },
+  "tests/management-skills.test.ts": {
+    "modus/platform-name/slack": {
+      "count": 4
+    }
+  },
+  "tests/management-toolsets.test.ts": {
+    "modus/platform-name/looker": {
+      "count": 1
+    },
+    "modus/platform-name/postgresql": {
+      "count": 2
+    },
+    "modus/platform-name/slack": {
+      "count": 8
+    }
+  },
+  "tests/resources-connections.test.ts": {
+    "modus/platform-name/postgresql": {
+      "count": 8
+    }
+  }
+}
