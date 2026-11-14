@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-11-14
+
 ### Added
 
 - **`model` on a conversation.** Conversation reads include `model` (`string | null`), the identifier of the model the conversation's most recent turn ran on. `null` when no turn recorded a model; absent when it could not be read.
