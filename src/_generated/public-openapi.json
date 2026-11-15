@@ -12308,8 +12308,7 @@
                             }
                           ],
                           "exclude": []
-                        },
-                        "contextEnabled": true
+                        }
                       }
                     ]
                   }
@@ -12341,8 +12340,7 @@
                             }
                           ],
                           "exclude": []
-                        },
-                        "contextEnabled": true
+                        }
                       }
                     ]
                   }
@@ -26794,11 +26792,6 @@
                 }
               ]
             }
-          },
-          "context_enabled": {
-            "type": "boolean",
-            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.",
-            "deprecated": true
           }
         },
         "required": [
@@ -26814,18 +26807,9 @@
             "description": "Id of the connection.",
             "example": "11111111-1111-4111-8111-111111111111"
           },
-          "path": {
-            "description": "Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.",
-            "deprecated": true,
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "preferences": {
             "type": "object",
-            "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.",
+            "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down. Absent only on the entry of a deleted connection, whose `connection_id` is a placeholder (`00000000-0000-0000-0000-…`) and which grants nothing.",
             "additionalProperties": true,
             "example": {
               "mode": "manual",
@@ -26857,16 +26841,10 @@
                 }
               ]
             }
-          },
-          "context_enabled": {
-            "type": "boolean",
-            "description": "Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.",
-            "deprecated": true
           }
         },
         "required": [
-          "connection_id",
-          "path"
+          "connection_id"
         ]
       },
       "ContentProjectionDto": {
@@ -31775,10 +31753,6 @@
             "additionalProperties": true,
             "description": "The connection’s whole data selection, as workspace access preferences."
           },
-          "contextEnabled": {
-            "type": "boolean",
-            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`."
-          },
           "item": {
             "description": "The pinned context item.",
             "allOf": [
@@ -31958,7 +31932,7 @@
             }
           },
           "connectionSet": {
-            "description": "Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths.",
+            "description": "Connections attached to this variation, one entry per connection. Its `preferences` say what the scope reads under it; an entry with `preferences` can be sent back as it is on update. Drop an entry without them (a deleted connection) first.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConnectionSetItemReadDto"
@@ -34218,7 +34192,7 @@
               "type": "object",
               "additionalProperties": true
             },
-            "description": "Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences), `context_enabled` and `path` (a row the preferences compile to)."
+            "description": "Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences) and `path` (a row the preferences compile to)."
           },
           "connectionAllModeIds": {
             "type": "array",

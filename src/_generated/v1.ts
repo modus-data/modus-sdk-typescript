@@ -3001,11 +3001,6 @@ export interface components {
             preferences: {
                 [key: string]: unknown;
             };
-            /**
-             * @deprecated
-             * @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.
-             */
-            context_enabled?: boolean;
         };
         ConnectionSetItemReadDto: {
             /**
@@ -3014,13 +3009,7 @@ export interface components {
              */
             connection_id: string;
             /**
-             * @deprecated
-             * @description Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.
-             * @example []
-             */
-            path: string[];
-            /**
-             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.
+             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down. Absent only on the entry of a deleted connection, whose `connection_id` is a placeholder (`00000000-0000-0000-0000-…`) and which grants nothing.
              * @example {
              *       "mode": "manual",
              *       "include": [
@@ -3055,11 +3044,6 @@ export interface components {
             preferences?: {
                 [key: string]: unknown;
             };
-            /**
-             * @deprecated
-             * @description Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.
-             */
-            context_enabled?: boolean;
         };
         ContentProjectionDto: {
             /**
@@ -5378,8 +5362,6 @@ export interface components {
             preferences?: {
                 [key: string]: unknown;
             };
-            /** @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`. */
-            contextEnabled?: boolean;
             /** @description The pinned context item. */
             item?: components["schemas"]["SelectedContextItemDto"];
             /** @description Uid of the pinned item to remove. */
@@ -5489,7 +5471,7 @@ export interface components {
             toolset: {
                 [key: string]: unknown;
             };
-            /** @description Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths. */
+            /** @description Connections attached to this variation, one entry per connection. Its `preferences` say what the scope reads under it; an entry with `preferences` can be sent back as it is on update. Drop an entry without them (a deleted connection) first. */
             connectionSet: components["schemas"]["ConnectionSetItemReadDto"][];
             /** @description Context selections attached to the variation. Free-form builder objects. */
             contextSelections: {
@@ -6605,7 +6587,7 @@ export interface components {
             connectionSelections?: {
                 [key: string]: unknown;
             }[];
-            /** @description Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences), `context_enabled` and `path` (a row the preferences compile to). */
+            /** @description Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences) and `path` (a row the preferences compile to). */
             connectionSet?: {
                 [key: string]: unknown;
             }[];
