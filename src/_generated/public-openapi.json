@@ -8981,7 +8981,7 @@
     },
     "/api/v1/context/items/{uid}/access": {
       "patch": {
-        "description": "Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.\n\n**Requires:** `context:write`",
+        "description": "Replaces who can view and manage a note, saved query, link, uploaded file or organization learning. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.\n\n**Requires:** `context:write`",
         "operationId": "ContextItemAccessController_updateAccess",
         "parameters": [
           {

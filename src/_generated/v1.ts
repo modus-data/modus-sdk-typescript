@@ -783,7 +783,7 @@ export interface paths {
         head?: never;
         /**
          * Update context item access
-         * @description Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.
+         * @description Replaces who can view and manage a note, saved query, link, uploaded file or organization learning. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.
          *
          *     **Requires:** `context:write`
          */
