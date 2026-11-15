@@ -1006,7 +1006,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).
+         * @description Creates a draft scope you own (org-shared use/manage), with own and org-wide learnings unless `includeOwnLearnings`/`includeOrgLearnings` is false or the selections name learnings or are context filters without a rule-based query. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).
          *
          *     **Requires:** `scopes:write`
          */
@@ -3672,7 +3672,7 @@ export interface components {
              */
             connectionSet?: components["schemas"]["ConnectionSetItemDto"][];
             /**
-             * @description Selected context items (sources / docs) the scope may read. The scope's own learnings are added unless `includeOwnLearnings` is false or these selections already mention learnings.
+             * @description Selected context items (sources / docs) the scope may read. The scope's own learnings and the org-wide learnings are added, each unless its include flag is false, when these selections neither mention learnings already nor are context filters without a rule-based query.
              * @example []
              */
             contextSelections?: {
@@ -3683,6 +3683,11 @@ export interface components {
              * @default true
              */
             includeOwnLearnings: boolean;
+            /**
+             * @description Whether create adds the org-wide learnings path (`auto_generated:org`, what the organization taught Modus) to the scope's selections. Defaults to true, skipped when `contextSelections` already mention learnings or are context filters without a rule-based query; false only skips the addition, so selections naming the path still read it.
+             * @default true
+             */
+            includeOrgLearnings: boolean;
             /** @description MCP interface rows for this scope. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. */
             interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
             /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */

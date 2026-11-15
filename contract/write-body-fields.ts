@@ -133,6 +133,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'connectionSet',
     'contextSelections',
     'includeOwnLearnings',
+    'includeOrgLearnings',
     'interfaces',
     'accessConfig',
   ],

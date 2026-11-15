@@ -67,6 +67,7 @@ export interface CreateScopeOptions {
   connectionSet?: ReadonlyArray<ConnectionSetRowInput>
   contextSelections?: JsonObjectListInput
   includeOwnLearnings?: boolean
+  includeOrgLearnings?: boolean
   interfaces?: JsonObjectListInput
   guardrails?: string[]
 }
@@ -162,6 +163,7 @@ export class ManagementScopesResource extends ScopesResourceBase {
    * @param options.model - Optional model id.
    * @param options.toolset - Optional tool selection for the scope.
    * @param options.includeOwnLearnings - Whether the scope reads what is taught while using it. Defaults to true.
+   * @param options.includeOrgLearnings - Whether create adds the org-wide learnings path (`auto_generated:org`) to the scope's selections. Defaults to true; not applied when `contextSelections` already mention learnings or are context filters without a rule-based query. `false` only skips that addition: selections that already name the path still read org-wide learnings.
    * @param options.guardrails - Runtime guardrail labels (for example `"no-pii"`). Omit to create with no guardrails.
    * @returns The created scope (draft).
    * @example
@@ -182,6 +184,7 @@ export class ManagementScopesResource extends ScopesResourceBase {
       connectionSet: options.connectionSet,
       contextSelections: options.contextSelections,
       includeOwnLearnings: options.includeOwnLearnings,
+      includeOrgLearnings: options.includeOrgLearnings,
       interfaces: options.interfaces,
       accessConfig: accessConfigBodyForCreate(options.guardrails),
     })
