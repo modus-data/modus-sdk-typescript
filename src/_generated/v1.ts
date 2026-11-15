@@ -4491,6 +4491,10 @@ export interface components {
             }[];
             /** @description Set when history was unavailable; `source` will be `live-query` in that case. */
             historyUnavailableReason?: string;
+            /** @description Files the run was started with, and files its trigger left out. Empty when there were none. */
+            attachments?: components["schemas"]["WorkflowRunAttachmentDto"][];
+            /** @description Where the run came from. */
+            origin?: components["schemas"]["WorkflowRunOriginDto"];
         };
         GroupPermissionDto: {
             /**
@@ -6262,6 +6266,57 @@ export interface components {
          * @enum {string}
          */
         WorkflowNodeType: "start" | "action" | "condition" | "agent" | "humanApproval";
+        WorkflowRunAttachmentDto: {
+            /**
+             * @description File name as it was sent.
+             * @example invoice-4471.pdf
+             */
+            fileName: string;
+            /**
+             * @description MIME type, when known.
+             * @example application/pdf
+             */
+            mimeType?: string;
+            /**
+             * Format: int64
+             * @description Size in bytes, when known.
+             * @example 182000
+             */
+            sizeBytes?: number;
+            /** @description Set when the trigger received the file but did not give it to the run. */
+            skipped?: components["schemas"]["WorkflowRunSkippedAttachmentDto"];
+        };
+        WorkflowRunOriginDto: {
+            /**
+             * @description Where the run came from, for example `api`, `schedule` or `email`. `unknown` for a run that did not record it. New values may be added.
+             * @example schedule
+             */
+            source: string;
+            /**
+             * @description Email runs: the sender address.
+             * @example dana@acme.com
+             */
+            from?: string;
+            /**
+             * @description Email runs: the sender display name, when the email has one.
+             * @example Dana Cohen
+             */
+            fromName?: string;
+            /**
+             * @description Email runs: the subject line.
+             * @example Invoice 4471 for October
+             */
+            subject?: string;
+        };
+        WorkflowRunSkippedAttachmentDto: {
+            /** @description Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit. */
+            reason: components["schemas"]["WorkflowRunSkippedAttachmentReason"];
+        };
+        /**
+         * @description Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit.
+         * @enum {string}
+         */
+        WorkflowRunSkippedAttachmentReason: "too_large" | "too_many";
         WorkflowStructureDto: {
             /** @description Workflow nodes. Defaults to `[]`. */
             nodes?: components["schemas"]["WorkflowNodeDto"][];

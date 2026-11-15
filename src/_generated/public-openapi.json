@@ -29935,6 +29935,21 @@
           "historyUnavailableReason": {
             "type": "string",
             "description": "Set when history was unavailable; `source` will be `live-query` in that case."
+          },
+          "attachments": {
+            "description": "Files the run was started with, and files its trigger left out. Empty when there were none.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowRunAttachmentDto"
+            }
+          },
+          "origin": {
+            "description": "Where the run came from.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRunOriginDto"
+              }
+            ]
           }
         },
         "required": [
@@ -33362,6 +33377,90 @@
           "humanApproval"
         ],
         "description": "Node kind. Determines how the runtime interprets `data`."
+      },
+      "WorkflowRunAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "File name as it was sent.",
+            "example": "invoice-4471.pdf"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type, when known.",
+            "example": "application/pdf"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size in bytes, when known.",
+            "example": 182000
+          },
+          "skipped": {
+            "description": "Set when the trigger received the file but did not give it to the run.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRunSkippedAttachmentDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "fileName"
+        ]
+      },
+      "WorkflowRunOriginDto": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Where the run came from, for example `api`, `schedule` or `email`. `unknown` for a run that did not record it. New values may be added.",
+            "example": "schedule"
+          },
+          "from": {
+            "type": "string",
+            "description": "Email runs: the sender address.",
+            "example": "dana@acme.com"
+          },
+          "fromName": {
+            "type": "string",
+            "description": "Email runs: the sender display name, when the email has one.",
+            "example": "Dana Cohen"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email runs: the subject line.",
+            "example": "Invoice 4471 for October"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "WorkflowRunSkippedAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "description": "Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRunSkippedAttachmentReason"
+              }
+            ]
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "WorkflowRunSkippedAttachmentReason": {
+        "type": "string",
+        "enum": [
+          "too_large",
+          "too_many"
+        ],
+        "description": "Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit."
       },
       "WorkflowStructureDto": {
         "type": "object",
