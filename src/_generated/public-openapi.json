@@ -32240,9 +32240,10 @@
               "webhook",
               "api",
               "slack",
-              "manual"
+              "manual",
+              "email"
             ],
-            "description": "Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.",
+            "description": "Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.",
             "example": "schedule"
           },
           "schedule": {
@@ -32254,10 +32255,49 @@
                 "$ref": "#/components/schemas/TriggerScheduleDto"
               }
             ]
+          },
+          "email": {
+            "description": "Sender policy. Required when trigger_type=email. Null for every other trigger.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TriggerEmailDto"
+              }
+            ]
           }
         },
         "required": [
           "trigger_type"
+        ]
+      },
+      "TriggerEmailDto": {
+        "type": "object",
+        "properties": {
+          "sender_policy": {
+            "type": "string",
+            "enum": [
+              "allowlist",
+              "any"
+            ],
+            "description": "`allowlist` starts runs only for email from `allowed_senders` (an empty list rejects every email); `any` accepts every authenticated sender.",
+            "example": "allowlist"
+          },
+          "allowed_senders": {
+            "description": "Exact addresses or `@domain` entries (that domain only). Stored lowercase; at most 100. Kept when `sender_policy` is `any`.",
+            "example": [
+              "@acme.com",
+              "billing@supplier.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "sender_policy",
+          "allowed_senders"
         ]
       },
       "TriggerEvaluationRunResponseDto": {
@@ -33513,9 +33553,10 @@
               "webhook",
               "api",
               "slack",
-              "manual"
+              "manual",
+              "email"
             ],
-            "description": "Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.",
+            "description": "Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.",
             "example": "schedule"
           },
           "schedule": {
@@ -33525,6 +33566,16 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerScheduleResponseDto"
+              }
+            ]
+          },
+          "email": {
+            "description": "Sender policy. Present when trigger_type=email. Null for every other trigger.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TriggerEmailDto"
               }
             ]
           }

@@ -5630,13 +5630,31 @@ export interface components {
         };
         TriggerDto: {
             /**
-             * @description Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.
+             * @description Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.
              * @example schedule
              * @enum {string}
              */
-            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
+            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual" | "email";
             /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
             schedule?: components["schemas"]["TriggerScheduleDto"] | null;
+            /** @description Sender policy. Required when trigger_type=email. Null for every other trigger. */
+            email?: components["schemas"]["TriggerEmailDto"] | null;
+        };
+        TriggerEmailDto: {
+            /**
+             * @description `allowlist` starts runs only for email from `allowed_senders` (an empty list rejects every email); `any` accepts every authenticated sender.
+             * @example allowlist
+             * @enum {string}
+             */
+            sender_policy: "allowlist" | "any";
+            /**
+             * @description Exact addresses or `@domain` entries (that domain only). Stored lowercase; at most 100. Kept when `sender_policy` is `any`.
+             * @example [
+             *       "@acme.com",
+             *       "billing@supplier.com"
+             *     ]
+             */
+            allowed_senders: string[];
         };
         TriggerEvaluationRunResponseDto: {
             /** @description The created run ID */
@@ -6331,13 +6349,15 @@ export interface components {
         } | null;
         WorkflowTriggerResponseDto: {
             /**
-             * @description Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.
+             * @description Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.
              * @example schedule
              * @enum {string}
              */
-            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
+            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual" | "email";
             /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
             schedule?: components["schemas"]["WorkflowTriggerScheduleResponseDto"] | null;
+            /** @description Sender policy. Present when trigger_type=email. Null for every other trigger. */
+            email?: components["schemas"]["TriggerEmailDto"] | null;
         } | null;
         WorkflowTriggerScheduleResponseDto: {
             /**
