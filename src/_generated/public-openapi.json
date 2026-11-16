@@ -10866,6 +10866,7 @@
                 "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
+                "email",
                 "other"
               ]
             }
@@ -12879,6 +12880,7 @@
                 "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
+                "email",
                 "other"
               ]
             }
@@ -34437,6 +34439,7 @@
           "context_suggestions",
           "dashboard_copilot",
           "dashboard_assistant",
+          "email",
           "other"
         ],
         "description": "Origin of the run. Set by the server for API tokens."
@@ -34550,7 +34553,8 @@
         "enum": [
           "slack",
           "teams",
-          "mcp"
+          "mcp",
+          "email"
         ],
         "description": "Producer that supplied the supplemental context."
       },
