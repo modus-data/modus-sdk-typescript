@@ -2648,7 +2648,7 @@ export interface components {
          */
         AgentType: "task" | "workflow";
         AgentVariationDto: {
-            /** @description `trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved. */
+            /** @description `trigger_type` is `schedule`, `webhook`, `api`, `slack`, `email`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved. */
             trigger?: components["schemas"]["WorkflowTriggerResponseDto"] | null;
             /** @description Workflow graph (`nodes` and `edges`) when `type` is `workflow`. Null when `type` is `task`. */
             workflowStructure?: components["schemas"]["WorkflowStructureResponseDto"] | null;

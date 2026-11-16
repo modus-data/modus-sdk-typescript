@@ -26127,7 +26127,7 @@
         "type": "object",
         "properties": {
           "trigger": {
-            "description": "`trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved.",
+            "description": "`trigger_type` is `schedule`, `webhook`, `api`, `slack`, `email`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved.",
             "nullable": true,
             "type": "object",
             "allOf": [
