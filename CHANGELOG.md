@@ -14,6 +14,10 @@ release, including pre-1.0 (`0.x`) releases.
 - **`email` run source.** `RunSource` and `SupplementalContextSource` include `email`, for runs started by an email sent to a workflow's address; the conversation list's `source` filter accepts it. Only the email trigger records it: an API-token run asking for it still records its server-owned source (`api`, or `modus_api` for Modus runs), and `supplementalContext.source: 'email'` is refused with 400.
 - **`attachments` and `origin` on a workflow run.** `workflows.runs.get()` (the run detail) includes `attachments`, the files the run was started with by name, with MIME type and size when known (a file the trigger left out carries `skipped.reason`, `too_large` or `too_many`), and `origin`, where the run came from (`source`, such as `api` or `schedule`; `unknown` for a run that did not record it). An email-started run will also carry `from`, `fromName` and `subject` when the email has them. Both fields can be absent on responses from older servers. File contents are not returned.
 
+### Changed
+
+- Custom context relation documentation lists reserved system names (`contains`, `reads`, `joins_with`, `has_context`, `has_feedback`, `filters_by`, `context_relation`) and explains that dotted names are reserved.
+
 ### Removed
 
 - **Breaking (pre-1.0): a scope read returns one `connectionSet` entry per connection.** `variation.connectionSet` is `{ connection_id: string; preferences?: Record<string, unknown> }[]`: `path` (one row per included path) and `context_enabled` are removed, so a connection appears once, with its `preferences`. `preferences` is absent only on the entry of a deleted connection, whose `connection_id` is a placeholder and which grants nothing. An entry with `preferences` can be sent back unchanged in `scopes.update()`; drop one without `preferences` first, or the write fails with 400 `legacy_entry`. Migration: read what a connection selects from its `preferences` instead of `path`.
