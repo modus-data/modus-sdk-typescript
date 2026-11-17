@@ -2735,7 +2735,7 @@ export interface components {
          */
         AutomationRunSource: "live-query" | "history";
         BatchCreateCustomContextItemRelationsDto: {
-            /** @description Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending updates content. */
+            /** @description Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending replaces edgeProperties. */
             relations: components["schemas"]["CreateCustomContextItemRelationDto"][];
         };
         BatchCreateCustomContextItemRelationsResponseDto: {
@@ -3488,9 +3488,15 @@ export interface components {
              * @example depends_on
              */
             relationType: string;
-            /** @description Optional structured payload stored on the relation edge. */
-            content?: {
-                [key: string]: unknown;
+            /**
+             * @description Edge properties, replacing the previous map. Up to 100 keys matching ^[A-Za-z_][A-Za-z0-9_]{0,63}$ and 65536 UTF-8 JSON bytes; fromContextItemUid, toContextItemUid, relationType, createdAt and updatedAt are reserved. Values are strings, finite numbers, booleans, or arrays of those. Omission writes an empty map.
+             * @example {
+             *       "version": "v1.1.8",
+             *       "source": "go.mod"
+             *     }
+             */
+            edgeProperties?: {
+                [key: string]: string | number | boolean | (string | number | boolean)[];
             };
         };
         CreateDashboardDto: {

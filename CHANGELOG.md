@@ -9,6 +9,10 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Removed
+
+- **MAJOR:** Custom context item relations no longer accept `content`. Use `edgeProperties` (`edge_properties` in Python) for a flat map of primitives or primitive arrays; omitting it replaces the map with `{}`.
+
 ### Added
 
 - **`email` run source.** `RunSource` and `SupplementalContextSource` include `email`, for runs started by an email sent to a workflow's address; the conversation list's `source` filter accepts it. Only the email trigger records it: an API-token run asking for it still records its server-owned source (`api`, or `modus_api` for Modus runs), and `supplementalContext.source: 'email'` is refused with 400.

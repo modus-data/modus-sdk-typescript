@@ -1151,7 +1151,7 @@
                         "fromUid": "00000000-0000-4000-a000-000000000abc",
                         "toUid": "00000000-0000-4000-a000-000000000def",
                         "relationType": "depends_on",
-                        "content": {
+                        "edgeProperties": {
                           "version": "v1.1.8",
                           "source": "go.mod"
                         }
@@ -26312,7 +26312,7 @@
         "type": "object",
         "properties": {
           "relations": {
-            "description": "Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending updates content.",
+            "description": "Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending replaces edgeProperties.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateCustomContextItemRelationDto"
@@ -27583,10 +27583,43 @@
             "description": "Snake_case relation type describing how the source relates to the target. Reserved system types cannot be used: contains, reads, joins_with, has_context, has_feedback, filters_by, context_relation. Dotted names are also reserved.",
             "example": "depends_on"
           },
-          "content": {
+          "edgeProperties": {
             "type": "object",
-            "description": "Optional structured payload stored on the relation edge.",
-            "additionalProperties": true
+            "description": "Edge properties, replacing the previous map. Up to 100 keys matching ^[A-Za-z_][A-Za-z0-9_]{0,63}$ and 65536 UTF-8 JSON bytes; fromContextItemUid, toContextItemUid, relationType, createdAt and updatedAt are reserved. Values are strings, finite numbers, booleans, or arrays of those. Omission writes an empty map.",
+            "maxProperties": 100,
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "example": {
+              "version": "v1.1.8",
+              "source": "go.mod"
+            }
           }
         },
         "required": [

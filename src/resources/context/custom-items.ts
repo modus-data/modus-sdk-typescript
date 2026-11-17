@@ -61,7 +61,7 @@ export interface CustomContextItemRelationInput {
   fromUid: string
   toUid: string
   relationType: string
-  content?: Record<string, unknown>
+  edgeProperties?: Record<string, string | number | boolean | Array<string | number | boolean>>
 }
 
 export interface CreatedCustomContextItem {
@@ -283,7 +283,7 @@ export class CustomContextItemsResource {
   /**
    * Create or update typed relations between context items.
    *
-   * @param relations - Relations with source and target item uids, a snake_case type, and optional content.
+   * @param relations - Relations with source and target item uids, a snake_case type, and optional flat edgeProperties. Omitting edgeProperties on an existing relation replaces its stored properties with `{}`.
    * @returns Number of relations created or updated.
    * @example
    * ```ts
@@ -292,6 +292,7 @@ export class CustomContextItemsResource {
    *   fromUid: 'SOURCE_UID',
    *   toUid: 'TARGET_UID',
    *   relationType: 'depends_on',
+   *   edgeProperties: { source_file: 'go.mod' },
    * }])
    * ```
    */

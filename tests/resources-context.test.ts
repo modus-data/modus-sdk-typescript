@@ -182,7 +182,7 @@ describe('CustomContextItemsResource', () => {
       fromUid: 'source-1',
       toUid: 'target-1',
       relationType: 'depends_on',
-      content: { source: 'go.mod' },
+      edgeProperties: { source: 'go.mod', custom_key: ['a', 'b'] },
     }])
 
     expect(count).toBe(1)
@@ -193,7 +193,7 @@ describe('CustomContextItemsResource', () => {
         fromUid: 'source-1',
         toUid: 'target-1',
         relationType: 'depends_on',
-        content: { source: 'go.mod' },
+        edgeProperties: { source: 'go.mod', custom_key: ['a', 'b'] },
       }],
     })
   })
