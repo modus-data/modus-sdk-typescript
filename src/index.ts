@@ -109,6 +109,8 @@ export type { ActiveConversationRun, ActiveConversationRunStatus } from './types
 export type { RunEventsPollResponse } from './types/agent-runs.js'
 export type { ContentProjection, JsonObjectInput } from './types/json-blob.js'
 export type {
+  BatchDeleteCustomContextItemsInput,
+  BatchDeleteCustomContextItemsResult,
   CreateCustomContextItemInput,
   CreatedCustomContextItem,
   CustomAttributeInput,

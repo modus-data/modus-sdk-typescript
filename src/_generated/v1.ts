@@ -98,6 +98,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/context/custom-items/batchDelete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete custom context items by source key
+         * @description Soft-deletes custom context items under `sourceId`, optionally narrowed by `collectionId` / `externalId`; integration items are never touched. Deletes only the targeted node unless `cascade`; `kind` picks entity or `entity_samples`. Up to 1000 items per call: when `truncated`, call again with `nextCursor`.
+         *
+         *     **Requires:** `context:write`
+         */
+        post: operations["CustomContextItemsController_batchDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/context/custom-items/relations": {
         parameters: {
             query?: never;
@@ -2752,6 +2774,52 @@ export interface components {
         BatchCreateCustomContextItemsResponseDto: {
             /** @description Custom context items created or updated by the batch. */
             contextItems: components["schemas"]["CreatedCustomContextItemResponseDto"][];
+        };
+        BatchDeleteCustomContextItemsDto: {
+            /**
+             * @description Customer-defined source to delete from. Required — a batch delete is always scoped to one source.
+             * @example billing-db
+             */
+            sourceId: string;
+            /**
+             * @description Narrow to one collection inside the source. Omit to target the whole source.
+             * @example contracts
+             */
+            collectionId?: string;
+            /**
+             * @description Narrow to one entity inside the collection. Requires `collectionId`.
+             * @example contract-123
+             */
+            externalId?: string;
+            /**
+             * @description Which kind of item to delete at the selected path, for a non-cascade delete. An entity and its `entity_samples` share a path, so this disambiguates them. Defaults to the metadata item at the selected level (`source`/`collection`/`entity`). Must match the selector depth. Ignored when `cascade` is true.
+             * @example entity
+             */
+            kind?: components["schemas"]["CustomContextItemKind"];
+            /**
+             * @description When `true`, also delete everything beneath the targeted node (its descendants). When `false` (default), delete only the targeted node itself, leaving descendants in place.
+             * @default false
+             */
+            cascade: boolean;
+            /** @description Continuation cursor from a previous response `nextCursor`. Pass it to delete the next batch when a prior call was truncated. */
+            cursor?: string;
+        };
+        BatchDeleteCustomContextItemsResponseDto: {
+            /**
+             * @description Number of custom context items soft-deleted by this request.
+             * @example 8
+             */
+            deletedCount: number;
+            /**
+             * @description True when more matching items were ahead of this batch; call again with `nextCursor` to continue the sweep.
+             * @example false
+             */
+            truncated: boolean;
+            /**
+             * @description Continuation cursor; pass as `cursor` to delete the next batch. `null` means no more matching items were ahead of the cursor at scan time. This is a forward pass, not a snapshot: items added, or recreated with a lower id, during the sweep are not guaranteed to be included — run a fresh pass (no cursor) to catch them.
+             * @example null
+             */
+            nextCursor: string | null;
         };
         BulkFinalizeDto: {
             /** @description Uploads to finalize. Max 100 per request. */
@@ -7125,6 +7193,12 @@ export interface operations {
                 searchQuery?: string;
                 /** @description Filter by topic tag. */
                 topics?: string[];
+                /** @description Restrict to a single customer-defined source. Returns the source and everything beneath it. */
+                sourceId?: string;
+                /** @description Restrict to a collection inside the source. Requires `sourceId`. Returns the collection and everything beneath it. */
+                collectionId?: string;
+                /** @description Restrict to a single entity inside the collection. Requires `sourceId` and `collectionId`. Returns the entity and its fields. */
+                externalId?: string;
             };
             header?: never;
             path?: never;
@@ -7196,6 +7270,25 @@ export interface operations {
                      *             "<required-scope>"
                      *           ]
                      *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "collectionId must not be blank.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7459,6 +7552,204 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BatchCreateCustomContextItemsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomContextItemsController_batchDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchDeleteCustomContextItemsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDeleteCustomContextItemsResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */

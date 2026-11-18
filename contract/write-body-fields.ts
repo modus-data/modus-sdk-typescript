@@ -52,6 +52,7 @@ export const SDK_REQUEST_BODY_FIELDS: Record<string, readonly string[]> = {
     'access',
   ],
   CustomContextItemsController_batchCreate: ['items'],
+  CustomContextItemsController_batchDelete: ['sourceId', 'collectionId', 'externalId', 'kind', 'cascade', 'cursor'],
   CustomContextItemsController_createRelations: ['relations'],
   ContextFilesController_finalize: ['fileName', 'folderPath'],
   ContextFilesController_finalizeMany: ['uploads'],

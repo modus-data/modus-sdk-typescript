@@ -17,6 +17,7 @@ export const WRITE_BODY_ALLOWED_KEYS: Partial<Record<OperationId, readonly strin
   ContextItemsController_update: ["contextType", "content", "description", "userFeedback", "topics"],
   ContextItemsQueryController_query: ["sql", "maxRows"],
   CustomContextItemsController_batchCreate: ["items"],
+  CustomContextItemsController_batchDelete: ["sourceId", "collectionId", "externalId", "kind", "cascade", "cursor"],
   CustomContextItemsController_create: ["kind", "sourceId", "sourceName", "collectionId", "collectionName", "externalId", "fieldName", "name", "entityType", "description", "content", "url", "attributes", "dataType", "value", "samples", "raw", "topics", "idempotencyKey", "access"],
   CustomContextItemsController_createRelations: ["relations"],
   CustomContextItemsController_update: ["name", "entityType", "description", "content", "url", "attributes", "dataType", "value", "samples", "raw", "topics"],
