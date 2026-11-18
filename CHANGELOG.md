@@ -20,6 +20,7 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Changed
 
+- **Changed:** a workflow created without `accessConfig` (`workflows.create()`) is now private, with no group grants and no invitees; its creator can share it later. Pass an `accessConfig` with `visibility: 'shared'` for the previous behaviour. A service account token that omits it still creates the workflow shared with the whole organization. Existing workflows are unchanged.
 - **Changed:** an unfiltered scope conversation list (or one filtered by user or timeframe) now includes conversations you did not take part in, but such a conversation carries only who took part and when: an empty first message, a null title and source, a message count of 0 and no tools. Each item has a new optional `ownedByCaller` that says whether you took part. Getting such a conversation, its files, or renaming it now fails with 404, whatever your role. A `toolName` or `source` filter matches only conversations you took part in, and combining either with another member's user id fails with 400.
 
 - Custom context relation documentation lists reserved system names (`contains`, `reads`, `joins_with`, `has_context`, `has_feedback`, `filters_by`, `context_relation`) and explains that dotted names are reserved.

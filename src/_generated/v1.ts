@@ -3380,7 +3380,7 @@ export interface components {
             agentSelection?: components["schemas"]["AgentSelectionDto"];
             /** @description Workflow graph (nodes + edges) when `type` is `workflow`. Unknown node/edge keys and out-of-enum node types are rejected with a 422. */
             workflowStructure?: components["schemas"]["WorkflowStructureDto"];
-            /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */
+            /** @description Access configuration. Omit to create the workflow private, with no group grants and no invitees; its creator can share it later. A service account token that omits it creates the workflow shared with the whole organization (use + manage), since it has no owner. */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
         };
         CreateCustomContextItemDto: {
