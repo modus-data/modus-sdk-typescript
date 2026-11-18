@@ -2714,7 +2714,7 @@ export interface components {
              * @enum {string}
              */
             statusReason?: "approval_timeout" | "agent_reported_issue";
-            /** @description The Workflow's current trigger type, which can differ from what started this run. */
+            /** @description What started this run: `schedule`, `email`, `api`, `manual`, or the chat channel it came from. A run that did not record it shows the Workflow's current trigger type. */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
             startedAt?: string;
