@@ -23,7 +23,7 @@ export {
 } from './_exceptions.js'
 
 export { ChatSession } from './_chat.js'
-export type { ChatOptions } from './_chat.js'
+export type { ChatOptions, WorkflowChatOptions } from './_chat.js'
 export { Page } from './_pagination.js'
 export type {
   AssistantContentResetEvent,

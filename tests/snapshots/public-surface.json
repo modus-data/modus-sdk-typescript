@@ -201,7 +201,7 @@
   "WorkflowRunsResource.list": "(workflowId: number | string, options?: { pageSize?: number; pageToken?: string; status?: RunStatus; timeframe?: RunTimeframe; approvalScope?: ApprovalScope; search?: string; }): Promise<Page<AgentRunListItem>>",
   "WorkflowRunsResource.resume": "(runId: string, body: ResumeRunRequest, options?: { idempotencyKey?: string; }): AgentRunStream",
   "WorkflowRunsResource.stream": "(runId: string, options?: { lastEventId?: string; }): AgentRunStream",
-  "WorkflowsResource.chat": "(workflowId: number | string, message: string, options: ChatOptions): ChatSession",
+  "WorkflowsResource.chat": "(workflowId: number | string, message?: string, options?: WorkflowChatOptions): ChatSession",
   "WorkflowsResource.get": "(workflowId: number | string, options?: { view?: VariationView; includeVariation?: boolean; }): Promise<Workflow>",
   "WorkflowsResource.list": "(options?: { pageSize?: number; pageToken?: string; search?: string; type?: WorkflowType; view?: VariationView; includeVariation?: boolean; }): Promise<Page<Workflow>>",
   "WorkflowsResource.runs": "WorkflowRunsResource",

@@ -25,10 +25,15 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Changed
 
+- **`workflows.chat()` runs a workflow without a message or a model.** `message` defaults to `''` and `options` is optional, so `await client.workflows.chat(workflowId)` triggers a run with no input, like Run Now in the app. `workflows.runs.create()` accepts a body without `message` or `sessionId` too.
 - A scope save that adds a personal connection's UUID to `<platform>.byConnection`, or adds actions to one stored there, is refused with 422 (`UnprocessableError`, rule `toolset.personal_connection`); grant it with `personal` instead. Sending a stored entry back unchanged, or with fewer actions, still saves.
 - **Changed:** a workflow created without `accessConfig` (`workflows.create()`) is now private, with no group grants and no invitees; its creator can share it later. Pass an `accessConfig` with `visibility: 'shared'` for the previous behaviour. A service account token that omits it still creates the workflow shared with the whole organization. Existing workflows are unchanged.
 - **Changed:** an unfiltered scope conversation list (or one filtered by user or timeframe) now includes conversations you did not take part in, but such a conversation carries only who took part and when: an empty first message, a null title and source, a message count of 0 and no tools. Each item has a new optional `ownedByCaller` that says whether you took part. Getting such a conversation, its files, or renaming it now fails with 404, whatever your role. A `toolName` or `source` filter matches only conversations you took part in, and combining either with another member's user id fails with 400.
 - Custom context relation documentation lists reserved system names (`contains`, `reads`, `joins_with`, `has_context`, `has_feedback`, `filters_by`, `context_relation`) and explains that dotted names are reserved.
+
+### Deprecated
+
+- **`model` on `workflows.chat()`** (`WorkflowChatOptions.model`). A workflow's steps run with the models set in the workflow, so the option was never used; it is no longer sent. The `config`, `fileThreadId`, `debug`, `experimentalFeatures` and `streamProtocolVersion` fields of a workflow run body are deprecated for the same reason: the server accepts and ignores them.
 
 ### Removed
 

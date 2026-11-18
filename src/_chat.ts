@@ -24,6 +24,14 @@ export interface ChatOptions {
   threadId?: string
 }
 
+/** Options for `workflows.chat()`. A workflow's steps run with the models set in the workflow. */
+export interface WorkflowChatOptions {
+  /** @deprecated Ignored: each step of the workflow uses the model set in the workflow. */
+  model?: ChatModel
+  /** Continue this conversation; omit to start a new one. */
+  threadId?: string
+}
+
 interface ChatRequest {
   readonly path: string
   readonly body: Record<string, unknown>
@@ -252,7 +260,7 @@ export function startChat(
   config: ModusConfig,
   target: ChatTarget,
   message: string,
-  options: ChatOptions,
+  options: ChatOptions | WorkflowChatOptions,
 ): ChatSession {
   try {
     return new ChatSession(http, chatRequest(config, target, message, options))
@@ -265,17 +273,18 @@ function chatRequest(
   config: ModusConfig,
   target: ChatTarget,
   message: string,
-  options: ChatOptions,
+  options: ChatOptions | WorkflowChatOptions,
 ): ChatRequest {
   if (target.kind !== 'modus') validateId(target.id, `${target.kind.slice(0, -1)}_id`)
-  validateChatModel(options.model)
+  const runsWithOwnModels = target.kind === 'workflows'
+  if (!runsWithOwnModels) validateChatModel(options.model)
   const baseUrl = requireAgentHost(config)
   const sessionId = resolveAgentRunSessionId(effectiveThreadId(options.threadId))
   return {
     path: runsPath(target),
     body: {
       message,
-      config: { model: options.model },
+      ...(runsWithOwnModels ? {} : { config: { model: options.model } }),
       sessionId,
       ...(config.organizationId !== undefined ? { organizationId: config.organizationId } : {}),
     },

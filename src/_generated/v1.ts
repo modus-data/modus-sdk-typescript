@@ -2364,8 +2364,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Chat with a workflow
-         * @description Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.
+         * Run a workflow
+         * @description Triggers a run of the published workflow and streams its node output as Server-Sent Events. An empty body runs it with no input; send `message` to give it one. The run ends with `workflow_done`, whose `finalOutput` is the result. To continue a conversation, send your own `sessionId` and reuse it. Send Accept: application/json to poll instead of streaming.
          *
          *     **Requires:** `workflows:invoke`
          */
@@ -6454,10 +6454,6 @@ export interface components {
             nextPageToken: string | null;
         };
         AgentRunDto: {
-            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
-            message: string;
-            /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
-            sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
@@ -6465,9 +6461,6 @@ export interface components {
              * @enum {string}
              */
             version?: "published" | "draft";
-            /** @description Document-scoped conversation thread id. */
-            fileThreadId?: string;
-            config?: components["schemas"]["RunConfigDto"];
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
@@ -6475,12 +6468,35 @@ export interface components {
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
+            /** @description The run's input, which the workflow's first step receives. Omit it, or send an empty string, to trigger a run with no input. API tokens are held to the 32,000-character limit. */
+            message?: string;
+            /** @description A token you choose that threads runs into one conversation: send the same value on each run. Omit it for a one-off run; the server then assigns an id it does not return, so that run cannot be continued. */
+            sessionId?: string;
             /**
-             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @deprecated
+             * @description Deprecated: ignored for workflow runs, whose steps use the model and tools set in the workflow. Omit it.
+             */
+            config?: components["schemas"]["RunConfigDto"];
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
+             */
+            fileThreadId?: string;
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
              * @enum {integer}
              */
             streamProtocolVersion?: 2;
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
+             */
             experimentalFeatures?: boolean;
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
+             */
             debug?: boolean;
         };
         ApprovalTargetDto: {

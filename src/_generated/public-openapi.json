@@ -49,7 +49,7 @@
     },
     {
       "name": "Workflows · Runs",
-      "description": "Inspect workflow run history."
+      "description": "Run a workflow, or inspect its run history."
     },
     {
       "name": "Workflows · Interfaces",
@@ -90,10 +90,6 @@
     {
       "name": "Scopes · Chat",
       "description": "Chat with a published scope."
-    },
-    {
-      "name": "Workflows · Chat",
-      "description": "Chat with a published workflow."
     },
     {
       "name": "Modus · Chat",
@@ -25528,7 +25524,7 @@
     },
     "/agent/v1/workflows/{id}/runs": {
       "post": {
-        "description": "Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.\n\n**Requires:** `workflows:invoke`",
+        "description": "Triggers a run of the published workflow and streams its node output as Server-Sent Events. An empty body runs it with no input; send `message` to give it one. The run ends with `workflow_done`, whose `finalOutput` is the result. To continue a conversation, send your own `sessionId` and reuse it. Send Accept: application/json to poll instead of streaming.\n\n**Requires:** `workflows:invoke`",
         "operationId": "WorkflowRunsController_create",
         "parameters": [
           {
@@ -25643,9 +25639,9 @@
             }
           }
         },
-        "summary": "Chat with a workflow",
+        "summary": "Run a workflow",
         "tags": [
-          "Workflows · Chat"
+          "Workflows · Runs"
         ],
         "security": [
           {
@@ -33813,15 +33809,6 @@
       "AgentRunDto": {
         "type": "object",
         "properties": {
-          "message": {
-            "type": "string",
-            "maxLength": 32000,
-            "description": "The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts."
-          },
-          "sessionId": {
-            "type": "string",
-            "description": "Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together."
-          },
           "organizationId": {
             "type": "string",
             "description": "Organization id. Ignored for authenticated callers — the server uses the principal's org."
@@ -33833,13 +33820,6 @@
               "draft"
             ],
             "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
-          },
-          "fileThreadId": {
-            "type": "string",
-            "description": "Document-scoped conversation thread id."
-          },
-          "config": {
-            "$ref": "#/components/schemas/RunConfigDto"
           },
           "attachments": {
             "$ref": "#/components/schemas/AttachmentsDto"
@@ -33862,24 +33842,48 @@
             "type": "string",
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
+          "message": {
+            "type": "string",
+            "maxLength": 32000,
+            "description": "The run's input, which the workflow's first step receives. Omit it, or send an empty string, to trigger a run with no input. API tokens are held to the 32,000-character limit."
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "A token you choose that threads runs into one conversation: send the same value on each run. Omit it for a one-off run; the server then assigns an id it does not return, so that run cannot be continued."
+          },
+          "config": {
+            "deprecated": true,
+            "description": "Deprecated: ignored for workflow runs, whose steps use the model and tools set in the workflow. Omit it.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunConfigDto"
+              }
+            ]
+          },
+          "fileThreadId": {
+            "type": "string",
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
+          },
           "streamProtocolVersion": {
             "type": "integer",
             "enum": [
               2
             ],
-            "description": "Streaming protocol version. Version 2 supports assistant-content replacement events."
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
           },
           "experimentalFeatures": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
           },
           "debug": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
           }
-        },
-        "required": [
-          "message",
-          "sessionId"
-        ]
+        }
       },
       "ApprovalTargetDto": {
         "type": "object",

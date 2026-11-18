@@ -317,7 +317,7 @@ describe('workflows.chat()', () => {
       ]),
     )
 
-    const session = client.workflows.chat(7, 'Run it', { model: MODEL, threadId: 'wf-thread' })
+    const session = client.workflows.chat(7, 'Run it', { threadId: 'wf-thread' })
     const tokens: string[] = []
     for await (const token of session.textStream()) tokens.push(token)
     const result = await session
@@ -343,7 +343,7 @@ describe('workflows.chat()', () => {
       ]),
     )
 
-    const session = client.workflows.chat(7, 'Run it', { model: MODEL })
+    const session = client.workflows.chat(7, 'Run it')
     const tokens: string[] = []
     for await (const token of session.textStream()) tokens.push(token)
     const result = await session
@@ -352,10 +352,23 @@ describe('workflows.chat()', () => {
     expect(result).toMatchObject({ content: 'final', runId: 'wf-1' })
   })
 
+  it('triggers a run with no input and sends no model, since each step keeps its own', async () => {
+    const done = () => sse([{ type: 'workflow_done', runId: 'wf-1', finalOutput: 'done' }])
+    const { client, fetch } = clientWith(done(), done())
+
+    await client.workflows.chat(7)
+    await expect(client.workflows.chat(7, 'Run it', { model: 'not-a-model' as typeof MODEL })).resolves.toBeDefined()
+
+    const body = sentBody(fetch)
+    expect(body.message).toBe('')
+    expect(body).not.toHaveProperty('config')
+    expect(sentBody(fetch, 1)).not.toHaveProperty('config')
+  })
+
   it('raises on workflow_error', async () => {
     const { client } = clientWith(sse([{ type: 'workflow_error', runId: 'wf-1', error: 'Node n1 failed: quota' }]))
 
-    await expect(client.workflows.chat(7, 'Run it', { model: MODEL })).rejects.toBeInstanceOf(ModusError)
+    await expect(client.workflows.chat(7, 'Run it')).rejects.toBeInstanceOf(ModusError)
   })
 })
 
