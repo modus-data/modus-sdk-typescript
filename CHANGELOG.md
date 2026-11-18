@@ -15,15 +15,16 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Added
 
+- **Personal tools in a toolset.** `PlatformToolsetEntry.personal` (`{ actions, rules? }`, beside `byConnection`) grants actions on the personal connection of whoever runs the skill. A runner who has not connected the platform is asked to connect it in chat, or gets a tool error elsewhere; nobody else's connection is used. Only platforms people connect personally (Gmail, Google Calendar, Google Drive and others) take it.
 - **`personal` MCP exposure family.** `McpExposureFamily` includes `personal`: the MCP exposure catalog lists a platform's personal grant as one row (`toolset_personal:<platform>`, with `toolset_action:<platform>:personal:<action>` per tool) that runs on the own personal connection of whoever calls it.
 - **`email` run source.** `RunSource` and `SupplementalContextSource` include `email`, for runs started by an email sent to a workflow's address; the conversation list's `source` filter accepts it. Only the email trigger records it: an API-token run asking for it still records its server-owned source (`api`, or `modus_api` for Modus runs), and `supplementalContext.source: 'email'` is refused with 400.
 - **`attachments` and `origin` on a workflow run.** `workflows.runs.get()` (the run detail) includes `attachments`, the files the run was started with by name, with MIME type and size when known (a file the trigger left out carries `skipped.reason`, `too_large` or `too_many`), and `origin`, where the run came from (`source`, such as `api` or `schedule`; `unknown` for a run that did not record it). An email-started run will also carry `from`, `fromName` and `subject` when the email has them. Both fields can be absent on responses from older servers. File contents are not returned.
 
 ### Changed
 
+- A scope save that adds a personal connection's UUID to `<platform>.byConnection`, or adds actions to one stored there, is refused with 422 (`UnprocessableError`, rule `toolset.personal_connection`); grant it with `personal` instead. Sending a stored entry back unchanged, or with fewer actions, still saves.
 - **Changed:** a workflow created without `accessConfig` (`workflows.create()`) is now private, with no group grants and no invitees; its creator can share it later. Pass an `accessConfig` with `visibility: 'shared'` for the previous behaviour. A service account token that omits it still creates the workflow shared with the whole organization. Existing workflows are unchanged.
 - **Changed:** an unfiltered scope conversation list (or one filtered by user or timeframe) now includes conversations you did not take part in, but such a conversation carries only who took part and when: an empty first message, a null title and source, a message count of 0 and no tools. Each item has a new optional `ownedByCaller` that says whether you took part. Getting such a conversation, its files, or renaming it now fails with 404, whatever your role. A `toolName` or `source` filter matches only conversations you took part in, and combining either with another member's user id fails with 400.
-
 - Custom context relation documentation lists reserved system names (`contains`, `reads`, `joins_with`, `has_context`, `has_feedback`, `filters_by`, `context_relation`) and explains that dotted names are reserved.
 
 ### Removed

@@ -3630,7 +3630,7 @@ export interface components {
              */
             instructions?: string[];
             /**
-             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. A platform people connect personally also takes `<platform>.personal = { actions, rules? }`, which runs on each runner’s own personal connection; a save that newly adds a personal connection's UUID to `byConnection` (or grants it new actions there) is rejected with HTTP 422. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
              *         "byConnection": {
@@ -5472,7 +5472,7 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.
+             * @description Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`, plus `<platform>.personal = { actions, rules? }` for actions run on each runner’s own personal connection; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.
              * @example {
              *       "postgresql": {
              *         "byConnection": {
@@ -5954,7 +5954,7 @@ export interface components {
              */
             instructions?: string[] | null;
             /**
-             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. A platform people connect personally also takes `<platform>.personal = { actions, rules? }`, which runs on each runner’s own personal connection; a save that newly adds a personal connection's UUID to `byConnection` (or grants it new actions there) is rejected with HTTP 422. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
              *         "byConnection": {
