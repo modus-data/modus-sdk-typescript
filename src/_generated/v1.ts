@@ -2714,7 +2714,7 @@ export interface components {
              * @enum {string}
              */
             statusReason?: "approval_timeout" | "agent_reported_issue";
-            /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
+            /** @description The Workflow's current trigger type, which can differ from what started this run. */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
             startedAt?: string;
@@ -4469,7 +4469,7 @@ export interface components {
              * @enum {string}
              */
             statusReason?: "approval_timeout" | "agent_reported_issue";
-            /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
+            /** @description What started this run: `schedule`, `email`, `api`, `manual`, or the chat channel it came from. */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
             startedAt?: string;
