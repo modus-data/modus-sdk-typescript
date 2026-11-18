@@ -1105,7 +1105,7 @@ export interface paths {
         };
         /**
          * List scope conversations
-         * @description Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. Pass `nextPageToken` as `pageToken` to fetch the next page.
+         * @description Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. A conversation you took no part in shows only who took part and when. Pass `nextPageToken` as `pageToken` for the next page.
          *
          *     **Requires:** `scopes:read`
          */
@@ -1127,7 +1127,7 @@ export interface paths {
         };
         /**
          * Get a conversation
-         * @description Returns conversation messages in chronological order. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.
+         * @description Returns conversation messages in chronological order. Only a participant can read a conversation; anyone else gets 404. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.
          *
          *     **Requires:** `scopes:read`
          */
@@ -3256,22 +3256,22 @@ export interface components {
              */
             scopeId: number;
             /**
-             * @description Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet.
+             * @description Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet. Empty when the caller did not take part in the conversation.
              * @example Run the churn analysis for last 30 days.
              */
             firstMessage: string;
             /**
-             * @description User-managed display title. Null until the user renames the conversation.
+             * @description User-managed display title. Null until the user renames the conversation, and null when the caller did not take part in it.
              * @example Q3 Revenue Analysis
              */
             title: string | null;
             /**
-             * @description UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown, absent on responses that predate the field.
+             * @description UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown or when the caller did not take part in the conversation, absent on responses that predate the field.
              * @example context_chat
              */
             source?: string | null;
             /**
-             * @description Total number of message turns in the (post-collapse) conversation.
+             * @description Total number of message turns in the (post-collapse) conversation. 0 when the caller did not take part in it.
              * @example 12
              */
             messageCount: number;
@@ -3286,7 +3286,7 @@ export interface components {
              */
             updatedAt: string;
             /**
-             * @description Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested.
+             * @description Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested and the caller took part in the conversation.
              * @example [
              *       "sql_runner"
              *     ]
@@ -3299,6 +3299,11 @@ export interface components {
              *     ]
              */
             userIds: string[];
+            /**
+             * @description Whether the caller took part in this conversation. Only a participant can open, rename or download files from a conversation; for any other row the list carries only who took part and when.
+             * @example true
+             */
+            ownedByCaller?: boolean;
         };
         ConversationMessageDto: {
             /**
@@ -16030,9 +16035,9 @@ export interface operations {
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
-                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
+                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
                 toolName?: string;
-                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
+                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
                 source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "email" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
@@ -17572,9 +17577,9 @@ export interface operations {
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
-                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
+                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
                 toolName?: string;
-                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
+                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
                 source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "email" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;

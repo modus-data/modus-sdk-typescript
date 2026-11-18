@@ -10838,7 +10838,7 @@
             "name": "toolName",
             "required": false,
             "in": "query",
-            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools.",
+            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "sql_runner",
               "type": "string"
@@ -10848,7 +10848,7 @@
             "name": "source",
             "required": false,
             "in": "query",
-            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`.",
+            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "context_chat",
               "type": "string",
@@ -12791,7 +12791,7 @@
     },
     "/api/v1/scopes/{id}/conversations": {
       "get": {
-        "description": "Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. Pass `nextPageToken` as `pageToken` to fetch the next page.\n\n**Requires:** `scopes:read`",
+        "description": "Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. A conversation you took no part in shows only who took part and when. Pass `nextPageToken` as `pageToken` for the next page.\n\n**Requires:** `scopes:read`",
         "operationId": "ScopeConversationsController_list",
         "parameters": [
           {
@@ -12852,7 +12852,7 @@
             "name": "toolName",
             "required": false,
             "in": "query",
-            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools.",
+            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "sql_runner",
               "type": "string"
@@ -12862,7 +12862,7 @@
             "name": "source",
             "required": false,
             "in": "query",
-            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`.",
+            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "context_chat",
               "type": "string",
@@ -13071,7 +13071,7 @@
     },
     "/api/v1/scopes/{id}/conversations/{threadId}": {
       "get": {
-        "description": "Returns conversation messages in chronological order. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.\n\n**Requires:** `scopes:read`",
+        "description": "Returns conversation messages in chronological order. Only a participant can read a conversation; anyone else gets 404. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.\n\n**Requires:** `scopes:read`",
         "operationId": "ScopeConversationsController_get",
         "parameters": [
           {
@@ -27235,24 +27235,24 @@
           },
           "firstMessage": {
             "type": "string",
-            "description": "Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet.",
+            "description": "Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet. Empty when the caller did not take part in the conversation.",
             "example": "Run the churn analysis for last 30 days."
           },
           "title": {
             "type": "string",
             "nullable": true,
-            "description": "User-managed display title. Null until the user renames the conversation.",
+            "description": "User-managed display title. Null until the user renames the conversation, and null when the caller did not take part in it.",
             "example": "Q3 Revenue Analysis"
           },
           "source": {
             "type": "string",
             "nullable": true,
-            "description": "UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown, absent on responses that predate the field.",
+            "description": "UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown or when the caller did not take part in the conversation, absent on responses that predate the field.",
             "example": "context_chat"
           },
           "messageCount": {
             "type": "integer",
-            "description": "Total number of message turns in the (post-collapse) conversation.",
+            "description": "Total number of message turns in the (post-collapse) conversation. 0 when the caller did not take part in it.",
             "example": 12
           },
           "createdAt": {
@@ -27266,7 +27266,7 @@
             "example": "2026-05-01T11:00:00.000Z"
           },
           "toolsUsed": {
-            "description": "Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested.",
+            "description": "Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested and the caller took part in the conversation.",
             "example": [
               "sql_runner"
             ],
@@ -27284,6 +27284,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "ownedByCaller": {
+            "type": "boolean",
+            "description": "Whether the caller took part in this conversation. Only a participant can open, rename or download files from a conversation; for any other row the list carries only who took part and when.",
+            "example": true
           }
         },
         "required": [
