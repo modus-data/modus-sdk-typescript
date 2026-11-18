@@ -4887,7 +4887,7 @@ export interface components {
          * @description Kind of tool this row exposes.
          * @enum {string}
          */
-        McpExposureFamily: "integration_actions" | "custom_mcp" | "mcp_server" | "tool";
+        McpExposureFamily: "integration_actions" | "custom_mcp" | "mcp_server" | "tool" | "personal";
         McpToolExposureConfigDto: {
             /**
              * @description Exposure format. Always 1.

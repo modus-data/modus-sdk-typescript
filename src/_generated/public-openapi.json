@@ -30885,7 +30885,8 @@
           "integration_actions",
           "custom_mcp",
           "mcp_server",
-          "tool"
+          "tool",
+          "personal"
         ],
         "description": "Kind of tool this row exposes."
       },
