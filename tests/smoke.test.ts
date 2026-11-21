@@ -36,7 +36,7 @@ describe('@getmodus/sdk scaffold', () => {
   })
 
   it('generates operation registry for all public ops', () => {
-    expect(Object.keys(OPERATIONS).length).toBe(128)
+    expect(Object.keys(OPERATIONS).length).toBe(129)
     expect(OPERATIONS.ScopesController_applySelectionOps).toMatchObject({
       method: 'POST',
       path: '/api/v1/scopes/{id}/applySelectionOps',

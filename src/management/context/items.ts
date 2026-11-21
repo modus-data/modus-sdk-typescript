@@ -4,6 +4,7 @@ import type { HttpClient } from '../../_http.js'
 import { updateBody, updateMaskQuery } from '../../_query.js'
 import { aipListParams, buildAipPage, type Page } from '../../_pagination.js'
 import { asRecord, invokeWithRetry } from '../../_request.js'
+import { ValidationError } from '../../_exceptions.js'
 import { validatePageSize } from '../../_validation.js'
 import type {
   ContextItem,
@@ -41,6 +42,15 @@ type ListContextItemsFilters = {
   parentUids?: readonly string[]
   ancestorUids?: readonly string[]
   connectionIds?: readonly string[]
+}
+
+/** The move request body; a caller sending both destinations gets an error instead of one being dropped. */
+function moveBody(options: { destinationFolderUid?: string | null; destinationFolderPath?: string }): Record<string, unknown> {
+  if (options.destinationFolderPath === undefined) return { destinationFolderUid: options.destinationFolderUid }
+  if (options.destinationFolderUid !== undefined) {
+    throw new ValidationError('Pass destinationFolderUid or destinationFolderPath, not both')
+  }
+  return { destinationFolderPath: options.destinationFolderPath }
 }
 
 function parseContextItem(raw: unknown): ContextItem {
@@ -183,13 +193,15 @@ export class ManagementContextItemsResource {
   /**
    * Move a live file or Files folder.
    *
-   * Pass `destinationFolderUid: null` to move to the Files root. The
-   * destination folder must already exist. Same-parent moves succeed as a
-   * no-op. Does not rename or merge folders.
+   * Pass exactly one destination: `destinationFolderUid` (an existing folder,
+   * or `null` for the Files root), or `destinationFolderPath` (a root-relative
+   * path such as `reports/2026`; missing folders on it are created with the
+   * move). Same-parent moves succeed as a no-op. Does not rename or merge folders.
    *
    * @param uid - Stored context-item uid of the file or folder to move.
    * @param options.destinationFolderUid - Stored context-item uid of the
    *   destination folder, or `null` for the Files root.
+   * @param options.destinationFolderPath - Root-relative destination folder path.
    * @returns How many items changed parent (`0` is a successful no-op).
    * @throws {NotFoundError} The source is missing or not visible.
    * @throws {ModusError} The destination is missing, not a Files folder, or
@@ -208,7 +220,9 @@ export class ManagementContextItemsResource {
    */
   async move(
     uid: string,
-    options: { destinationFolderUid: string | null },
+    options:
+      | { destinationFolderUid: string | null; destinationFolderPath?: never }
+      | { destinationFolderPath: string; destinationFolderUid?: never },
   ): Promise<ContextItemMove> {
     const data = await invokeWithRetry(
       this.config,
@@ -216,7 +230,7 @@ export class ManagementContextItemsResource {
       'ContextItemsController_move' as OperationId,
       {
         pathParams: { uid },
-        jsonBody: { destinationFolderUid: options.destinationFolderUid },
+        jsonBody: moveBody(options),
       },
     )
     return data as ContextItemMove

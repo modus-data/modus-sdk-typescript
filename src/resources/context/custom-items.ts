@@ -61,7 +61,7 @@ export interface CustomContextItemRelationInput {
   fromUid: string
   toUid: string
   relationType: string
-  content?: Record<string, unknown>
+  edgeProperties?: Record<string, string | number | boolean | Array<string | number | boolean>>
 }
 
 export interface CreatedCustomContextItem {
@@ -81,6 +81,38 @@ export interface CreatedCustomContextItem {
 export interface CustomContextItemDeletion {
   uid: string
   contextType: string
+}
+
+export interface BatchDeleteCustomContextItemsInput {
+  /** Customer-defined source to delete from. Required. */
+  sourceId: string
+  /** Narrow to one collection inside the source. */
+  collectionId?: string
+  /** Narrow to one entity inside the collection. Requires `collectionId`. */
+  externalId?: string
+  /**
+   * Which kind to delete at the selected path, for a non-cascade delete — an
+   * entity and its `entity_samples` share a path, so this disambiguates them.
+   * Defaults to the metadata item at the selected level. Ignored when `cascade`.
+   */
+  kind?: CustomContextItemKind
+  /** When true, also delete everything beneath the targeted node; default deletes only the targeted node. */
+  cascade?: boolean
+  /** Continuation cursor from a previous response `nextCursor`. */
+  cursor?: string
+}
+
+export interface BatchDeleteCustomContextItemsResult {
+  /** Number of custom context items soft-deleted by this request. */
+  deletedCount: number
+  /** True when more matching items were ahead of this batch; call again with `nextCursor`. */
+  truncated: boolean
+  /**
+   * Continuation cursor; pass as `cursor` to delete the next batch. `null` means no more matching
+   * items were ahead at scan time — this is a forward pass, not a snapshot, so items added (or
+   * recreated with a lower id) during the sweep may be missed; run a fresh pass (no cursor) to catch them.
+   */
+  nextCursor: string | null
 }
 
 function parseContextItem(raw: unknown): ContextItem {
@@ -150,11 +182,14 @@ export class CustomContextItemsResource {
    * @param options.pageToken - Opaque token from a previous page.
    * @param options.searchQuery - Word search: returns rows that contain every word of the query, case-insensitive.
    * @param options.topics - Filter to items tagged with any of these topics.
+   * @param options.sourceId - Restrict to one customer-defined source and everything beneath it.
+   * @param options.collectionId - Restrict to one collection inside the source. Requires `sourceId`.
+   * @param options.externalId - Restrict to one entity inside the collection. Requires `sourceId` and `collectionId`.
    * @returns A page of custom context items.
    * @example
    * ```ts
    * const client = new Modus()
-   * const page = await client.context.customItems.list({ pageSize: 25 })
+   * const page = await client.context.customItems.list({ sourceId: 'billing-db' })
    * for (const item of page.items) console.log(item.uid, item.contextType)
    * ```
    */
@@ -163,6 +198,9 @@ export class CustomContextItemsResource {
     pageToken?: string
     searchQuery?: string
     topics?: string[]
+    sourceId?: string
+    collectionId?: string
+    externalId?: string
   } = {}): Promise<Page<ContextItem>> {
     const pageSize = options.pageSize ?? 25
     validatePageSize(pageSize)
@@ -172,13 +210,22 @@ export class CustomContextItemsResource {
   private async listPage(
     pageSize: number,
     pageToken: string | undefined,
-    options: { searchQuery?: string; topics?: string[] },
+    options: {
+      searchQuery?: string
+      topics?: string[]
+      sourceId?: string
+      collectionId?: string
+      externalId?: string
+    },
   ): Promise<Page<ContextItem>> {
     const data = asRecord(
       await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_list', {
         query: aipListParams(pageSize, pageToken, {
           searchQuery: options.searchQuery,
           topics: options.topics,
+          sourceId: options.sourceId,
+          collectionId: options.collectionId,
+          externalId: options.externalId,
         }) as Record<string, string | number | boolean | readonly string[] | undefined | null>,
       }),
     )
@@ -283,7 +330,7 @@ export class CustomContextItemsResource {
   /**
    * Create or update typed relations between context items.
    *
-   * @param relations - Relations with source and target item uids, a snake_case type, and optional content.
+   * @param relations - Relations with source and target item uids, a snake_case type, and optional flat edgeProperties. Omitting edgeProperties on an existing relation replaces its stored properties with `{}`.
    * @returns Number of relations created or updated.
    * @example
    * ```ts
@@ -292,6 +339,7 @@ export class CustomContextItemsResource {
    *   fromUid: 'SOURCE_UID',
    *   toUid: 'TARGET_UID',
    *   relationType: 'depends_on',
+   *   edgeProperties: { source_file: 'go.mod' },
    * }])
    * ```
    */
@@ -347,5 +395,39 @@ export class CustomContextItemsResource {
         pathParams: { uid },
       }),
     )
+  }
+
+  /**
+   * Delete custom context items selected by source key.
+   *
+   * Only items you can manage are deleted, and integration-derived context items
+   * are never affected. By default only the targeted node is removed; set
+   * `cascade` to also remove everything beneath it. Processes up to 1000 items
+   * per call — when `truncated` is true, call again to continue.
+   *
+   * @param input.sourceId - Source to delete from. Required.
+   * @param input.collectionId - Narrow to one collection inside the source.
+   * @param input.externalId - Narrow to one entity inside the collection.
+   * @param input.cascade - Also delete everything beneath the targeted node.
+   * @returns Counts of deleted and skipped items, and whether more remain.
+   * @example
+   * ```ts
+   * const client = new Modus()
+   * const result = await client.context.customItems.batchDelete({
+   *   sourceId: 'billing-db',
+   *   collectionId: 'contracts',
+   *   cascade: true,
+   * })
+   * console.log(result.deletedCount, result.truncated)
+   * ```
+   */
+  async batchDelete(
+    input: BatchDeleteCustomContextItemsInput,
+  ): Promise<BatchDeleteCustomContextItemsResult> {
+    return asRecord(
+      await invokeWithRetry(this.config, this.http, 'CustomContextItemsController_batchDelete', {
+        jsonBody: omitUndefined(input as unknown as Record<string, unknown>),
+      }),
+    ) as unknown as BatchDeleteCustomContextItemsResult
   }
 }

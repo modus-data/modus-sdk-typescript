@@ -1,7 +1,7 @@
 import { WorkflowsResourceBase } from '../_generated/resources/consumption/workflows.js'
 import type { ModusConfig } from '../_config.js'
 import type { HttpClient } from '../_http.js'
-import { startChat, type ChatOptions, type ChatSession } from '../_chat.js'
+import { startChat, type ChatSession, type WorkflowChatOptions } from '../_chat.js'
 import { invokeWithRetry } from '../_request.js'
 import { validateId } from '../_validation.js'
 import type { Workflow } from '../types/workflows.js'
@@ -78,26 +78,25 @@ export class WorkflowsResource extends WorkflowsResourceBase {
   }
 
   /**
-   * Chat with a published workflow. Node output streams live from the agent
+   * Run a published workflow and stream its node output live from the agent
    * host: iterate `textStream()` for tokens, or `await` the result for the
-   * workflow's final output.
+   * workflow's final output. Call it with no message to trigger a run with no input.
    *
    * @param workflowId - Numeric workflow id.
-   * @param message - User message text.
-   * @param options.model - Required model id (e.g. `"claude-sonnet-5.5"`).
+   * @param message - The run's input; omit it for a run with no input.
    * @param options.threadId - Continue an existing conversation; omit to start new.
+   * @param options.model - Deprecated and ignored: each step uses the model set in the workflow.
    * @returns A chat session — iterate it or `await` it for `content`, `threadId`, `runId`.
    * @throws {ModusError} When no agent host is known for a custom `baseUrl`.
    *
    * @example
    * ```ts
-   * const { content } = await client.workflows.chat(workflowId, 'Run this week\'s digest', {
-   *   model: 'claude-sonnet-5.5',
-   * })
-   * console.log(content)
+   * const { content } = await client.workflows.chat(workflowId)
+   * const digest = await client.workflows.chat(workflowId, "Run this week's digest")
+   * console.log(content, digest.content)
    * ```
    */
-  chat(workflowId: number | string, message: string, options: ChatOptions): ChatSession {
+  chat(workflowId: number | string, message = '', options: WorkflowChatOptions = {}): ChatSession {
     return startChat(this.http, this.config, { kind: 'workflows', id: workflowId }, message, options)
   }
 }

@@ -9,14 +9,56 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+### Removed
+
+- **MAJOR:** Custom context item relations no longer accept `content`. Use `edgeProperties` (`edge_properties` in Python) for a flat map of primitives or primitive arrays; omitting it replaces the map with `{}`.
+
+### Added
+
+- **Personal tools in a toolset.** `PlatformToolsetEntry.personal` (`{ actions, rules? }`, beside `byConnection`) grants actions on the personal connection of whoever runs the skill. A runner who has not connected the platform is asked to connect it in chat, or gets a tool error elsewhere; nobody else's connection is used. Only platforms people connect personally (Gmail, Google Calendar, Google Drive and others) take it.
+- **`personal` MCP exposure family.** `McpExposureFamily` includes `personal`: the MCP exposure catalog lists a platform's personal grant as one row (`toolset_personal:<platform>`, with `toolset_action:<platform>:personal:<action>` per tool) that runs on the own personal connection of whoever calls it.
+- **`email` run source.** `RunSource` and `SupplementalContextSource` include `email`, for runs started by an email sent to a workflow's address; the conversation list's `source` filter accepts it. Only the email trigger records it: an API-token run asking for it still records its server-owned source (`api`, or `modus_api` for Modus runs), and `supplementalContext.source: 'email'` is refused with 400.
+- **`attachments` and `origin` on a workflow run.** `workflows.runs.get()` (the run detail) includes `attachments`, the files the run was started with by name, with MIME type and size when known (a file the trigger left out carries `skipped.reason`, `too_large` or `too_many`), and `origin`, where the run came from (`source`, such as `api` or `schedule`; `unknown` for a run that did not record it). An email-started run will also carry `from`, `fromName` and `subject` when the email has them. Both fields can be absent on responses from older servers. File contents are not returned.
+- **`includeOrgLearnings` on `scopes.create`.** The org-wide learnings path is added to a new scope's selections unless `includeOrgLearnings: false`, or `contextSelections` already mention learnings or are context filters without a rule-based query; the scope reads the entries the caller can see. They are a learnings path in the scope's context selections (`auto_generated:org`), so they can be removed or added later like the scope's own learnings; `includeOrgLearnings: false` only skips adding the path, and selections that already name it still read them.
+- **Move into a folder path.** `mgmt.context.items.move(uid, { destinationFolderPath })` moves a file or folder to a root-relative path such as `reports/2026`; missing folders on the path are created with the move, and existing ones are reused. `{ destinationFolderUid }` is unchanged.
+- Context item access updates now support organization learnings, with the same user and group sharing controls as notes.
+
+### Changed
+
+- **`workflows.chat()` runs a workflow without a message or a model.** `message` defaults to `''` and `options` is optional, so `await client.workflows.chat(workflowId)` triggers a run with no input, like Run Now in the app. `workflows.runs.create()` accepts a body without `message` or `sessionId` too.
+- A scope save that adds a personal connection's UUID to `<platform>.byConnection`, or adds actions to one stored there, is refused with 422 (`UnprocessableError`, rule `toolset.personal_connection`); grant it with `personal` instead. Sending a stored entry back unchanged, or with fewer actions, still saves.
+- **Changed:** a workflow created without `accessConfig` (`workflows.create()`) is now private, with no group grants and no invitees; its creator can share it later. Pass an `accessConfig` with `visibility: 'shared'` for the previous behaviour. A service account token that omits it still creates the workflow shared with the whole organization. Existing workflows are unchanged.
+- **Changed:** an unfiltered scope conversation list (or one filtered by user or timeframe) now includes conversations you did not take part in, but such a conversation carries only who took part and when: an empty first message, a null title and source, a message count of 0 and no tools. Each item has a new optional `ownedByCaller` that says whether you took part. Getting such a conversation, its files, or renaming it now fails with 404, whatever your role. A `toolName` or `source` filter matches only conversations you took part in, and combining either with another member's user id fails with 400.
+- Custom context relation documentation lists reserved system names (`contains`, `reads`, `joins_with`, `has_context`, `has_feedback`, `filters_by`, `context_relation`) and explains that dotted names are reserved.
+
+### Deprecated
+
+- **`model` on `workflows.chat()`** (`WorkflowChatOptions.model`). A workflow's steps run with the models set in the workflow, so the option was never used; it is no longer sent. The `config`, `fileThreadId`, `debug`, `experimentalFeatures` and `streamProtocolVersion` fields of a workflow run body are deprecated for the same reason: the server accepts and ignores them.
+
+### Removed
+
+- **Breaking (pre-1.0): a scope read returns one `connectionSet` entry per connection.** `variation.connectionSet` is `{ connection_id: string; preferences?: Record<string, unknown> }[]`: `path` (one row per included path) and `context_enabled` are removed, so a connection appears once, with its `preferences`. `preferences` is absent only on the entry of a deleted connection, whose `connection_id` is a placeholder and which grants nothing. An entry with `preferences` can be sent back unchanged in `scopes.update()`; drop one without `preferences` first, or the write fails with 400 `legacy_entry`. Migration: read what a connection selects from its `preferences` instead of `path`.
+- **Breaking (pre-1.0): `context_enabled` and `contextEnabled` are removed from scope writes.** A `connectionSet` entry in `scopes.create()` and `scopes.update()` is `{ connection_id, preferences }`, and a `setConnectionPreferences` op in `applySelectionOps()` is `{ op, connectionId, preferences }`. A scope reads context from every connection it lists. Sending `false` fails with 400 (`info.reason` `legacy_entry` on a `connectionSet` entry); `true` is ignored.
+
+## [0.11.0] — 2026-11-14
+
 ### Added
 
 - **`model` on a conversation.** Conversation reads include `model` (`string | null`), the identifier of the model the conversation's most recent turn ran on. `null` when no turn recorded a model; absent when it could not be read.
 - **`context.items.query({ sql, maxRows? })`.** Runs one read-only SQL statement over the `context_items` table and returns `{ rows, rowCount, truncated }`. The query sees only the items you can read. At most 1,000 rows come back (`maxRows` lowers it); `truncated` says when there were more. A query that is not read-only or not valid fails with 400, and one that runs past 20 s with 422. Off by default per organization; ask Modus to enable it. `ContextItemsQuery` and `ContextItemsQueryResult` import from `@getmodus/sdk`.
+
+### Removed
+
+- **Breaking (pre-1.0): scope writes send a connection's selection only as `preferences`.** Each `connectionSet` entry `scopes.create()` and `scopes.update()` send is `{ connection_id, preferences, context_enabled? }`: `path` is removed from the request and `preferences` is required. An entry with `path` or without `preferences` is rejected with 400 and `info.reason` `legacy_entry`. `applySelectionOps()` no longer takes `selectRoot`, `deselectRoot` or `setRootDeepRules`, nor their `path`, `includes` and `excludes` fields: set a connection with `setConnectionPreferences` and remove it with the new `removeConnection`. Reads still return one row per included path, with `path`, so turn a read into one entry per connection before you write it back.
+
+## [0.10.0] — 2026-11-08
+
+### Added
+
 - **`generatedDescription` on a scope.** Scope reads include `generatedDescription` (`string | null`), the summary written for the scope so a caller can choose it. Null when none has been written.
 - **Breaking (pre-1.0): `SupervisionView`.** `mgmt.scopes.supervision(id).get({ view })` takes `SupervisionView` (`'active' | 'draft'`). `published` is not a supervision view. `VariationView` now also allows `'published'`, so a value typed as `VariationView` no longer type-checks there. Migration: type it as `SupervisionView`. Runtime values are unchanged.
 - **`view: 'published'` on scope and workflow list and get.** Returns the published version you can use. A scope or workflow that is only a draft, deleted, or that you can manage but not use is left out. For workflows it is also type workflow only; a task is left out. `active` and `draft` are unchanged.
-- **`scopes.applySelectionOps()`.** Apply selection changes to a scope. Pass `{ validateOnly: true }` to run the same checks and return the scope that would be saved, without writing. A preview result carries `validateOnly: true`; a committed one does not, and every other field keeps its stored value, so a preview still needs a second call to save. Set a connection with `setConnectionPreferences` and remove it with `removeConnection`.
+- **`scopes.applySelectionOps()`.** Apply selection changes to a scope. Pass `{ validateOnly: true }` to run the same checks and return the scope that would be saved, without writing. A preview result carries `validateOnly: true`; a committed one does not, and every other field keeps its stored value, so a preview still needs a second call to save. Send `setConnectionPreferences`. `selectRoot`, `deselectRoot`, and `setRootDeepRules` are deprecated.
 - **`claude-haiku-5.5` model.** Anthropic's Claude Haiku 5.5 is an accepted chat model id.
 - **`gemini-3.8-flash` model.** Google's generally available Gemini 3.8 Flash is an accepted chat
   model id.
@@ -55,7 +97,7 @@ release, including pre-1.0 (`0.x`) releases.
 - **A refused run raises before any event.** When the agent host refuses a run (an empty turn, a scope you cannot see, a conflicting `Idempotency-Key`, a full conversation queue), `runs.create*`, `runs.resume` and `workflowActions` streams now raise the typed error for the HTTP status (`NotFoundError`, `PermissionDeniedError`, `ConflictError`, `RateLimitError`, or `ModusError` with `statusCode` 400) with the server's `code` and message, instead of yielding one `error` event. No SDK code changed: the host now answers with the real status. An `error` event still ends a run that fails after it started.
 - **Evaluation types are now accurate (were `Record<string, never>`).** `EvaluationRun` `finishedAt` and `avgScore`, and the result fields `actualOutput`, `passed`, `score`, `reasoning` and `wasPassingBefore`, are `string | null`, `number | null` or `boolean | null`, so they no longer need a cast. An evaluation recipient's `name` is `string | null`, and `slackUserIdByRecipient` is a string-keyed map. `startedAt` and `finishedAt` are ISO 8601 strings (the server sent a JavaScript date string before).
 - **Run request types document the API-token rules.** `message` notes the 32,000-character limit the server holds API tokens to, and `config.model` lists the models an API token may send.
-- **Breaking (pre-1.0): scope `connectionSet` rows have one shape.** `scopes.create` and `scopes.update` accept each entry only as `{ connection_id, path, preferences?, context_enabled? }`, where `path` is an array of strings, `preferences` an object and `context_enabled` a boolean. An empty path selects the whole connection. Any other field, a non-string path segment or an empty or null `connection_id` is rejected with 400; a null `connectionSet` clears the list. `variation.connectionSet` is now `{ connection_id: string; path: string[]; preferences?: Record<string, unknown>; context_enabled?: boolean }` instead of `Record<string, unknown>[]`.
+- **Breaking (pre-1.0): scope `connectionSet` rows have one shape.** `scopes.create` and `scopes.update` accept each entry only as `{ connection_id, path?, preferences?, context_enabled? }`, where `path` is an array of strings, required unless `preferences` is sent and ignored when it is, `preferences` an object and `context_enabled` a boolean. An empty path selects the whole connection. Any other field, a non-string path segment or an empty or null `connection_id` is rejected with 400; a null `connectionSet` clears the list. `variation.connectionSet` is now `{ connection_id: string; path: string[]; preferences?: Record<string, unknown>; context_enabled?: boolean }` instead of `Record<string, unknown>[]`.
 - **Breaking (pre-1.0): workflow `guardrails` removed.** `workflows.create` and `workflows.update` no longer take `guardrails`. The workflow access configuration has no guardrails, so every call that set it failed with 400 and changed nothing. Scope `guardrails` are unchanged.
 - **Breaking (pre-1.0): `scopes.memories(id).update()` returns `Promise<void>`.** The server answers 204 with no body; the method returned `null` typed as `Memory`.
 - **Breaking (pre-1.0): `managerId` is `number | null`.** `scopes.update({ managerId })` takes the numeric id of the manager scope, or `null` to detach. It was typed `string`, which the server rejects with 400.
@@ -85,7 +127,6 @@ release, including pre-1.0 (`0.x`) releases.
 
 ### Removed
 
-- **Breaking (pre-1.0): scope writes send a connection's selection only as `preferences`.** Each `connectionSet` entry `scopes.create()` and `scopes.update()` send is `{ connection_id, preferences, context_enabled? }`: `path` is removed from the request and `preferences` is required. An entry with `path` or without `preferences` is rejected with 400 and `info.reason` `legacy_entry`. `applySelectionOps()` no longer takes `selectRoot`, `deselectRoot` or `setRootDeepRules`, nor their `path`, `includes` and `excludes` fields: set a connection with `setConnectionPreferences` and remove it with the new `removeConnection`. Reads still return one row per included path, with `path`, so turn a read into one entry per connection before you write it back.
 - **Breaking (pre-1.0): `chatStream()`, `ChatStream` and `ChatRequest`.** Use `chat()`, which streams. `getFinalResult()` is replaced by `await`ing the session.
 - **Breaking (pre-1.0): `version: 'draft'` on scope chat.** API tokens run published scopes only.
 

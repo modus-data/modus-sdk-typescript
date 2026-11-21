@@ -23,7 +23,7 @@ export {
 } from './_exceptions.js'
 
 export { ChatSession } from './_chat.js'
-export type { ChatOptions } from './_chat.js'
+export type { ChatOptions, WorkflowChatOptions } from './_chat.js'
 export { Page } from './_pagination.js'
 export type {
   AssistantContentResetEvent,
@@ -109,6 +109,8 @@ export type { ActiveConversationRun, ActiveConversationRunStatus } from './types
 export type { RunEventsPollResponse } from './types/agent-runs.js'
 export type { ContentProjection, JsonObjectInput } from './types/json-blob.js'
 export type {
+  BatchDeleteCustomContextItemsInput,
+  BatchDeleteCustomContextItemsResult,
   CreateCustomContextItemInput,
   CreatedCustomContextItem,
   CustomAttributeInput,

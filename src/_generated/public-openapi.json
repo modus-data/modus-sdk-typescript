@@ -49,7 +49,7 @@
     },
     {
       "name": "Workflows · Runs",
-      "description": "Inspect workflow run history."
+      "description": "Run a workflow, or inspect its run history."
     },
     {
       "name": "Workflows · Interfaces",
@@ -90,10 +90,6 @@
     {
       "name": "Scopes · Chat",
       "description": "Chat with a published scope."
-    },
-    {
-      "name": "Workflows · Chat",
-      "description": "Chat with a published workflow."
     },
     {
       "name": "Modus · Chat",
@@ -526,6 +522,36 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "name": "sourceId",
+            "required": false,
+            "in": "query",
+            "description": "Restrict to a single customer-defined source. Returns the source and everything beneath it.",
+            "schema": {
+              "example": "billing-db",
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionId",
+            "required": false,
+            "in": "query",
+            "description": "Restrict to a collection inside the source. Requires `sourceId`. Returns the collection and everything beneath it.",
+            "schema": {
+              "example": "contracts",
+              "type": "string"
+            }
+          },
+          {
+            "name": "externalId",
+            "required": false,
+            "in": "query",
+            "description": "Restrict to a single entity inside the collection. Requires `sourceId` and `collectionId`. Returns the entity and its fields.",
+            "schema": {
+              "example": "contract-123",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -593,6 +619,24 @@
                         "<required-scope>"
                       ]
                     }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "collectionId must not be blank.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                   }
                 }
               }
@@ -1131,6 +1175,215 @@
         ]
       }
     },
+    "/api/v1/context/custom-items/batchDelete": {
+      "post": {
+        "description": "Soft-deletes custom context items under `sourceId`, optionally narrowed by `collectionId` / `externalId`; integration items are never touched. Deletes only the targeted node unless `cascade`; `kind` picks entity or `entity_samples`. Up to 1000 items per call: when `truncated`, call again with `nextCursor`.\n\n**Requires:** `context:write`",
+        "operationId": "CustomContextItemsController_batchDelete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchDeleteCustomContextItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchDeleteCustomContextItemsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "BAD_REQUEST",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid value for query parameter `pageSize`.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token (`code: UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "UNAUTHORIZED",
+                    "status": "UNAUTHENTICATED",
+                    "message": "Missing or invalid access token.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.\n\nAlso returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "status": "PERMISSION_DENIED",
+                    "message": "Custom context item writes are not enabled",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The resource does not exist, or you do not have access to it (`code: NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "NOT_FOUND",
+                    "status": "NOT_FOUND",
+                    "message": "Resource not found.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "CONFLICT",
+                    "status": "ALREADY_EXISTS",
+                    "message": "A resource with that identifier already exists.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Request body exceeds the 1 MiB limit.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request was well-formed but failed a business rule (`code: VALIDATION`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION",
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Updates that would revoke your own access are not allowed.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Wait and retry later (`code: RATE_LIMITED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "RATE_LIMITED",
+                    "status": "RESOURCE_EXHAUSTED",
+                    "message": "Too many requests. Please retry after a short delay.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected server error occurred (`code: INTERNAL_ERROR`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "status": "INTERNAL",
+                    "message": "An unexpected error occurred.",
+                    "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete custom context items by source key",
+        "tags": [
+          "Context"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-required-scopes": [
+          "context:write"
+        ],
+        "x-modus-service": "modus-api",
+        "servers": [
+          {
+            "url": "https://api.getmodus.com"
+          }
+        ]
+      }
+    },
     "/api/v1/context/custom-items/relations": {
       "post": {
         "description": "Creates or updates typed relations between context items. Both endpoints must be visible context items in your organization (custom or integration-mined). Idempotent by (fromUid, toUid, relationType).\n\n**Requires:** `context:write`",
@@ -1151,7 +1404,7 @@
                         "fromUid": "00000000-0000-4000-a000-000000000abc",
                         "toUid": "00000000-0000-4000-a000-000000000def",
                         "relationType": "depends_on",
-                        "content": {
+                        "edgeProperties": {
                           "version": "v1.1.8",
                           "source": "go.mod"
                         }
@@ -8981,7 +9234,7 @@
     },
     "/api/v1/context/items/{uid}/access": {
       "patch": {
-        "description": "Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.\n\n**Requires:** `context:write`",
+        "description": "Replaces who can view and manage a note, saved query, link, uploaded file or organization learning. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.\n\n**Requires:** `context:write`",
         "operationId": "ContextItemAccessController_updateAccess",
         "parameters": [
           {
@@ -9232,7 +9485,7 @@
     },
     "/api/v1/context/items/{uid}/move": {
       "post": {
-        "description": "Moves a live file or Files folder to an existing folder, or to the Files root when destinationFolderUid is null. Same-parent moves succeed as a no-op. Does not rename or merge folders.\n\n**Requires:** `context:write`",
+        "description": "Moves a live file or Files folder to an existing folder by destinationFolderUid (null is the Files root), or to destinationFolderPath, creating missing folders. Same-parent moves are a no-op. Does not rename or merge folders.\n\n**Requires:** `context:write`",
         "operationId": "ContextItemsController_move",
         "parameters": [
           {
@@ -9262,6 +9515,11 @@
                 "toRoot": {
                   "value": {
                     "destinationFolderUid": null
+                  }
+                },
+                "intoNewFolderPath": {
+                  "value": {
+                    "destinationFolderPath": "reports/2026"
                   }
                 }
               }
@@ -10833,7 +11091,7 @@
             "name": "toolName",
             "required": false,
             "in": "query",
-            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools.",
+            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "sql_runner",
               "type": "string"
@@ -10843,7 +11101,7 @@
             "name": "source",
             "required": false,
             "in": "query",
-            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`.",
+            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "context_chat",
               "type": "string",
@@ -10861,6 +11119,7 @@
                 "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
+                "email",
                 "other"
               ]
             }
@@ -11408,7 +11667,7 @@
         ]
       },
       "post": {
-        "description": "Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).\n\n**Requires:** `scopes:write`",
+        "description": "Creates a draft scope you own (org-shared use/manage), with own and org-wide learnings unless `includeOwnLearnings`/`includeOrgLearnings` is false or the selections name learnings or are context filters without a rule-based query. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).\n\n**Requires:** `scopes:write`",
         "operationId": "ScopesController_create",
         "parameters": [],
         "requestBody": {
@@ -12303,8 +12562,7 @@
                             }
                           ],
                           "exclude": []
-                        },
-                        "contextEnabled": true
+                        }
                       }
                     ]
                   }
@@ -12336,8 +12594,7 @@
                             }
                           ],
                           "exclude": []
-                        },
-                        "contextEnabled": true
+                        }
                       }
                     ]
                   }
@@ -12787,7 +13044,7 @@
     },
     "/api/v1/scopes/{id}/conversations": {
       "get": {
-        "description": "Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. Pass `nextPageToken` as `pageToken` to fetch the next page.\n\n**Requires:** `scopes:read`",
+        "description": "Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. A conversation you took no part in shows only who took part and when. Pass `nextPageToken` as `pageToken` for the next page.\n\n**Requires:** `scopes:read`",
         "operationId": "ScopeConversationsController_list",
         "parameters": [
           {
@@ -12848,7 +13105,7 @@
             "name": "toolName",
             "required": false,
             "in": "query",
-            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools.",
+            "description": "Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "sql_runner",
               "type": "string"
@@ -12858,7 +13115,7 @@
             "name": "source",
             "required": false,
             "in": "query",
-            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`.",
+            "description": "Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there.",
             "schema": {
               "example": "context_chat",
               "type": "string",
@@ -12876,6 +13133,7 @@
                 "context_suggestions",
                 "dashboard_copilot",
                 "dashboard_assistant",
+                "email",
                 "other"
               ]
             }
@@ -13066,7 +13324,7 @@
     },
     "/api/v1/scopes/{id}/conversations/{threadId}": {
       "get": {
-        "description": "Returns conversation messages in chronological order. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.\n\n**Requires:** `scopes:read`",
+        "description": "Returns conversation messages in chronological order. Only a participant can read a conversation; anyone else gets 404. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.\n\n**Requires:** `scopes:read`",
         "operationId": "ScopeConversationsController_get",
         "parameters": [
           {
@@ -25523,7 +25781,7 @@
     },
     "/agent/v1/workflows/{id}/runs": {
       "post": {
-        "description": "Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.\n\n**Requires:** `workflows:invoke`",
+        "description": "Triggers a run of the published workflow and streams its node output as Server-Sent Events. An empty body runs it with no input; send `message` to give it one. The run ends with `workflow_done`, whose `finalOutput` is the result. To continue a conversation, send your own `sessionId` and reuse it. Send Accept: application/json to poll instead of streaming.\n\n**Requires:** `workflows:invoke`",
         "operationId": "WorkflowRunsController_create",
         "parameters": [
           {
@@ -25638,9 +25896,9 @@
             }
           }
         },
-        "summary": "Chat with a workflow",
+        "summary": "Run a workflow",
         "tags": [
-          "Workflows · Chat"
+          "Workflows · Runs"
         ],
         "security": [
           {
@@ -26122,7 +26380,7 @@
         "type": "object",
         "properties": {
           "trigger": {
-            "description": "`trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved.",
+            "description": "`trigger_type` is `schedule`, `webhook`, `api`, `slack`, `email`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved.",
             "nullable": true,
             "type": "object",
             "allOf": [
@@ -26262,7 +26520,7 @@
           },
           "triggerType": {
             "type": "string",
-            "description": "Trigger type for the run (schedule / webhook / api / slack / manual)."
+            "description": "What started this run: `schedule`, `email`, `api`, `manual`, or the chat channel it came from. A run that did not record it shows the Workflow's current trigger type."
           },
           "startedAt": {
             "type": "string",
@@ -26307,7 +26565,7 @@
         "type": "object",
         "properties": {
           "relations": {
-            "description": "Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending updates content.",
+            "description": "Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending replaces edgeProperties.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateCustomContextItemRelationDto"
@@ -26359,6 +26617,73 @@
         },
         "required": [
           "contextItems"
+        ]
+      },
+      "BatchDeleteCustomContextItemsDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "description": "Customer-defined source to delete from. Required — a batch delete is always scoped to one source.",
+            "example": "billing-db"
+          },
+          "collectionId": {
+            "type": "string",
+            "description": "Narrow to one collection inside the source. Omit to target the whole source.",
+            "example": "contracts"
+          },
+          "externalId": {
+            "type": "string",
+            "description": "Narrow to one entity inside the collection. Requires `collectionId`.",
+            "example": "contract-123"
+          },
+          "kind": {
+            "description": "Which kind of item to delete at the selected path, for a non-cascade delete. An entity and its `entity_samples` share a path, so this disambiguates them. Defaults to the metadata item at the selected level (`source`/`collection`/`entity`). Must match the selector depth. Ignored when `cascade` is true.",
+            "example": "entity",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomContextItemKind"
+              }
+            ]
+          },
+          "cascade": {
+            "type": "boolean",
+            "default": false,
+            "description": "When `true`, also delete everything beneath the targeted node (its descendants). When `false` (default), delete only the targeted node itself, leaving descendants in place."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Continuation cursor from a previous response `nextCursor`. Pass it to delete the next batch when a prior call was truncated."
+          }
+        },
+        "required": [
+          "sourceId"
+        ]
+      },
+      "BatchDeleteCustomContextItemsResponseDto": {
+        "type": "object",
+        "properties": {
+          "deletedCount": {
+            "type": "integer",
+            "description": "Number of custom context items soft-deleted by this request.",
+            "example": 8
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "True when more matching items were ahead of this batch; call again with `nextCursor` to continue the sweep.",
+            "example": false
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Continuation cursor; pass as `cursor` to delete the next batch. `null` means no more matching items were ahead of the cursor at scan time. This is a forward pass, not a snapshot: items added, or recreated with a lower id, during the sweep are not guaranteed to be included — run a fresh pass (no cursor) to catch them.",
+            "example": null
+          }
+        },
+        "required": [
+          "deletedCount",
+          "truncated",
+          "nextCursor"
         ]
       },
       "BulkFinalizeDto": {
@@ -26789,11 +27114,6 @@
                 }
               ]
             }
-          },
-          "context_enabled": {
-            "type": "boolean",
-            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.",
-            "deprecated": true
           }
         },
         "required": [
@@ -26809,18 +27129,9 @@
             "description": "Id of the connection.",
             "example": "11111111-1111-4111-8111-111111111111"
           },
-          "path": {
-            "description": "Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.",
-            "deprecated": true,
-            "example": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "preferences": {
             "type": "object",
-            "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.",
+            "description": "What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: \"id\", id}` from the connection down. Absent only on the entry of a deleted connection, whose `connection_id` is a placeholder (`00000000-0000-0000-0000-…`) and which grants nothing.",
             "additionalProperties": true,
             "example": {
               "mode": "manual",
@@ -26852,16 +27163,10 @@
                 }
               ]
             }
-          },
-          "context_enabled": {
-            "type": "boolean",
-            "description": "Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.",
-            "deprecated": true
           }
         },
         "required": [
-          "connection_id",
-          "path"
+          "connection_id"
         ]
       },
       "ContentProjectionDto": {
@@ -27250,24 +27555,24 @@
           },
           "firstMessage": {
             "type": "string",
-            "description": "Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet.",
+            "description": "Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet. Empty when the caller did not take part in the conversation.",
             "example": "Run the churn analysis for last 30 days."
           },
           "title": {
             "type": "string",
             "nullable": true,
-            "description": "User-managed display title. Null until the user renames the conversation.",
+            "description": "User-managed display title. Null until the user renames the conversation, and null when the caller did not take part in it.",
             "example": "Q3 Revenue Analysis"
           },
           "source": {
             "type": "string",
             "nullable": true,
-            "description": "UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown, absent on responses that predate the field.",
+            "description": "UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown or when the caller did not take part in the conversation, absent on responses that predate the field.",
             "example": "context_chat"
           },
           "messageCount": {
             "type": "integer",
-            "description": "Total number of message turns in the (post-collapse) conversation.",
+            "description": "Total number of message turns in the (post-collapse) conversation. 0 when the caller did not take part in it.",
             "example": 12
           },
           "createdAt": {
@@ -27281,7 +27586,7 @@
             "example": "2026-05-01T11:00:00.000Z"
           },
           "toolsUsed": {
-            "description": "Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested.",
+            "description": "Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested and the caller took part in the conversation.",
             "example": [
               "sql_runner"
             ],
@@ -27299,6 +27604,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "ownedByCaller": {
+            "type": "boolean",
+            "description": "Whether the caller took part in this conversation. Only a participant can open, rename or download files from a conversation; for any other row the list carries only who took part and when.",
+            "example": true
           }
         },
         "required": [
@@ -27445,7 +27755,7 @@
             ]
           },
           "accessConfig": {
-            "description": "Access configuration. Omit to use the default (full-org shared with use + manage).",
+            "description": "Access configuration. Omit to create the workflow private, with no group grants and no invitees; its creator can share it later. A service account token that omits it creates the workflow shared with the whole organization (use + manage), since it has no owner.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentAccessConfigDto"
@@ -27595,13 +27905,46 @@
           },
           "relationType": {
             "type": "string",
-            "description": "Snake_case relation type describing how the source relates to the target.",
+            "description": "Snake_case relation type describing how the source relates to the target. Reserved system types cannot be used: contains, reads, joins_with, has_context, has_feedback, filters_by, context_relation. Dotted names are also reserved.",
             "example": "depends_on"
           },
-          "content": {
+          "edgeProperties": {
             "type": "object",
-            "description": "Optional structured payload stored on the relation edge.",
-            "additionalProperties": true
+            "description": "Edge properties, replacing the previous map. Up to 100 keys matching ^[A-Za-z_][A-Za-z0-9_]{0,63}$ and 65536 UTF-8 JSON bytes; fromContextItemUid, toContextItemUid, relationType, createdAt and updatedAt are reserved. Values are strings, finite numbers, booleans, or arrays of those. Omission writes an empty map.",
+            "maxProperties": 100,
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "example": {
+              "version": "v1.1.8",
+              "source": "go.mod"
+            }
           }
         },
         "required": [
@@ -27866,7 +28209,7 @@
           "toolset": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.",
+            "description": "Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. A platform people connect personally also takes `<platform>.personal = { actions, rules? }`, which runs on each runner’s own personal connection; a save that newly adds a personal connection's UUID to `byConnection` (or grants it new actions there) is rejected with HTTP 422. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.",
             "example": {
               "slack": {
                 "byConnection": {
@@ -27926,7 +28269,7 @@
           },
           "contextSelections": {
             "type": "array",
-            "description": "Selected context items (sources / docs) the scope may read. The scope's own learnings are added unless `includeOwnLearnings` is false or these selections already mention learnings.",
+            "description": "Selected context items (sources / docs) the scope may read. The scope's own learnings and the org-wide learnings are added, each unless its include flag is false, when these selections neither mention learnings already nor are context filters without a rule-based query.",
             "items": {
               "type": "object",
               "additionalProperties": true
@@ -27936,6 +28279,11 @@
           "includeOwnLearnings": {
             "type": "boolean",
             "description": "Whether the scope reads what is taught while using it: learnings, facts, glossary terms and preferences. Defaults to true. Set false to create the scope without them; it can be included later in the scope's context selections.",
+            "default": true
+          },
+          "includeOrgLearnings": {
+            "type": "boolean",
+            "description": "Whether create adds the org-wide learnings path (`auto_generated:org`, what the organization taught Modus) to the scope's selections. Defaults to true, skipped when `contextSelections` already mention learnings or are context filters without a rule-based query; false only skips the addition, so selections naming the path still read it.",
             "default": true
           },
           "interfaces": {
@@ -29896,7 +30244,7 @@
           },
           "triggerType": {
             "type": "string",
-            "description": "Trigger type for the run (schedule / webhook / api / slack / manual)."
+            "description": "What started this run: `schedule`, `email`, `api`, `manual`, or the chat channel it came from."
           },
           "startedAt": {
             "type": "string",
@@ -29947,6 +30295,21 @@
           "historyUnavailableReason": {
             "type": "string",
             "description": "Set when history was unavailable; `source` will be `live-query` in that case."
+          },
+          "attachments": {
+            "description": "Files the run was started with, and files its trigger left out. Empty when there were none.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowRunAttachmentDto"
+            }
+          },
+          "origin": {
+            "description": "Where the run came from.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRunOriginDto"
+              }
+            ]
           }
         },
         "required": [
@@ -30842,7 +31205,8 @@
           "integration_actions",
           "custom_mcp",
           "mcp_server",
-          "tool"
+          "tool",
+          "personal"
         ],
         "description": "Kind of tool this row exposes."
       },
@@ -31088,13 +31452,15 @@
           "destinationFolderUid": {
             "type": "string",
             "nullable": true,
-            "description": "Stored context-item uid of an existing Files folder, or null to move to the Files root. The destination must already exist. Move does not rename or merge folders.",
+            "description": "Stored context-item uid of an existing Files folder, or null to move to the Files root. Send this or destinationFolderPath, not both.",
             "example": null
+          },
+          "destinationFolderPath": {
+            "type": "string",
+            "description": "Root-relative destination folder path (for example `reports/2026`). Folders missing on the path are created; existing ones are reused. Send this or destinationFolderUid, not both.",
+            "example": "reports/2026"
           }
-        },
-        "required": [
-          "destinationFolderUid"
-        ]
+        }
       },
       "MoveContextItemResponseDto": {
         "type": "object",
@@ -31768,10 +32134,6 @@
             "additionalProperties": true,
             "description": "The connection’s whole data selection, as workspace access preferences."
           },
-          "contextEnabled": {
-            "type": "boolean",
-            "description": "Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`."
-          },
           "item": {
             "description": "The pinned context item.",
             "allOf": [
@@ -31933,7 +32295,7 @@
           },
           "toolset": {
             "type": "object",
-            "description": "Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.",
+            "description": "Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`, plus `<platform>.personal = { actions, rules? }` for actions run on each runner’s own personal connection; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.",
             "additionalProperties": true,
             "example": {
               "postgresql": {
@@ -31951,7 +32313,7 @@
             }
           },
           "connectionSet": {
-            "description": "Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths.",
+            "description": "Connections attached to this variation, one entry per connection. Its `preferences` say what the scope reads under it; an entry with `preferences` can be sent back as it is on update. Drop an entry without them (a deleted connection) first.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConnectionSetItemReadDto"
@@ -32237,9 +32599,10 @@
               "webhook",
               "api",
               "slack",
-              "manual"
+              "manual",
+              "email"
             ],
-            "description": "Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.",
+            "description": "Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.",
             "example": "schedule"
           },
           "schedule": {
@@ -32251,10 +32614,49 @@
                 "$ref": "#/components/schemas/TriggerScheduleDto"
               }
             ]
+          },
+          "email": {
+            "description": "Sender policy. Required when trigger_type=email. Null for every other trigger.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TriggerEmailDto"
+              }
+            ]
           }
         },
         "required": [
           "trigger_type"
+        ]
+      },
+      "TriggerEmailDto": {
+        "type": "object",
+        "properties": {
+          "sender_policy": {
+            "type": "string",
+            "enum": [
+              "allowlist",
+              "any"
+            ],
+            "description": "`allowlist` starts runs only for email from `allowed_senders` (an empty list rejects every email); `any` accepts every authenticated sender.",
+            "example": "allowlist"
+          },
+          "allowed_senders": {
+            "description": "Exact addresses or `@domain` entries (that domain only). Stored lowercase; at most 100. Kept when `sender_policy` is `any`.",
+            "example": [
+              "@acme.com",
+              "billing@supplier.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "sender_policy",
+          "allowed_senders"
         ]
       },
       "TriggerEvaluationRunResponseDto": {
@@ -32815,7 +33217,7 @@
           "toolset": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.",
+            "description": "Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. A platform people connect personally also takes `<platform>.personal = { actions, rules? }`, which runs on each runner’s own personal connection; a save that newly adds a personal connection's UUID to `byConnection` (or grants it new actions there) is rejected with HTTP 422. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.",
             "example": {
               "slack": {
                 "byConnection": {
@@ -33377,6 +33779,90 @@
         ],
         "description": "Node kind. Determines how the runtime interprets `data`."
       },
+      "WorkflowRunAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "File name as it was sent.",
+            "example": "invoice-4471.pdf"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type, when known.",
+            "example": "application/pdf"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size in bytes, when known.",
+            "example": 182000
+          },
+          "skipped": {
+            "description": "Set when the trigger received the file but did not give it to the run.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRunSkippedAttachmentDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "fileName"
+        ]
+      },
+      "WorkflowRunOriginDto": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Where the run came from, for example `api`, `schedule` or `email`. `unknown` for a run that did not record it. New values may be added.",
+            "example": "schedule"
+          },
+          "from": {
+            "type": "string",
+            "description": "Email runs: the sender address.",
+            "example": "dana@acme.com"
+          },
+          "fromName": {
+            "type": "string",
+            "description": "Email runs: the sender display name, when the email has one.",
+            "example": "Dana Cohen"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email runs: the subject line.",
+            "example": "Invoice 4471 for October"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "WorkflowRunSkippedAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "description": "Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRunSkippedAttachmentReason"
+              }
+            ]
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "WorkflowRunSkippedAttachmentReason": {
+        "type": "string",
+        "enum": [
+          "too_large",
+          "too_many"
+        ],
+        "description": "Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit."
+      },
       "WorkflowStructureDto": {
         "type": "object",
         "properties": {
@@ -33426,9 +33912,10 @@
               "webhook",
               "api",
               "slack",
-              "manual"
+              "manual",
+              "email"
             ],
-            "description": "Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.",
+            "description": "Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.",
             "example": "schedule"
           },
           "schedule": {
@@ -33438,6 +33925,16 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerScheduleResponseDto"
+              }
+            ]
+          },
+          "email": {
+            "description": "Sender policy. Present when trigger_type=email. Null for every other trigger.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TriggerEmailDto"
               }
             ]
           }
@@ -33636,15 +34133,6 @@
       "AgentRunDto": {
         "type": "object",
         "properties": {
-          "message": {
-            "type": "string",
-            "maxLength": 32000,
-            "description": "The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts."
-          },
-          "sessionId": {
-            "type": "string",
-            "description": "Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together."
-          },
           "organizationId": {
             "type": "string",
             "description": "Organization id. Ignored for authenticated callers — the server uses the principal's org."
@@ -33656,13 +34144,6 @@
               "draft"
             ],
             "description": "Saved version to run (scope/workflow; ignored for Modus). API tokens may not run a scope draft."
-          },
-          "fileThreadId": {
-            "type": "string",
-            "description": "Document-scoped conversation thread id."
-          },
-          "config": {
-            "$ref": "#/components/schemas/RunConfigDto"
           },
           "attachments": {
             "$ref": "#/components/schemas/AttachmentsDto"
@@ -33685,24 +34166,48 @@
             "type": "string",
             "description": "Client-supplied run id (Idempotency-Key header wins)."
           },
+          "message": {
+            "type": "string",
+            "maxLength": 32000,
+            "description": "The run's input, which the workflow's first step receives. Omit it, or send an empty string, to trigger a run with no input. API tokens are held to the 32,000-character limit."
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "A token you choose that threads runs into one conversation: send the same value on each run. Omit it for a one-off run; the server then assigns an id it does not return, so that run cannot be continued."
+          },
+          "config": {
+            "deprecated": true,
+            "description": "Deprecated: ignored for workflow runs, whose steps use the model and tools set in the workflow. Omit it.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunConfigDto"
+              }
+            ]
+          },
+          "fileThreadId": {
+            "type": "string",
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
+          },
           "streamProtocolVersion": {
             "type": "integer",
             "enum": [
               2
             ],
-            "description": "Streaming protocol version. Version 2 supports assistant-content replacement events."
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
           },
           "experimentalFeatures": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
           },
           "debug": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true,
+            "description": "Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts."
           }
-        },
-        "required": [
-          "message",
-          "sessionId"
-        ]
+        }
       },
       "ApprovalTargetDto": {
         "type": "object",
@@ -34211,7 +34716,7 @@
               "type": "object",
               "additionalProperties": true
             },
-            "description": "Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences), `context_enabled` and `path` (a row the preferences compile to)."
+            "description": "Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences) and `path` (a row the preferences compile to)."
           },
           "connectionAllModeIds": {
             "type": "array",
@@ -34352,6 +34857,7 @@
           "context_suggestions",
           "dashboard_copilot",
           "dashboard_assistant",
+          "email",
           "other"
         ],
         "description": "Origin of the run. Set by the server for API tokens."
@@ -34465,7 +34971,8 @@
         "enum": [
           "slack",
           "teams",
-          "mcp"
+          "mcp",
+          "email"
         ],
         "description": "Producer that supplied the supplemental context."
       },

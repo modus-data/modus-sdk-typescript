@@ -98,6 +98,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/context/custom-items/batchDelete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete custom context items by source key
+         * @description Soft-deletes custom context items under `sourceId`, optionally narrowed by `collectionId` / `externalId`; integration items are never touched. Deletes only the targeted node unless `cascade`; `kind` picks entity or `entity_samples`. Up to 1000 items per call: when `truncated`, call again with `nextCursor`.
+         *
+         *     **Requires:** `context:write`
+         */
+        post: operations["CustomContextItemsController_batchDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/context/custom-items/relations": {
         parameters: {
             query?: never;
@@ -783,7 +805,7 @@ export interface paths {
         head?: never;
         /**
          * Update context item access
-         * @description Replaces who can view and manage a note, saved query, link or uploaded file. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.
+         * @description Replaces who can view and manage a note, saved query, link, uploaded file or organization learning. With visibility shared, sharedWith is ignored; with private, groupPermissions is ignored. You cannot remove your own manage access. An item with no owner becomes yours. Other item types return 422.
          *
          *     **Requires:** `context:write`
          */
@@ -801,7 +823,7 @@ export interface paths {
         put?: never;
         /**
          * Move a Files item
-         * @description Moves a live file or Files folder to an existing folder, or to the Files root when destinationFolderUid is null. Same-parent moves succeed as a no-op. Does not rename or merge folders.
+         * @description Moves a live file or Files folder to an existing folder by destinationFolderUid (null is the Files root), or to destinationFolderPath, creating missing folders. Same-parent moves are a no-op. Does not rename or merge folders.
          *
          *     **Requires:** `context:write`
          */
@@ -1006,7 +1028,7 @@ export interface paths {
         put?: never;
         /**
          * Create a scope
-         * @description Creates a draft scope you own. Defaults to org-shared use and manage. Reads its own learnings unless `includeOwnLearnings` is false. Publish with POST /scopes/{id}/deploy. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).
+         * @description Creates a draft scope you own (org-shared use/manage), with own and org-wide learnings unless `includeOwnLearnings`/`includeOrgLearnings` is false or the selections name learnings or are context filters without a rule-based query. `connectionSet` entries name a connection and what the scope reads in it (`preferences`).
          *
          *     **Requires:** `scopes:write`
          */
@@ -1105,7 +1127,7 @@ export interface paths {
         };
         /**
          * List scope conversations
-         * @description Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. Pass `nextPageToken` as `pageToken` to fetch the next page.
+         * @description Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0` for your cross-scope recent history. Optional `userId`, `toolName`, and `timeframe` filters apply. A conversation you took no part in shows only who took part and when. Pass `nextPageToken` as `pageToken` for the next page.
          *
          *     **Requires:** `scopes:read`
          */
@@ -1127,7 +1149,7 @@ export interface paths {
         };
         /**
          * Get a conversation
-         * @description Returns conversation messages in chronological order. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.
+         * @description Returns conversation messages in chronological order. Only a participant can read a conversation; anyone else gets 404. Pass `messageLimit` to request a bounded message window. Use `id=0` for your cross-scope view.
          *
          *     **Requires:** `scopes:read`
          */
@@ -2364,8 +2386,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Chat with a workflow
-         * @description Sends a message to a published workflow and streams its node output as Server-Sent Events. The run ends with `workflow_done`, whose `finalOutput` is the answer. Reuse `sessionId` to continue. Send Accept: application/json to poll instead of streaming.
+         * Run a workflow
+         * @description Triggers a run of the published workflow and streams its node output as Server-Sent Events. An empty body runs it with no input; send `message` to give it one. The run ends with `workflow_done`, whose `finalOutput` is the result. To continue a conversation, send your own `sessionId` and reuse it. Send Accept: application/json to poll instead of streaming.
          *
          *     **Requires:** `workflows:invoke`
          */
@@ -2648,7 +2670,7 @@ export interface components {
          */
         AgentType: "task" | "workflow";
         AgentVariationDto: {
-            /** @description `trigger_type` is `schedule`, `webhook`, `api`, `slack`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved. */
+            /** @description `trigger_type` is `schedule`, `webhook`, `api`, `slack`, `email`, or `manual`. `schedule` is present only for a schedule trigger. Null until a trigger is saved. */
             trigger?: components["schemas"]["WorkflowTriggerResponseDto"] | null;
             /** @description Workflow graph (`nodes` and `edges`) when `type` is `workflow`. Null when `type` is `task`. */
             workflowStructure?: components["schemas"]["WorkflowStructureResponseDto"] | null;
@@ -2714,7 +2736,7 @@ export interface components {
              * @enum {string}
              */
             statusReason?: "approval_timeout" | "agent_reported_issue";
-            /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
+            /** @description What started this run: `schedule`, `email`, `api`, `manual`, or the chat channel it came from. A run that did not record it shows the Workflow's current trigger type. */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
             startedAt?: string;
@@ -2735,7 +2757,7 @@ export interface components {
          */
         AutomationRunSource: "live-query" | "history";
         BatchCreateCustomContextItemRelationsDto: {
-            /** @description Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending updates content. */
+            /** @description Relations to upsert. Idempotent by (fromUid, toUid, relationType); re-sending replaces edgeProperties. */
             relations: components["schemas"]["CreateCustomContextItemRelationDto"][];
         };
         BatchCreateCustomContextItemRelationsResponseDto: {
@@ -2752,6 +2774,52 @@ export interface components {
         BatchCreateCustomContextItemsResponseDto: {
             /** @description Custom context items created or updated by the batch. */
             contextItems: components["schemas"]["CreatedCustomContextItemResponseDto"][];
+        };
+        BatchDeleteCustomContextItemsDto: {
+            /**
+             * @description Customer-defined source to delete from. Required — a batch delete is always scoped to one source.
+             * @example billing-db
+             */
+            sourceId: string;
+            /**
+             * @description Narrow to one collection inside the source. Omit to target the whole source.
+             * @example contracts
+             */
+            collectionId?: string;
+            /**
+             * @description Narrow to one entity inside the collection. Requires `collectionId`.
+             * @example contract-123
+             */
+            externalId?: string;
+            /**
+             * @description Which kind of item to delete at the selected path, for a non-cascade delete. An entity and its `entity_samples` share a path, so this disambiguates them. Defaults to the metadata item at the selected level (`source`/`collection`/`entity`). Must match the selector depth. Ignored when `cascade` is true.
+             * @example entity
+             */
+            kind?: components["schemas"]["CustomContextItemKind"];
+            /**
+             * @description When `true`, also delete everything beneath the targeted node (its descendants). When `false` (default), delete only the targeted node itself, leaving descendants in place.
+             * @default false
+             */
+            cascade: boolean;
+            /** @description Continuation cursor from a previous response `nextCursor`. Pass it to delete the next batch when a prior call was truncated. */
+            cursor?: string;
+        };
+        BatchDeleteCustomContextItemsResponseDto: {
+            /**
+             * @description Number of custom context items soft-deleted by this request.
+             * @example 8
+             */
+            deletedCount: number;
+            /**
+             * @description True when more matching items were ahead of this batch; call again with `nextCursor` to continue the sweep.
+             * @example false
+             */
+            truncated: boolean;
+            /**
+             * @description Continuation cursor; pass as `cursor` to delete the next batch. `null` means no more matching items were ahead of the cursor at scan time. This is a forward pass, not a snapshot: items added, or recreated with a lower id, during the sweep are not guaranteed to be included — run a fresh pass (no cursor) to catch them.
+             * @example null
+             */
+            nextCursor: string | null;
         };
         BulkFinalizeDto: {
             /** @description Uploads to finalize. Max 100 per request. */
@@ -3001,11 +3069,6 @@ export interface components {
             preferences: {
                 [key: string]: unknown;
             };
-            /**
-             * @deprecated
-             * @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`.
-             */
-            context_enabled?: boolean;
         };
         ConnectionSetItemReadDto: {
             /**
@@ -3014,13 +3077,7 @@ export interface components {
              */
             connection_id: string;
             /**
-             * @deprecated
-             * @description Deprecated. Use `preferences`. One stored row per included path, derived from `preferences`; an empty array is the whole connection.
-             * @example []
-             */
-            path: string[];
-            /**
-             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down. Present on the connection's first row. Absent on every row of a connection last saved without `preferences`, until the server converts it.
+             * @description What the scope reads under this connection. `mode` `all` reads the whole connection; `manual` reads only the units its `include` rules select. `exclude` rules remove units in either mode. Each rule's `path` lists id steps `{type, by: "id", id}` from the connection down. Absent only on the entry of a deleted connection, whose `connection_id` is a placeholder (`00000000-0000-0000-0000-…`) and which grants nothing.
              * @example {
              *       "mode": "manual",
              *       "include": [
@@ -3055,11 +3112,6 @@ export interface components {
             preferences?: {
                 [key: string]: unknown;
             };
-            /**
-             * @deprecated
-             * @description Deprecated. Use `preferences`. Whether the scope reads context from this connection: true, except on a few older entries kept for their tools only.
-             */
-            context_enabled?: boolean;
         };
         ContentProjectionDto: {
             /**
@@ -3272,22 +3324,22 @@ export interface components {
              */
             scopeId: number;
             /**
-             * @description Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet.
+             * @description Preview of the first user turn, used as a list-row caption. Falls back to a stable placeholder when the thread has no human turn yet. Empty when the caller did not take part in the conversation.
              * @example Run the churn analysis for last 30 days.
              */
             firstMessage: string;
             /**
-             * @description User-managed display title. Null until the user renames the conversation.
+             * @description User-managed display title. Null until the user renames the conversation, and null when the caller did not take part in it.
              * @example Q3 Revenue Analysis
              */
             title: string | null;
             /**
-             * @description UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown, absent on responses that predate the field.
+             * @description UI surface the conversation was started from (e.g. `context_chat`, `home`). Not constrained to the `RunSource` enum: historical rows carry legacy values. Null when unknown or when the caller did not take part in the conversation, absent on responses that predate the field.
              * @example context_chat
              */
             source?: string | null;
             /**
-             * @description Total number of message turns in the (post-collapse) conversation.
+             * @description Total number of message turns in the (post-collapse) conversation. 0 when the caller did not take part in it.
              * @example 12
              */
             messageCount: number;
@@ -3302,7 +3354,7 @@ export interface components {
              */
             updatedAt: string;
             /**
-             * @description Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested.
+             * @description Distinct tool names invoked across this conversation. Present only when `includeTools=true` is requested and the caller took part in the conversation.
              * @example [
              *       "sql_runner"
              *     ]
@@ -3315,6 +3367,11 @@ export interface components {
              *     ]
              */
             userIds: string[];
+            /**
+             * @description Whether the caller took part in this conversation. Only a participant can open, rename or download files from a conversation; for any other row the list carries only who took part and when.
+             * @example true
+             */
+            ownedByCaller?: boolean;
         };
         ConversationMessageDto: {
             /**
@@ -3391,7 +3448,7 @@ export interface components {
             agentSelection?: components["schemas"]["AgentSelectionDto"];
             /** @description Workflow graph (nodes + edges) when `type` is `workflow`. Unknown node/edge keys and out-of-enum node types are rejected with a 422. */
             workflowStructure?: components["schemas"]["WorkflowStructureDto"];
-            /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */
+            /** @description Access configuration. Omit to create the workflow private, with no group grants and no invitees; its creator can share it later. A service account token that omits it creates the workflow shared with the whole organization (use + manage), since it has no owner. */
             accessConfig?: components["schemas"]["AgentAccessConfigDto"];
         };
         CreateCustomContextItemDto: {
@@ -3500,13 +3557,19 @@ export interface components {
              */
             toUid: string;
             /**
-             * @description Snake_case relation type describing how the source relates to the target.
+             * @description Snake_case relation type describing how the source relates to the target. Reserved system types cannot be used: contains, reads, joins_with, has_context, has_feedback, filters_by, context_relation. Dotted names are also reserved.
              * @example depends_on
              */
             relationType: string;
-            /** @description Optional structured payload stored on the relation edge. */
-            content?: {
-                [key: string]: unknown;
+            /**
+             * @description Edge properties, replacing the previous map. Up to 100 keys matching ^[A-Za-z_][A-Za-z0-9_]{0,63}$ and 65536 UTF-8 JSON bytes; fromContextItemUid, toContextItemUid, relationType, createdAt and updatedAt are reserved. Values are strings, finite numbers, booleans, or arrays of those. Omission writes an empty map.
+             * @example {
+             *       "version": "v1.1.8",
+             *       "source": "go.mod"
+             *     }
+             */
+            edgeProperties?: {
+                [key: string]: string | number | boolean | (string | number | boolean)[];
             };
         };
         CreateDashboardDto: {
@@ -3635,7 +3698,7 @@ export interface components {
              */
             instructions?: string[];
             /**
-             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. A platform people connect personally also takes `<platform>.personal = { actions, rules? }`, which runs on each runner’s own personal connection; a save that newly adds a personal connection's UUID to `byConnection` (or grants it new actions there) is rejected with HTTP 422. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
              *         "byConnection": {
@@ -3688,7 +3751,7 @@ export interface components {
              */
             connectionSet?: components["schemas"]["ConnectionSetItemDto"][];
             /**
-             * @description Selected context items (sources / docs) the scope may read. The scope's own learnings are added unless `includeOwnLearnings` is false or these selections already mention learnings.
+             * @description Selected context items (sources / docs) the scope may read. The scope's own learnings and the org-wide learnings are added, each unless its include flag is false, when these selections neither mention learnings already nor are context filters without a rule-based query.
              * @example []
              */
             contextSelections?: {
@@ -3699,6 +3762,11 @@ export interface components {
              * @default true
              */
             includeOwnLearnings: boolean;
+            /**
+             * @description Whether create adds the org-wide learnings path (`auto_generated:org`, what the organization taught Modus) to the scope's selections. Defaults to true, skipped when `contextSelections` already mention learnings or are context filters without a rule-based query; false only skips the addition, so selections naming the path still read it.
+             * @default true
+             */
+            includeOrgLearnings: boolean;
             /** @description MCP interface rows for this scope. Each row has type mcp, an optional id and name, and a config of core tools and exposed integrations. Omitted id and name are assigned. */
             interfaces?: components["schemas"]["ScopeMcpInterfaceInputDto"][];
             /** @description Access configuration. Omit to use the default (full-org shared with use + manage). */
@@ -4474,7 +4542,7 @@ export interface components {
              * @enum {string}
              */
             statusReason?: "approval_timeout" | "agent_reported_issue";
-            /** @description Trigger type for the run (schedule / webhook / api / slack / manual). */
+            /** @description What started this run: `schedule`, `email`, `api`, `manual`, or the chat channel it came from. */
             triggerType?: string;
             /** @description ISO-8601 start timestamp. */
             startedAt?: string;
@@ -4502,6 +4570,10 @@ export interface components {
             }[];
             /** @description Set when history was unavailable; `source` will be `live-query` in that case. */
             historyUnavailableReason?: string;
+            /** @description Files the run was started with, and files its trigger left out. Empty when there were none. */
+            attachments?: components["schemas"]["WorkflowRunAttachmentDto"][];
+            /** @description Where the run came from. */
+            origin?: components["schemas"]["WorkflowRunOriginDto"];
         };
         GroupPermissionDto: {
             /**
@@ -4883,7 +4955,7 @@ export interface components {
          * @description Kind of tool this row exposes.
          * @enum {string}
          */
-        McpExposureFamily: "integration_actions" | "custom_mcp" | "mcp_server" | "tool";
+        McpExposureFamily: "integration_actions" | "custom_mcp" | "mcp_server" | "tool" | "personal";
         McpToolExposureConfigDto: {
             /**
              * @description Exposure format. Always 1.
@@ -5009,10 +5081,15 @@ export interface components {
         };
         MoveContextItemDto: {
             /**
-             * @description Stored context-item uid of an existing Files folder, or null to move to the Files root. The destination must already exist. Move does not rename or merge folders.
+             * @description Stored context-item uid of an existing Files folder, or null to move to the Files root. Send this or destinationFolderPath, not both.
              * @example null
              */
-            destinationFolderUid: string | null;
+            destinationFolderUid?: string | null;
+            /**
+             * @description Root-relative destination folder path (for example `reports/2026`). Folders missing on the path are created; existing ones are reused. Send this or destinationFolderUid, not both.
+             * @example reports/2026
+             */
+            destinationFolderPath?: string;
         };
         MoveContextItemResponseDto: {
             /**
@@ -5373,8 +5450,6 @@ export interface components {
             preferences?: {
                 [key: string]: unknown;
             };
-            /** @description Deprecated. Use `preferences` alone: the scope always reads context from its connections. Omit it; `false` is accepted only when the connection is already stored with `false`. */
-            contextEnabled?: boolean;
             /** @description The pinned context item. */
             item?: components["schemas"]["SelectedContextItemDto"];
             /** @description Uid of the pinned item to remove. */
@@ -5465,7 +5540,7 @@ export interface components {
             /** @description Model-specific runtime controls such as reasoning effort and context window. */
             modelSettings?: components["schemas"]["ModelSettingsDto"];
             /**
-             * @description Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.
+             * @description Map of tool key to configuration. Integrations use `<platform>.byConnection[connectionUuid] = { actions, rules? }`, plus `<platform>.personal = { actions, rules? }` for actions run on each runner’s own personal connection; SQL platforms grant `query`. General tools and MCP configurations keep their own formats.
              * @example {
              *       "postgresql": {
              *         "byConnection": {
@@ -5484,7 +5559,7 @@ export interface components {
             toolset: {
                 [key: string]: unknown;
             };
-            /** @description Connections attached to this variation. A connection's `preferences` say what the scope reads under it; its rows list the derived paths. */
+            /** @description Connections attached to this variation, one entry per connection. Its `preferences` say what the scope reads under it; an entry with `preferences` can be sent back as it is on update. Drop an entry without them (a deleted connection) first. */
             connectionSet: components["schemas"]["ConnectionSetItemReadDto"][];
             /** @description Context selections attached to the variation. Free-form builder objects. */
             contextSelections: {
@@ -5634,13 +5709,31 @@ export interface components {
         };
         TriggerDto: {
             /**
-             * @description Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.
+             * @description Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.
              * @example schedule
              * @enum {string}
              */
-            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
+            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual" | "email";
             /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
             schedule?: components["schemas"]["TriggerScheduleDto"] | null;
+            /** @description Sender policy. Required when trigger_type=email. Null for every other trigger. */
+            email?: components["schemas"]["TriggerEmailDto"] | null;
+        };
+        TriggerEmailDto: {
+            /**
+             * @description `allowlist` starts runs only for email from `allowed_senders` (an empty list rejects every email); `any` accepts every authenticated sender.
+             * @example allowlist
+             * @enum {string}
+             */
+            sender_policy: "allowlist" | "any";
+            /**
+             * @description Exact addresses or `@domain` entries (that domain only). Stored lowercase; at most 100. Kept when `sender_policy` is `any`.
+             * @example [
+             *       "@acme.com",
+             *       "billing@supplier.com"
+             *     ]
+             */
+            allowed_senders: string[];
         };
         TriggerEvaluationRunResponseDto: {
             /** @description The created run ID */
@@ -5929,7 +6022,7 @@ export interface components {
              */
             instructions?: string[] | null;
             /**
-             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
+             * @description Map of tool key to configuration; unknown keys are rejected. Integrations require `<platform>.byConnection[connectionUuid] = { actions, rules? }`; actions are catalog action names and SQL platforms grant `query`. A platform people connect personally also takes `<platform>.personal = { actions, rules? }`, which runs on each runner’s own personal connection; a save that newly adds a personal connection's UUID to `byConnection` (or grants it new actions there) is rejected with HTTP 422. Flat entries, action-string arrays and retired keys are rejected with HTTP 422.
              * @example {
              *       "slack": {
              *         "byConnection": {
@@ -6270,6 +6363,57 @@ export interface components {
          * @enum {string}
          */
         WorkflowNodeType: "start" | "action" | "condition" | "agent" | "humanApproval";
+        WorkflowRunAttachmentDto: {
+            /**
+             * @description File name as it was sent.
+             * @example invoice-4471.pdf
+             */
+            fileName: string;
+            /**
+             * @description MIME type, when known.
+             * @example application/pdf
+             */
+            mimeType?: string;
+            /**
+             * Format: int64
+             * @description Size in bytes, when known.
+             * @example 182000
+             */
+            sizeBytes?: number;
+            /** @description Set when the trigger received the file but did not give it to the run. */
+            skipped?: components["schemas"]["WorkflowRunSkippedAttachmentDto"];
+        };
+        WorkflowRunOriginDto: {
+            /**
+             * @description Where the run came from, for example `api`, `schedule` or `email`. `unknown` for a run that did not record it. New values may be added.
+             * @example schedule
+             */
+            source: string;
+            /**
+             * @description Email runs: the sender address.
+             * @example dana@acme.com
+             */
+            from?: string;
+            /**
+             * @description Email runs: the sender display name, when the email has one.
+             * @example Dana Cohen
+             */
+            fromName?: string;
+            /**
+             * @description Email runs: the subject line.
+             * @example Invoice 4471 for October
+             */
+            subject?: string;
+        };
+        WorkflowRunSkippedAttachmentDto: {
+            /** @description Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit. */
+            reason: components["schemas"]["WorkflowRunSkippedAttachmentReason"];
+        };
+        /**
+         * @description Why the file was left out: `too_large` = over the per-file size limit; `too_many` = over the file count limit.
+         * @enum {string}
+         */
+        WorkflowRunSkippedAttachmentReason: "too_large" | "too_many";
         WorkflowStructureDto: {
             /** @description Workflow nodes. Defaults to `[]`. */
             nodes?: components["schemas"]["WorkflowNodeDto"][];
@@ -6284,13 +6428,15 @@ export interface components {
         } | null;
         WorkflowTriggerResponseDto: {
             /**
-             * @description Trigger kind. Only `schedule` validates its nested payload here; the rest are opaque.
+             * @description Trigger kind. `schedule` and `email` carry a nested payload; the rest are opaque.
              * @example schedule
              * @enum {string}
              */
-            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual";
+            trigger_type: "schedule" | "webhook" | "api" | "slack" | "manual" | "email";
             /** @description Schedule details. Required when trigger_type=schedule. Null for every other trigger. */
             schedule?: components["schemas"]["WorkflowTriggerScheduleResponseDto"] | null;
+            /** @description Sender policy. Present when trigger_type=email. Null for every other trigger. */
+            email?: components["schemas"]["TriggerEmailDto"] | null;
         } | null;
         WorkflowTriggerScheduleResponseDto: {
             /**
@@ -6376,10 +6522,6 @@ export interface components {
             nextPageToken: string | null;
         };
         AgentRunDto: {
-            /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
-            message: string;
-            /** @description Opaque client-generated conversation token for continuity. The server NEVER derives the run target identity (scope/workflow/modus) from this string — target identity comes only from the request path and DTO (see RunTarget). It is used solely to thread successive turns of the same conversation together. */
-            sessionId: string;
             /** @description Organization id. Ignored for authenticated callers — the server uses the principal's org. */
             organizationId?: string;
             /**
@@ -6387,9 +6529,6 @@ export interface components {
              * @enum {string}
              */
             version?: "published" | "draft";
-            /** @description Document-scoped conversation thread id. */
-            fileThreadId?: string;
-            config?: components["schemas"]["RunConfigDto"];
             attachments?: components["schemas"]["AttachmentsDto"];
             userContext?: components["schemas"]["UserContextDto"];
             supplementalContext?: components["schemas"]["SupplementalContextDto"];
@@ -6397,12 +6536,35 @@ export interface components {
             source?: components["schemas"]["RunSource"];
             /** @description Client-supplied run id (Idempotency-Key header wins). */
             runId?: string;
+            /** @description The run's input, which the workflow's first step receives. Omit it, or send an empty string, to trigger a run with no input. API tokens are held to the 32,000-character limit. */
+            message?: string;
+            /** @description A token you choose that threads runs into one conversation: send the same value on each run. Omit it for a one-off run; the server then assigns an id it does not return, so that run cannot be continued. */
+            sessionId?: string;
             /**
-             * @description Streaming protocol version. Version 2 supports assistant-content replacement events.
+             * @deprecated
+             * @description Deprecated: ignored for workflow runs, whose steps use the model and tools set in the workflow. Omit it.
+             */
+            config?: components["schemas"]["RunConfigDto"];
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
+             */
+            fileThreadId?: string;
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
              * @enum {integer}
              */
             streamProtocolVersion?: 2;
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
+             */
             experimentalFeatures?: boolean;
+            /**
+             * @deprecated
+             * @description Deprecated and ignored: a workflow run takes its settings from the workflow. Omit it; see `message` and `sessionId` for what a run accepts.
+             */
             debug?: boolean;
         };
         ApprovalTargetDto: {
@@ -6600,7 +6762,7 @@ export interface components {
             connectionSelections?: {
                 [key: string]: unknown;
             }[];
-            /** @description Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences), `context_enabled` and `path` (a row the preferences compile to). */
+            /** @description Connection-set entries (runtime-owned shape): `connection_id`, and optionally `preferences` (the connection's workspace-access preferences) and `path` (a row the preferences compile to). */
             connectionSet?: {
                 [key: string]: unknown;
             }[];
@@ -6650,7 +6812,7 @@ export interface components {
          * @description Origin of the run. Set by the server for API tokens.
          * @enum {string}
          */
-        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
+        RunSource: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "email" | "other";
         SkillRunDto: {
             /** @description The user message to send. API tokens are held to the 32,000-character limit; a longer message is refused before the run starts. */
             message: string;
@@ -6695,7 +6857,7 @@ export interface components {
          * @description Producer that supplied the supplemental context.
          * @enum {string}
          */
-        SupplementalContextSource: "slack" | "teams" | "mcp";
+        SupplementalContextSource: "slack" | "teams" | "mcp" | "email";
         UserContextDto: {
             /** @description End-user email for personalization; also used for usage attribution. */
             email?: string;
@@ -7031,6 +7193,12 @@ export interface operations {
                 searchQuery?: string;
                 /** @description Filter by topic tag. */
                 topics?: string[];
+                /** @description Restrict to a single customer-defined source. Returns the source and everything beneath it. */
+                sourceId?: string;
+                /** @description Restrict to a collection inside the source. Requires `sourceId`. Returns the collection and everything beneath it. */
+                collectionId?: string;
+                /** @description Restrict to a single entity inside the collection. Requires `sourceId` and `collectionId`. Returns the entity and its fields. */
+                externalId?: string;
             };
             header?: never;
             path?: never;
@@ -7102,6 +7270,25 @@ export interface operations {
                      *             "<required-scope>"
                      *           ]
                      *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "collectionId must not be blank.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
                      *       }
                      *     }
                      */
@@ -7365,6 +7552,204 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BatchCreateCustomContextItemsResponseDto"];
+                };
+            };
+            /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "BAD_REQUEST",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Invalid value for query parameter `pageSize`.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Missing, invalid, or expired access token (`code: UNAUTHORIZED`). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "UNAUTHORIZED",
+                     *         "status": "UNAUTHENTICATED",
+                     *         "message": "Missing or invalid access token.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /**
+             * @description Authenticated, but the token lacks a required scope (`code: FORBIDDEN`). The missing scopes are listed in `info`.
+             *
+             *     Also returned, with the message `Custom context item writes are not enabled`, when custom context item writes are not enabled for your organization. They are off by default; ask Modus to enable them.
+             */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "FORBIDDEN",
+                     *         "status": "PERMISSION_DENIED",
+                     *         "message": "Custom context item writes are not enabled",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The resource does not exist, or you do not have access to it (`code: NOT_FOUND`). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "NOT_FOUND",
+                     *         "status": "NOT_FOUND",
+                     *         "message": "Resource not found.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request conflicts with the current state of the resource, e.g. a duplicate (`code: CONFLICT`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "CONFLICT",
+                     *         "status": "ALREADY_EXISTS",
+                     *         "message": "A resource with that identifier already exists.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request body is larger than this operation accepts (`code: PAYLOAD_TOO_LARGE`). The limit is 100 KiB unless the operation raises it; the message names the limit that applied. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "PAYLOAD_TOO_LARGE",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Request body exceeds the 1 MiB limit.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description The request was well-formed but failed a business rule (`code: VALIDATION`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "VALIDATION",
+                     *         "status": "INVALID_ARGUMENT",
+                     *         "message": "Updates that would revoke your own access are not allowed.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Too many requests. Wait and retry later (`code: RATE_LIMITED`). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "RATE_LIMITED",
+                     *         "status": "RESOURCE_EXHAUSTED",
+                     *         "message": "Too many requests. Please retry after a short delay.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description An unexpected server error occurred (`code: INTERNAL_ERROR`). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "status": "INTERNAL",
+                     *         "message": "An unexpected error occurred.",
+                     *         "requestId": "req_01HQ7K8ABCDEFGHIJKLMNOPQRS"
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomContextItemsController_batchDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchDeleteCustomContextItemsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchDeleteCustomContextItemsResponseDto"];
                 };
             };
             /** @description Malformed request — invalid query parameters or request body (`code: BAD_REQUEST`). */
@@ -15957,10 +16342,10 @@ export interface operations {
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
-                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
+                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
                 toolName?: string;
-                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "email" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */
@@ -17499,10 +17884,10 @@ export interface operations {
                 pageSize?: number;
                 /** @description Filter by user id who participated in the conversation. Exact match against the `conversation_interactions.user_id` column. */
                 userId?: string;
-                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. */
+                /** @description Filter by tool name invoked in the conversation. Applied post-fetch (requires reading message blobs); use `includeTools=true` to also see the matched tools. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
                 toolName?: string;
-                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. */
-                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "other";
+                /** @description Return only conversations started from this UI surface. Cannot be combined with `toolName`, `includeTools=true`, or `kind` other than `all`. Matches only conversations you took part in. With the `userId` of another member it is a 400 on a scope, and a 404 with `id=0`, as for any id but your own there. */
+                source?: "home" | "agent_settings" | "agent" | "api" | "modus_api" | "mcp" | "slack" | "slack_dm" | "teams" | "context_chat" | "context_suggestions" | "dashboard_copilot" | "dashboard_assistant" | "email" | "other";
                 /** @description Narrow `source` to one instance of that surface — for `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history per dashboard). Requires `source`; sent alone it is a 422. */
                 sourceRef?: string;
                 /** @description Filter by activity recency. Coarse server-side buckets. */

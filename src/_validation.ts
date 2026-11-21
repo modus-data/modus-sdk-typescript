@@ -65,8 +65,8 @@ export const CHAT_MODELS = [
 
 const ALLOWED_CHAT_MODELS: ReadonlySet<string> = new Set(CHAT_MODELS)
 
-export function validateChatModel(model: string): void {
-  if (!ALLOWED_CHAT_MODELS.has(model)) {
+export function validateChatModel(model: string | undefined): void {
+  if (model === undefined || !ALLOWED_CHAT_MODELS.has(model)) {
     const supported = [...ALLOWED_CHAT_MODELS].sort().join(', ')
     throw new ValidationError(`Unsupported model ${JSON.stringify(model)}. Choose one of: ${supported}.`)
   }

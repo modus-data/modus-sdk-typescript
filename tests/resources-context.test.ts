@@ -167,6 +167,58 @@ describe('CustomContextItemsResource', () => {
     })
   })
 
+  it('batchDelete sends kind through validation to the request body', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ deletedCount: 1, truncated: true, nextCursor: 'uid-9' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new CustomContextItemsResource(http, config)
+
+    // Reaches HTTP only if the runtime write-body allowlist permits `kind`.
+    const result = await resource.batchDelete({
+      sourceId: 'billing-db',
+      collectionId: 'contracts',
+      externalId: 'c-1',
+      kind: 'entity_samples',
+    })
+
+    const [url, init] = fetch.mock.calls[0] ?? []
+    expect(String(url)).toContain('/api/v1/context/custom-items/batchDelete')
+    expect(init?.method).toBe('POST')
+    expect(JSON.parse(String(init?.body))).toEqual({
+      sourceId: 'billing-db',
+      collectionId: 'contracts',
+      externalId: 'c-1',
+      kind: 'entity_samples',
+    })
+    expect(result.nextCursor).toBe('uid-9')
+  })
+
+  it('batchDelete forwards the continuation cursor through validation', async () => {
+    const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ deletedCount: 0, truncated: false, nextCursor: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const http = new HttpClient({ ...config, fetch })
+    const resource = new CustomContextItemsResource(http, config)
+
+    await resource.batchDelete({ sourceId: 'billing-db', cascade: true, cursor: 'uid-42' })
+
+    const [, init] = fetch.mock.calls[0] ?? []
+    expect(JSON.parse(String(init?.body))).toEqual({
+      sourceId: 'billing-db',
+      cascade: true,
+      cursor: 'uid-42',
+    })
+  })
+
   it('creates custom context item relations', async () => {
     const config = createModusConfig({ apiKey: TEST_KEY, maxRetries: 0 })
     const fetch = vi.fn().mockResolvedValue(
@@ -182,7 +234,7 @@ describe('CustomContextItemsResource', () => {
       fromUid: 'source-1',
       toUid: 'target-1',
       relationType: 'depends_on',
-      content: { source: 'go.mod' },
+      edgeProperties: { source: 'go.mod', custom_key: ['a', 'b'] },
     }])
 
     expect(count).toBe(1)
@@ -193,7 +245,7 @@ describe('CustomContextItemsResource', () => {
         fromUid: 'source-1',
         toUid: 'target-1',
         relationType: 'depends_on',
-        content: { source: 'go.mod' },
+        edgeProperties: { source: 'go.mod', custom_key: ['a', 'b'] },
       }],
     })
   })

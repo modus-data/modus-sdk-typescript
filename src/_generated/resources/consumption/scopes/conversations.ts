@@ -20,15 +20,16 @@ export class ScopesConversationsResourceBase {
    * List scope conversations.
    *
    * Returns a page of conversation summaries (most recently updated first) for a scope. Use `id=0`
-   * for your cross-scope recent history. Pass `nextPageToken` as `pageToken` to fetch the next
-   * page.
+   * for your cross-scope recent history. A conversation you took no part in shows only who took
+   * part and when. Pass `nextPageToken` as `pageToken` for the next page.
    *
    * **Requires:** `scopes:read`
    *
    * @param options.pageSize - Items per page. Defaults to 25.
    * @param options.pageToken - Opaque page token from a previous response's `nextPageToken`. Omit
    *   for the first page.
-   * @param options.source - Return only conversations started from this UI surface.
+   * @param options.source - Return only conversations started from this UI surface. Matches only
+   *   conversations you took part in.
    * @param options.sourceRef - Narrow `source` to one instance of that surface — for
    *   `dashboard_copilot` or `dashboard_assistant`, a dashboard id (both scope conversation history
    *   per dashboard). Requires `source`; sent alone it is a 422.
