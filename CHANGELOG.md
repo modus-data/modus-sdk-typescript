@@ -9,6 +9,8 @@ release, including pre-1.0 (`0.x`) releases.
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-11-21
+
 ### Removed
 
 - **MAJOR:** Custom context item relations no longer accept `content`. Use `edgeProperties` (`edge_properties` in Python) for a flat map of primitives or primitive arrays; omitting it replaces the map with `{}`.
